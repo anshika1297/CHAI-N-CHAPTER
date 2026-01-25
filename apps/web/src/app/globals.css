@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-cream text-chai-brown font-body;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-chai-brown text-cream px-4 sm:px-6 py-2.5 sm:py-3 rounded-full font-sans font-medium text-sm sm:text-base
+           hover:bg-chai-brown-dark transition-all duration-300 
+           hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .btn-secondary {
+    @apply border-2 border-chai-brown text-chai-brown px-4 sm:px-6 py-2.5 sm:py-3 rounded-full font-sans font-medium text-sm sm:text-base
+           hover:bg-chai-brown hover:text-cream transition-all duration-300;
+  }
+
+  .btn-terracotta {
+    @apply bg-terracotta text-cream px-4 sm:px-6 py-2.5 sm:py-3 rounded-full font-sans font-medium text-sm sm:text-base
+           hover:bg-terracotta-dark transition-all duration-300
+           hover:shadow-lg hover:-translate-y-0.5;
+  }
+
+  .section-heading {
+    @apply text-3xl md:text-4xl font-serif text-chai-brown mb-2;
+  }
+
+  .section-subheading {
+    @apply text-terracotta font-body italic text-lg mb-8;
+  }
+
+  .card {
+    @apply bg-cream-light rounded-2xl overflow-hidden shadow-md 
+           hover:shadow-xl transition-all duration-300 hover:-translate-y-1;
+  }
+
+  .nav-link {
+    @apply text-chai-brown font-sans text-sm tracking-wide
+           hover:text-terracotta transition-colors duration-300
+           relative after:absolute after:bottom-0 after:left-0 after:w-0 
+           after:h-0.5 after:bg-terracotta after:transition-all after:duration-300
+           hover:after:w-full;
+  }
+}
+
+@layer utilities {
+  .animate-on-scroll {
+    @apply opacity-0 translate-y-8 transition-all duration-700;
+  }
+
+  .animate-on-scroll.visible {
+    @apply opacity-100 translate-y-0;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #EDE5DB;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #8B6F5F;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6B4F3F;
+}

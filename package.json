@@ -1,0 +1,37 @@
+{
+  "name": "chai-n-chapter",
+  "version": "1.0.0",
+  "description": "A personal book blog platform - chai.n.chapter",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "build": "npm run build --workspaces --if-present",
+    "build:api": "npm run build -w apps/api",
+    "build:web": "npm run build -w apps/web",
+    "start": "npm run start --workspaces --if-present",
+    "start:api": "npm run start -w apps/api",
+    "start:web": "npm run start -w apps/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "clean": "npm run clean --workspaces --if-present && rimraf node_modules"
+  },
+  "keywords": [
+    "book-blog",
+    "personal-branding",
+    "nextjs",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "Anshika Mishra",
+  "license": "ISC",
+  "devDependencies": {
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
