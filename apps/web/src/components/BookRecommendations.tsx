@@ -42,10 +42,10 @@ const recommendations = [
 
 export default function BookRecommendations() {
   return (
-    <section className="py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8">
+    <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-8 sm:mb-12">
+        <div className="text-center mb-8 sm:mb-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-chai-brown mb-2">Book Recommendations</h2>
           <p className="section-subheading">
             Handpicked reads for every mood and moment
@@ -66,7 +66,7 @@ export default function BookRecommendations() {
         </div>
 
         {/* Show More */}
-        <div className="text-center mt-8 sm:mt-10">
+        <div className="text-center mt-6 sm:mt-8">
           <Link 
             href="/blog?category=recommendations" 
             className="inline-flex items-center gap-2 btn-terracotta"

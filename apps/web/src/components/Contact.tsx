@@ -5,10 +5,10 @@ import { Mail, Heart, Coffee } from 'lucide-react';
 
 export default function Contact() {
   return (
-    <section className="py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-cream to-cream-dark">
+    <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-cream to-cream-dark">
       <div className="max-w-4xl mx-auto text-center">
         {/* Decorative elements */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex justify-center gap-4 mb-6">
           <Coffee className="text-chai-brown-light animate-float" size={24} />
           <Heart className="text-terracotta animate-float" size={24} style={{ animationDelay: '0.5s' }} />
           <Coffee className="text-chai-brown-light animate-float" size={24} style={{ animationDelay: '1s' }} />
@@ -19,7 +19,7 @@ export default function Contact() {
           Over a cup of chai, of course!
         </p>
 
-        <p className="text-chai-brown-light font-body text-base sm:text-lg leading-relaxed mb-6 sm:mb-8 max-w-2xl mx-auto px-2">
+        <p className="text-chai-brown-light font-body text-base sm:text-lg leading-relaxed mb-6 max-w-2xl mx-auto px-2">
           Whether you want to chat about books, discuss a potential collaboration, 
           or just say hello — I'd love to hear from you. Drop me a message and 
           let's start a conversation!
@@ -36,7 +36,7 @@ export default function Contact() {
         </div>
 
         {/* Newsletter hint */}
-        <div className="mt-8 sm:mt-12 p-4 sm:p-6 bg-cream-light rounded-2xl border border-chai-brown/10 mx-2 sm:mx-0">
+        <div className="mt-6 sm:mt-8 p-4 sm:p-6 bg-cream-light rounded-2xl border border-chai-brown/10 mx-2 sm:mx-0">
           <p className="text-chai-brown font-serif text-lg mb-2">
             Join the Reading List
           </p>

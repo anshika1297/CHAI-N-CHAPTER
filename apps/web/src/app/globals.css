@@ -56,6 +56,47 @@
            after:h-0.5 after:bg-terracotta after:transition-all after:duration-300
            hover:after:w-full;
   }
+
+  .blog-content {
+    @apply text-base sm:text-lg;
+  }
+
+  .blog-content p {
+    @apply mb-6 leading-relaxed;
+  }
+
+  .blog-content h2 {
+    @apply font-serif text-2xl sm:text-3xl text-chai-brown mt-8 mb-4;
+  }
+
+  .blog-content h3 {
+    @apply font-serif text-xl sm:text-2xl text-chai-brown mt-6 mb-3;
+  }
+
+  .blog-content ul,
+  .blog-content ol {
+    @apply mb-6 pl-6 space-y-2;
+  }
+
+  .blog-content li {
+    @apply leading-relaxed;
+  }
+
+  .blog-content blockquote {
+    @apply border-l-4 border-terracotta pl-4 italic my-6 text-chai-brown;
+  }
+
+  .blog-content a {
+    @apply text-terracotta hover:text-terracotta-dark underline;
+  }
+
+  .blog-content strong {
+    @apply font-semibold text-chai-brown;
+  }
+
+  .blog-content em {
+    @apply italic;
+  }
 }
 
 @layer utilities {

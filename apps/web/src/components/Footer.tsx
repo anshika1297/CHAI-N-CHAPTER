@@ -99,9 +99,20 @@ export default function Footer() {
       <div className="border-t border-cream/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-xs sm:text-sm text-cream/60">
-            <p>
-              © {new Date().getFullYear()} chai.n.chapter. All rights reserved.
-            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
+              <p>
+                © {new Date().getFullYear()} chai.n.chapter. All rights reserved.
+              </p>
+              <div className="flex items-center gap-3">
+                <Link href="/terms" className="hover:text-terracotta-light transition-colors">
+                  Terms & Conditions
+                </Link>
+                <span className="text-cream/40">|</span>
+                <Link href="/privacy" className="hover:text-terracotta-light transition-colors">
+                  Privacy Policy
+                </Link>
+              </div>
+            </div>
             <p className="flex items-center gap-1">
               Made with <Heart size={14} className="text-terracotta" fill="currentColor" /> and lots of chai
             </p>

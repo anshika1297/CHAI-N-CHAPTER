@@ -7,8 +7,9 @@ import { Menu, X } from 'lucide-react';
 const navLinks = [
   { name: 'Home', href: '/' },
   { name: 'About Me', href: '/about' },
-  { name: 'Book Reviews', href: '/blog?category=reviews' },
-  { name: 'Recommendations', href: '/blog?category=recommendations' },
+  { name: 'Book Reviews', href: '/blog' },
+  { name: 'Book Recommendations', href: '/recommendations' },
+  { name: 'Her Musings Verse', href: '/musings' },
   { name: 'Book Clubs', href: '/book-clubs' },
   { name: 'Work With Me', href: '/work-with-me' },
 ];
@@ -31,24 +32,30 @@ export default function Header() {
         isScrolled || isMenuOpen ? 'bg-cream shadow-sm' : 'bg-transparent'
       }`}
     >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between py-4">
           {/* Logo */}
           <Link href="/" className="flex flex-col items-center group">
             <span className="font-serif text-2xl md:text-3xl text-chai-brown tracking-wide group-hover:text-terracotta transition-colors">
-              chai.n.chapter
+              Chapters.aur.Chai
             </span>
-            <span className="text-xs text-chai-brown-light font-sans tracking-widest uppercase">
-              {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-            </span>
+          
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
-            {navLinks.map((link) => (
-              <Link key={link.name} href={link.href} className="nav-link text-sm xl:text-base">
-                {link.name}
-              </Link>
+          <nav className="hidden lg:flex items-center gap-0 ml-auto">
+            {navLinks.map((link, index) => (
+              <div key={link.name} className="flex items-center">
+                {index > 0 && (
+                  <span className="h-4 w-px bg-chai-brown/20 mx-3 xl:mx-4" />
+                )}
+                <Link 
+                  href={link.href} 
+                  className="nav-link text-xs xl:text-sm whitespace-nowrap"
+                >
+                  {link.name}
+                </Link>
+              </div>
             ))}
           </nav>
 

@@ -35,10 +35,10 @@ const platformIcons = {
 
 export default function BookClubs() {
   return (
-    <section className="py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-chai-brown text-cream">
+    <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-chai-brown text-cream">
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
-        <div className="text-center mb-8 sm:mb-12">
+        <div className="text-center mb-8 sm:mb-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif mb-2">Book Clubs</h2>
           <p className="text-terracotta-light font-body italic text-lg mb-4">
             Join our reading communities
@@ -50,7 +50,7 @@ export default function BookClubs() {
         </div>
 
         {/* Clubs Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {bookClubs.map((club, index) => {
             const PlatformIcon = platformIcons[club.platform as keyof typeof platformIcons] || Users;
             

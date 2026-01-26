@@ -5,33 +5,34 @@ import Link from 'next/link';
 
 export default function Hero() {
   return (
-    <section className="min-h-screen pt-20 sm:pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 flex items-center">
+    <section className="pt-20 sm:pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto w-full">
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
+        <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-center">
           {/* Image */}
-          <div className="order-1 md:order-1 animate-fade-in">
+          <div className="order-1 md:order-1 animate-fade-in w-full max-w-xs mx-auto md:max-w-md lg:max-w-lg">
             <div className="relative">
               {/* Decorative elements */}
-              <div className="absolute -top-4 -left-4 w-24 h-24 bg-sage/30 rounded-full blur-2xl" />
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-terracotta/20 rounded-full blur-2xl" />
+              <div className="absolute -top-4 -left-4 w-20 h-20 bg-sage/30 rounded-full blur-2xl" />
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-terracotta/20 rounded-full blur-2xl" />
               
               {/* Main image container */}
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                <div className="aspect-[4/5] bg-gradient-to-br from-chai-brown-light to-chai-brown relative">
-                  {/* Placeholder for author image */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-cream/80">
-                      <div className="w-32 h-32 mx-auto mb-4 rounded-full bg-cream/20 flex items-center justify-center">
-                        <span className="text-4xl">📚</span>
-                      </div>
-                      <p className="font-serif text-lg">Author Image</p>
-                    </div>
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl w-full">
+                <div className="aspect-square bg-chai-brown relative flex items-center justify-center">
+                  {/* Pattern overlay */}
+                  <div className="absolute inset-0 opacity-10" style={{
+                    backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)`
+                  }}></div>
+                  
+                  {/* Simple placeholder text */}
+                  <div className="relative z-10 text-center px-4">
+                    <p className="font-serif text-lg text-cream/90 font-medium">Author Image</p>
+                    <p className="font-body text-xs text-cream/70 mt-2">Placeholder</p>
                   </div>
-                </div>
-                
-                {/* Floating chai cup decoration */}
-                <div className="absolute bottom-4 right-4 w-16 h-16 bg-cream rounded-full shadow-lg flex items-center justify-center animate-float">
-                  <span className="text-2xl">☕</span>
+                  
+                  {/* Small floating decoration */}
+                  <div className="absolute bottom-3 right-3 w-10 h-10 bg-cream/80 rounded-full shadow-md flex items-center justify-center animate-float z-20">
+                    <span className="text-lg">☕</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -64,7 +65,7 @@ export default function Hero() {
             </div>
 
             {/* Stats */}
-            <div className="mt-8 sm:mt-12 flex justify-center md:justify-start gap-6 sm:gap-8">
+            <div className="mt-6 sm:mt-8 flex justify-center md:justify-start gap-6 sm:gap-8">
               <div className="text-center">
                 <p className="text-2xl sm:text-3xl font-serif text-chai-brown">50+</p>
                 <p className="text-xs sm:text-sm text-chai-brown-light">Book Reviews</p>
