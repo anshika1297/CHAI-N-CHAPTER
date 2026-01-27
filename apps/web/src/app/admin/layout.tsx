@@ -3,24 +3,34 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  LayoutDashboard, 
-  Users, 
-  BookOpen, 
-  FolderTree, 
-  MessageSquare, 
-  FileText, 
+import {
+  LayoutDashboard,
+  Users,
+  BookOpen,
+  FolderTree,
+  MessageSquare,
+  FileText,
   Shield,
   Briefcase,
   LogOut,
   Menu,
-  X
+  X,
+  PenSquare,
+  ListOrdered,
+  Sparkles,
+  PanelTop,
+  Home,
 } from 'lucide-react';
+import { getAdminToken, clearAdminToken } from '@/lib/api';
 
 const adminNavLinks = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Admin Users', href: '/admin/users', icon: Users },
-  { name: 'About Me', href: '/admin/about', icon: BookOpen },
+  { name: 'Home (Hero)', href: '/admin/home', icon: Home },
+  { name: 'Header', href: '/admin/header', icon: PanelTop },
+  { name: 'Book Reviews', href: '/admin/blog', icon: PenSquare },
+  { name: 'Book Recommendations', href: '/admin/recommendations', icon: ListOrdered },
+  { name: 'Her Musings Verse', href: '/admin/musings', icon: Sparkles },
   { name: 'Work With Me', href: '/admin/work-with-me', icon: Briefcase },
   { name: 'Contact Page', href: '/admin/contact', icon: MessageSquare },
   { name: 'Book Clubs', href: '/admin/book-clubs', icon: BookOpen },
@@ -40,9 +50,8 @@ export default function AdminLayout({
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const auth = localStorage.getItem('adminAuth');
-    if (auth === 'true') {
+    const token = getAdminToken();
+    if (token) {
       setIsAuthenticated(true);
     } else if (pathname !== '/admin/login') {
       router.push('/admin/login');
@@ -50,7 +59,7 @@ export default function AdminLayout({
   }, [pathname, router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
+    clearAdminToken();
     router.push('/admin/login');
   };
 
@@ -94,7 +103,7 @@ export default function AdminLayout({
             <div className="hidden lg:block mb-8">
               <h1 className="font-serif text-2xl text-chai-brown">Admin Panel</h1>
               <p className="font-body text-xs text-chai-brown-light mt-1">
-                chai.n.chapter
+                Chapters.aur.Chai
               </p>
             </div>
 

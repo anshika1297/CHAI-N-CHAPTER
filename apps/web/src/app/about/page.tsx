@@ -1,22 +1,14 @@
-import AboutHero from '@/components/about/AboutHero';
-import ReadingJourney from '@/components/about/ReadingJourney';
-import BlogStory from '@/components/about/BlogStory';
-import PictureGallery from '@/components/about/PictureGallery';
-import ReadingDNA from '@/components/about/ReadingDNA';
+import AboutPageContent from '@/components/about/AboutPageContent';
+import { buildMetadata } from '@/lib/metadata';
 
-export const metadata = {
-  title: 'About Me | chai.n.chapter',
-  description: 'Get to know the person behind chai.n.chapter - my reading journey, story, and what to expect from this cozy corner of the internet.',
-};
+export const metadata = buildMetadata({
+  title: 'About Anshika Mishra – Book Blogger & Critic',
+  description:
+    'Get to know Anshika Mishra, book blogger and book critic behind Chapters.aur.Chai. My reading journey, how chapters.aur.chai started, and what to expect—fiction, history & mythology from around the world.',
+  path: '/about',
+  keywords: ['Anshika Mishra', 'book blogger', 'book critic', 'Indian book blogger', 'reading journey'],
+});
 
 export default function AboutPage() {
-  return (
-    <>
-      <AboutHero />
-      <ReadingJourney />
-      <BlogStory />
-      <ReadingDNA />
-      <PictureGallery />
-    </>
-  );
+  return <AboutPageContent />;
 }

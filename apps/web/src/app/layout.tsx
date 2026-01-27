@@ -1,19 +1,14 @@
-import type { Metadata } from 'next';
 import './globals.css';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import ConditionalSiteShell from '@/components/ConditionalSiteShell';
+import { buildMetadata } from '@/lib/metadata';
+import { PersonSchema, WebSiteSchema } from '@/components/JsonLd';
 
-export const metadata: Metadata = {
-  title: 'chai.n.chapter | A Personal Book Blog',
-  description: 'A cozy corner of the internet where books meet chai. Honest book reviews, curated recommendations, and reflections from a passionate reader.',
-  keywords: ['book blog', 'book reviews', 'book recommendations', 'reading', 'chai', 'indian books'],
-  authors: [{ name: 'Anshika Mishra' }],
-  openGraph: {
-    title: 'chai.n.chapter | A Personal Book Blog',
-    description: 'A cozy corner of the internet where books meet chai.',
-    type: 'website',
-  },
-};
+export const metadata = buildMetadata({
+  title: 'Book Blogger & Book Critic by Anshika Mishra',
+  description:
+    'Book reviews, recommendations & literary reflections by Anshika Mishra. Fiction, history & mythology from around the world. Indian book blogger with a global reach—open to authors everywhere who write in English.',
+  path: '/',
+});
 
 export default function RootLayout({
   children,
@@ -21,11 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en-IN">
       <body className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <PersonSchema />
+        <WebSiteSchema />
+        <ConditionalSiteShell>{children}</ConditionalSiteShell>
       </body>
     </html>
   );

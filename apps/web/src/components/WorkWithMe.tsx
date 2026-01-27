@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   BookOpen, 
   PenTool, 
@@ -9,60 +9,106 @@ import {
   Briefcase, 
   DollarSign,
   Instagram,
-  Twitter,
+  Facebook,
+  Linkedin,
   Youtube,
   Mail,
   Send,
-  CheckCircle
+  CheckCircle,
+  AtSign
 } from 'lucide-react';
+import { siteConfig } from '@/lib/seo';
+import { getPageSettings } from '@/lib/api';
 
-const services = [
-  {
-    id: 'beta-reading',
-    title: 'Beta Reading',
-    icon: BookOpen,
-    description: 'Get detailed feedback on your manuscript before publication. I provide comprehensive analysis on plot, character development, pacing, and overall story structure.',
-  },
-  {
-    id: 'book-reviews',
-    title: 'Book Reviews',
-    icon: PenTool,
-    description: 'Honest and detailed book reviews for your published works. Reviews will be featured on the blog and shared across social media platforms.',
-  },
-  {
-    id: 'proofreading',
-    title: 'Proofreading',
-    icon: FileText,
-    description: 'Thorough proofreading services to catch grammar, spelling, punctuation, and formatting errors. Ensure your manuscript is polished and professional.',
-  },
-  {
-    id: 'author-interviews',
-    title: 'Author Interviews',
-    icon: MessageSquare,
-    description: 'Engaging author interviews to help promote your book and share your writing journey with my reading community.',
-  },
-  {
-    id: 'literary-agent',
-    title: 'Literary Agent Services',
-    icon: Briefcase,
-    description: 'Assistance with manuscript submissions, query letter reviews, and guidance on navigating the publishing industry.',
-  },
-  {
-    id: 'paid-content',
-    title: 'Paid Content & Collaborations',
-    icon: DollarSign,
-    description: 'Sponsored blog posts, social media promotions, book tours, and other collaborative content opportunities for authors and publishers.',
-  },
+type IconComp = React.ComponentType<{ size?: number; className?: string }>;
+const iconByKey: Record<string, IconComp> = {
+  'beta-reading': BookOpen, '1': BookOpen, 'Beta Reading': BookOpen,
+  'book-reviews': PenTool, '2': PenTool, 'Book Reviews': PenTool,
+  'proofreading': FileText, '3': FileText, 'Proofreading': FileText,
+  'author-interviews': MessageSquare, '4': MessageSquare, 'Author Interviews': MessageSquare,
+  'literary-agent': Briefcase, '5': Briefcase, 'Literary Agent Services': Briefcase,
+  'paid-content': DollarSign, '6': DollarSign, 'Paid Content & Collaborations': DollarSign,
+};
+const socialIconByName: Record<string, IconComp> = {
+  Email: Mail, Instagram, Facebook, Goodreads: BookOpen, LinkedIn: Linkedin, Threads: AtSign, YouTube: Youtube,
+};
+
+const defaultHeader = {
+  title: 'Work With Me',
+  description: "I'm passionate about supporting authors and publishers in their literary journey. Whether you need a beta reader, book reviewer, or a collaborator for your next project, I'd love to help bring your stories to life.",
+};
+
+const defaultServices: { id: string; title: string; description: string; icon: IconComp }[] = [
+  { id: 'beta-reading', title: 'Beta Reading', icon: BookOpen, description: 'Get detailed feedback on your manuscript before publication. I provide comprehensive analysis on plot, character development, pacing, and overall story structure.' },
+  { id: 'book-reviews', title: 'Book Reviews', icon: PenTool, description: 'Honest and detailed book reviews for your published works. Reviews will be featured on the blog and shared across social media platforms.' },
+  { id: 'proofreading', title: 'Proofreading', icon: FileText, description: 'Thorough proofreading services to catch grammar, spelling, punctuation, and formatting errors. Ensure your manuscript is polished and professional.' },
+  { id: 'author-interviews', title: 'Author Interviews', icon: MessageSquare, description: 'Engaging author interviews to help promote your book and share your writing journey with my reading community.' },
+  { id: 'literary-agent', title: 'Literary Agent Services', icon: Briefcase, description: 'Assistance with manuscript submissions, query letter reviews, and guidance on navigating the publishing industry.' },
+  { id: 'paid-content', title: 'Paid Content & Collaborations', icon: DollarSign, description: 'Sponsored blog posts, social media promotions, book tours, and other collaborative content opportunities for authors and publishers.' },
 ];
 
-const socialLinks = [
-  { name: 'Instagram', icon: Instagram, href: 'https://instagram.com/chainchapter', color: 'text-pink-500' },
-  { name: 'Twitter', icon: Twitter, href: 'https://twitter.com/chainchapter', color: 'text-blue-400' },
-  { name: 'YouTube', icon: Youtube, href: 'https://youtube.com/@chainchapter', color: 'text-red-500' },
-  { name: 'Email', icon: Mail, href: 'mailto:hello@chainchapter.com', color: 'text-chai-brown' },
+const defaultSocialLinks = [
+  { name: 'Email', icon: Mail, href: `mailto:${siteConfig.email}`, color: 'text-chai-brown' },
+  { name: 'Instagram', icon: Instagram, href: siteConfig.social.instagram, color: 'text-pink-500' },
+  { name: 'Facebook', icon: Facebook, href: siteConfig.social.facebook, color: 'text-blue-600' },
+  { name: 'Goodreads', icon: BookOpen, href: siteConfig.social.goodreads, color: 'text-amber-700' },
+  { name: 'LinkedIn', icon: Linkedin, href: siteConfig.social.linkedin, color: 'text-blue-700' },
+  { name: 'Threads', icon: AtSign, href: siteConfig.social.threads, color: 'text-neutral-700' },
+  { name: 'YouTube', icon: Youtube, href: siteConfig.social.youtube, color: 'text-red-500' },
 ];
+
+const defaultConnect = {
+  title: 'Connect With Me',
+  description: 'Follow me on social media to stay updated with my latest reviews, recommendations, and bookish content.',
+};
 
 export default function WorkWithMe() {
+  const [header, setHeader] = useState(defaultHeader);
+  const [services, setServices] = useState(defaultServices);
+  const [socialLinks, setSocialLinks] = useState(defaultSocialLinks);
+  const [connectSection, setConnectSection] = useState(defaultConnect);
+
+  useEffect(() => {
+    getPageSettings('work-with-me')
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content)) {
+          const c = content as Record<string, unknown>;
+          if (c.header && typeof c.header === 'object') {
+            const h = c.header as Record<string, unknown>;
+            setHeader({ title: (h.title as string) || defaultHeader.title, description: (h.description as string) || defaultHeader.description });
+          }
+          if (Array.isArray(c.services) && c.services.length) {
+            setServices(
+              (c.services as { id: string; title: string; description: string }[]).map((s) => ({
+                id: s.id || '',
+                title: s.title || '',
+                description: s.description || '',
+                icon: iconByKey[s.id] || iconByKey[s.title] || BookOpen,
+              }))
+            );
+          }
+          if (Array.isArray(c.socialLinks) && c.socialLinks.length) {
+            setSocialLinks(
+              (c.socialLinks as { name: string; url: string; color?: string }[]).map((l) => ({
+                name: l.name || '',
+                icon: socialIconByName[l.name] || AtSign,
+                href: l.url || '#',
+                color: (l.color as string) || 'text-chai-brown',
+              }))
+            );
+          }
+          if (c.connectSection && typeof c.connectSection === 'object') {
+            const cs = c.connectSection as Record<string, unknown>;
+            setConnectSection({
+              title: (cs.title as string) || defaultConnect.title,
+              description: (cs.description as string) || defaultConnect.description,
+            });
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -100,12 +146,10 @@ export default function WorkWithMe() {
         {/* Header */}
         <header className="text-center mb-12 sm:mb-16">
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-chai-brown mb-4">
-            Work With Me
+            {header.title}
           </h1>
           <p className="font-body text-lg text-chai-brown-light max-w-2xl mx-auto leading-relaxed">
-            I'm passionate about supporting authors and publishers in their literary journey. 
-            Whether you need a beta reader, book reviewer, or a collaborator for your next project, 
-            I'd love to help bring your stories to life.
+            {header.description}
           </p>
         </header>
 
@@ -141,10 +185,10 @@ export default function WorkWithMe() {
         <section className="mb-16">
           <div className="bg-cream-light rounded-2xl p-8 sm:p-12 border border-chai-brown/10">
             <h2 className="font-serif text-2xl sm:text-3xl text-chai-brown mb-6 text-center">
-              Connect With Me
+              {connectSection.title}
             </h2>
             <p className="font-body text-base text-chai-brown-light text-center mb-8 max-w-2xl mx-auto">
-              Follow me on social media to stay updated with my latest reviews, recommendations, and bookish content.
+              {connectSection.description}
             </p>
             <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
               {socialLinks.map((social) => {

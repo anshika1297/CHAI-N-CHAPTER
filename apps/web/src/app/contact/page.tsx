@@ -1,9 +1,12 @@
 import ContactPage from '@/components/ContactPage';
+import { buildMetadata } from '@/lib/metadata';
 
-export const metadata = {
-  title: 'Contact Me | chai.n.chapter',
-  description: 'Get in touch with me to chat about books, share recommendations, or just say hello!',
-};
+export const metadata = buildMetadata({
+  title: 'Contact – Chapters.aur.Chai',
+  description:
+    'Get in touch with Anshika Mishra, book blogger and book critic. Chat about books, share recommendations, or say hello.',
+  path: '/contact',
+});
 
 export default function Contact() {
   return <ContactPage />;

@@ -1,8 +1,51 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { FileText } from 'lucide-react';
+import { getPageSettings } from '@/lib/api';
 
 export default function TermsPage() {
+  const [apiContent, setApiContent] = useState<string | null>(null);
+
+  useEffect(() => {
+    getPageSettings('terms')
+      .then(({ content }) => {
+        if (typeof content === 'string' && content.trim()) setApiContent(content);
+        else if (content && typeof content === 'object' && 'content' in content && typeof (content as { content: string }).content === 'string') {
+          const c = (content as { content: string }).content;
+          if (c.trim()) setApiContent(c);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  if (apiContent) {
+    return (
+      <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+        <div className="max-w-4xl mx-auto">
+          <header className="text-center mb-12">
+            <div className="flex justify-center mb-4">
+              <FileText size={48} className="text-terracotta" />
+            </div>
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-chai-brown mb-4">
+              Terms & Conditions
+            </h1>
+            <p className="font-body text-base text-chai-brown-light">
+              Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+          </header>
+          <div className="bg-cream-light rounded-2xl p-8 sm:p-12 border border-chai-brown/10">
+            <div className="prose prose-chai-brown max-w-none font-body text-chai-brown-light leading-relaxed">
+              {apiContent.split(/\n\n+/).map((para, i) => (
+                <p key={i} className="mb-4">{para.trim()}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
       <div className="max-w-4xl mx-auto">
@@ -19,14 +62,14 @@ export default function TermsPage() {
           </p>
         </header>
 
-        {/* Content */}
+        {/* Content - static fallback when API has no data */}
         <div className="bg-cream-light rounded-2xl p-8 sm:p-12 border border-chai-brown/10">
           <div className="prose prose-chai-brown max-w-none">
             <div className="space-y-8 font-body text-chai-brown-light leading-relaxed">
               <section>
                 <h2 className="font-serif text-2xl text-chai-brown mb-4">1. Introduction</h2>
                 <p className="mb-4">
-                  Welcome to chai.n.chapter ("we," "our," or "us"). These Terms and Conditions ("Terms") govern your access to and use of our website located at chai.n.chapter (the "Website"). By accessing or using our Website, you agree to be bound by these Terms.
+                  Welcome to chapters.aur.chai ("we," "our," or "us"). These Terms and Conditions ("Terms") govern your access to and use of our website located at chaptersaurchai.com (the "Website"). By accessing or using our Website, you agree to be bound by these Terms.
                 </p>
                 <p>
                   If you do not agree with any part of these Terms, please do not use our Website.
@@ -50,7 +93,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="font-serif text-2xl text-chai-brown mb-4">3. Intellectual Property</h2>
                 <p className="mb-4">
-                  All content on this Website, including but not limited to text, graphics, logos, images, and software, is the property of chai.n.chapter or its content suppliers and is protected by copyright, trademark, and other intellectual property laws.
+                  All content on this Website, including but not limited to text, graphics, logos, images, and software, is the property of chapters.aur.chai or its content suppliers and is protected by copyright, trademark, and other intellectual property laws.
                 </p>
                 <p>
                   You may not reproduce, distribute, modify, create derivative works of, publicly display, or otherwise use any content from this Website without our prior written consent.
@@ -102,7 +145,7 @@ export default function TermsPage() {
               <section>
                 <h2 className="font-serif text-2xl text-chai-brown mb-4">8. Limitation of Liability</h2>
                 <p>
-                  To the fullest extent permitted by law, chai.n.chapter shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the Website.
+                  To the fullest extent permitted by law, chapters.aur.chai shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the Website.
                 </p>
               </section>
 

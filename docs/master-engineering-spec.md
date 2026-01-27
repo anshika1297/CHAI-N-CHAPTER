@@ -1,4 +1,4 @@
-CHAI.N.CHAPTER
+CHAPTERS.AUR.CHAI
 MASTER ENGINEERING HANDBOOK
 Version 1.0
 Owner: Anshika Mishra
@@ -23,12 +23,12 @@ TABLE OF CONTENTS
 ==================================================
 
 1. INTRODUCTION
-This handbook is the single source of truth for engineering chai.n.chapter.
+This handbook is the single source of truth for engineering chapters.aur.chai.
 It is written so that any developer can onboard and build the system without
 needing additional clarification.
 
 2. PRODUCT VISION & GOALS
-chai.n.chapter is a personal brand-driven book blog focused on:
+chapters.aur.chai is a personal brand-driven book blog focused on:
 - Book reviews and wrap-ups
 - Reflective writing
 - Reader-first experience

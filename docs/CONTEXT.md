@@ -1,6 +1,6 @@
-# Project Context – chai.n.chapter
+# Project Context – chapters.aur.chai
 
-This repository implements the chai.n.chapter platform.
+This repository implements the chapters.aur.chai platform.
 
 IMPORTANT:
 - The master product specification lives in docs/master-spec.md

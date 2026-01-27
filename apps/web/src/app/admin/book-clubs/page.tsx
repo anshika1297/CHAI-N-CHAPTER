@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save } from 'lucide-react';
+import { getBookClubs, putBookClubs } from '@/lib/api';
+import PageLoading from '@/components/PageLoading';
 
 interface BookClub {
   id: string;
@@ -13,27 +15,69 @@ interface BookClub {
   focus: string;
 }
 
+const defaultClubs: BookClub[] = [
+  { id: '1', name: 'The Chai Circle', description: 'A cozy community for slow readers who love to discuss books over virtual chai sessions.', platform: 'instagram', joinLink: 'https://instagram.com/chaptersaurchai', members: '500+', focus: 'Fiction & Literary' },
+  { id: '2', name: 'Desi Readers Club', description: 'Celebrating South Asian literature and authors. Monthly reads featuring diverse voices.', platform: 'whatsapp', joinLink: 'https://wa.me/1234567890', members: '300+', focus: 'Indian Literature' },
+];
+
+const sectionPageDefaults = {
+  sectionTitle: 'Book Clubs',
+  sectionSubtitle: 'Join our reading communities',
+  sectionIntro: "Find your tribe! Join one of our book clubs and connect with fellow readers who share your love for stories.",
+  sectionCtaText: 'Explore All Book Clubs',
+  sectionCtaHref: '/book-clubs',
+  pageTitle: 'Book Clubs',
+  pageSubtitle: 'Join our community of passionate readers',
+  pageIntro: "Connect with fellow book lovers, share your thoughts, and discover new stories together. Each club has its own unique theme and vibe. Find your perfect reading community!",
+  pageCtaText: "Don't see a club that matches your interests?",
+  pageCtaHref: '/contact',
+  pageCtaLabel: 'Suggest a New Book Club',
+};
+
+function toFormClub(x: Record<string, unknown>): BookClub | null {
+  if (typeof x?.name !== 'string' || typeof x?.description !== 'string') return null;
+  const memberCount = typeof x.memberCount === 'number' ? x.memberCount : (typeof x.memberCount === 'string' ? parseInt(String(x.memberCount), 10) : 0);
+  const joinLinkVal = x.joinLink;
+  const joinLink = typeof joinLinkVal === 'string' && joinLinkVal.trim() ? joinLinkVal.trim() : '';
+  const membersVal = x.members;
+  const members = typeof membersVal === 'string' ? membersVal : (memberCount ? String(memberCount) + '+' : '');
+  const themeOrFocus = typeof x.theme === 'string' ? String(x.theme).trim() : (typeof x.focus === 'string' ? String(x.focus).trim() : '');
+  const platform = (['instagram', 'whatsapp', 'other'].includes(String(x.platform || '').toLowerCase()) ? (x.platform as BookClub['platform']) : 'instagram') as BookClub['platform'];
+  const out: BookClub = {
+    id: String(x.id ?? x.name),
+    name: String(x.name).trim(),
+    description: String(x.description).trim(),
+    platform,
+    joinLink,
+    members,
+    focus: themeOrFocus,
+  };
+  return out;
+}
+
+function toApiClub(c: BookClub): Record<string, unknown> {
+  const n = parseInt(c.members, 10);
+  return {
+    id: c.id,
+    name: c.name,
+    theme: c.focus,
+    description: c.description,
+    platform: c.platform,
+    members: c.members,
+    focus: c.focus,
+    logo: '',
+    joinLink: c.joinLink,
+    memberCount: isNaN(n) ? 0 : n,
+    meetingFrequency: 'Monthly',
+    nextMeeting: '',
+  };
+}
+
 export default function AdminBookClubsPage() {
-  const [bookClubs, setBookClubs] = useState<BookClub[]>([
-    {
-      id: '1',
-      name: 'The Chai Circle',
-      description: 'A cozy community for slow readers who love to discuss books over virtual chai sessions.',
-      platform: 'instagram',
-      joinLink: 'https://instagram.com/chainchapter',
-      members: '500+',
-      focus: 'Fiction & Literary',
-    },
-    {
-      id: '2',
-      name: 'Desi Readers Club',
-      description: 'Celebrating South Asian literature and authors. Monthly reads featuring diverse voices.',
-      platform: 'whatsapp',
-      joinLink: 'https://wa.me/1234567890',
-      members: '300+',
-      focus: 'Indian Literature',
-    },
-  ]);
+  const [bookClubs, setBookClubs] = useState<BookClub[]>(defaultClubs);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingClub, setEditingClub] = useState<BookClub | null>(null);
   const [formData, setFormData] = useState<Omit<BookClub, 'id'>>({
@@ -44,6 +88,20 @@ export default function AdminBookClubsPage() {
     members: '',
     focus: '',
   });
+
+  useEffect(() => {
+    getBookClubs()
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content)) {
+          const c = content as { clubs?: Record<string, unknown>[]; pageClubs?: Record<string, unknown>[] };
+          const raw = Array.isArray(c.pageClubs) ? c.pageClubs : Array.isArray(c.clubs) ? c.clubs : [];
+          const clubs = raw.map(toFormClub).filter((x): x is BookClub => x != null);
+          if (clubs.length) setBookClubs(clubs);
+        }
+      })
+      .catch(() => setMessage({ type: 'error', text: 'Failed to load book clubs' }))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +142,28 @@ export default function AdminBookClubsPage() {
     }
   };
 
+  const handleSaveToSite = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      const payload = {
+        ...sectionPageDefaults,
+        clubs: bookClubs.map(toApiClub),
+        pageClubs: bookClubs.map(toApiClub),
+      };
+      await putBookClubs(payload as Record<string, unknown>);
+      setMessage({ type: 'success', text: 'Book clubs saved to site!' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return <PageLoading message="Loading book clubs…" />;
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -92,21 +172,36 @@ export default function AdminBookClubsPage() {
             Manage Book Clubs
           </h1>
           <p className="font-body text-chai-brown-light">
-            Add, edit, or remove book clubs
+            Add, edit, or remove book clubs. Save to site to update homepage and /book-clubs.
           </p>
         </div>
-        <button
-          onClick={() => {
-            setShowForm(true);
-            setEditingClub(null);
-            setFormData({ name: '', description: '', platform: 'instagram', joinLink: '', members: '', focus: '' });
-          }}
-          className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body text-sm"
-        >
-          <Plus size={20} />
-          Add Book Club
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSaveToSite}
+            disabled={saving}
+            className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body text-sm disabled:opacity-50"
+          >
+            <Save size={20} />
+            {saving ? 'Saving…' : 'Save to site'}
+          </button>
+          <button
+            onClick={() => {
+              setShowForm(true);
+              setEditingClub(null);
+              setFormData({ name: '', description: '', platform: 'instagram', joinLink: '', members: '', focus: '' });
+            }}
+            className="flex items-center gap-2 bg-sage/80 text-chai-brown px-4 py-2 rounded-lg hover:bg-sage transition-colors font-body text-sm"
+          >
+            <Plus size={20} />
+            Add Book Club
+          </button>
+        </div>
       </div>
+      {message && (
+        <div className={`mb-6 px-4 py-3 rounded-lg font-body text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}`}>
+          {message.text}
+        </div>
+      )}
 
       {/* Form Modal */}
       {showForm && (

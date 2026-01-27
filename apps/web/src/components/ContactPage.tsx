@@ -1,26 +1,94 @@
 'use client';
 
-import { useState } from 'react';
-import { 
-  Mail, 
-  Heart, 
-  Coffee, 
-  Send, 
+import { useState, useEffect } from 'react';
+import {
+  Mail,
+  Heart,
+  Coffee,
+  Send,
   CheckCircle,
   Instagram,
-  Twitter,
+  Facebook,
+  Linkedin,
   Youtube,
-  MessageSquare
+  MessageSquare,
+  BookOpen,
+  AtSign
 } from 'lucide-react';
+import { siteConfig } from '@/lib/seo';
+import { getPageSettings } from '@/lib/api';
 
-const socialLinks = [
-  { name: 'Instagram', icon: Instagram, href: 'https://instagram.com/chainchapter', color: 'text-pink-500' },
-  { name: 'Twitter', icon: Twitter, href: 'https://twitter.com/chainchapter', color: 'text-blue-400' },
-  { name: 'YouTube', icon: Youtube, href: 'https://youtube.com/@chainchapter', color: 'text-red-500' },
-  { name: 'Email', icon: Mail, href: 'mailto:hello@chainchapter.com', color: 'text-chai-brown' },
+const iconByLabel: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  Email: Mail,
+  Instagram,
+  Facebook,
+  Goodreads: BookOpen,
+  LinkedIn: Linkedin,
+  Threads: AtSign,
+  YouTube: Youtube,
+};
+
+const defaultHeader = {
+  title: "Let's Connect",
+  subtitle: 'Over a cup of chai, of course!',
+  description: "Whether you want to chat about books, share your favorite reads, discuss a potential collaboration, or just say hello — I'd love to hear from you!",
+};
+
+const defaultSocialLinks = [
+  { name: 'Email', icon: Mail, href: `mailto:${siteConfig.email}`, color: 'text-chai-brown' },
+  { name: 'Instagram', icon: Instagram, href: siteConfig.social.instagram, color: 'text-pink-500' },
+  { name: 'Facebook', icon: Facebook, href: siteConfig.social.facebook, color: 'text-blue-600' },
+  { name: 'Goodreads', icon: BookOpen, href: siteConfig.social.goodreads, color: 'text-amber-700' },
+  { name: 'LinkedIn', icon: Linkedin, href: siteConfig.social.linkedin, color: 'text-blue-700' },
+  { name: 'Threads', icon: AtSign, href: siteConfig.social.threads, color: 'text-neutral-700' },
+  { name: 'YouTube', icon: Youtube, href: siteConfig.social.youtube, color: 'text-red-500' },
 ];
 
+const defaultSidebar = {
+  responseTime: 'I typically respond within 24-48 hours',
+  note: 'For casual chats, book recommendations, or just to say hello, this is the perfect place!',
+};
+
 export default function ContactPage() {
+  const [header, setHeader] = useState(defaultHeader);
+  const [socialLinks, setSocialLinks] = useState<{ name: string; icon: React.ComponentType<{ size?: number; className?: string }>; href: string; color: string }[]>(defaultSocialLinks);
+  const [sidebar, setSidebar] = useState(defaultSidebar);
+
+  useEffect(() => {
+    getPageSettings('contact')
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content)) {
+          const c = content as Record<string, unknown>;
+          if (c.header && typeof c.header === 'object') {
+            const h = c.header as Record<string, unknown>;
+            setHeader({
+              title: (h.title as string) || defaultHeader.title,
+              subtitle: (h.subtitle as string) || defaultHeader.subtitle,
+              description: (h.description as string) || defaultHeader.description,
+            });
+          }
+          if (Array.isArray(c.socialLinks) && c.socialLinks.length) {
+            setSocialLinks(
+              (c.socialLinks as { name: string; url: string; color?: string }[]).map((l) => ({
+                name: l.name || '',
+                icon: iconByLabel[l.name] || AtSign,
+                href: l.url || '#',
+                color: (l.color as string) || 'text-chai-brown',
+              }))
+            );
+          }
+          if (c.sidebar && typeof c.sidebar === 'object') {
+            const s = c.sidebar as Record<string, unknown>;
+            setSidebar({
+              responseTime: (s.responseTime as string) || defaultSidebar.responseTime,
+              note: (s.note as string) || defaultSidebar.note,
+            });
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -65,14 +133,13 @@ export default function ContactPage() {
           </div>
 
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-chai-brown mb-4">
-            Let's Connect
+            {header.title}
           </h1>
           <p className="text-terracotta font-body italic text-base sm:text-lg mb-4">
-            Over a cup of chai, of course!
+            {header.subtitle}
           </p>
           <p className="font-body text-lg text-chai-brown-light max-w-2xl mx-auto leading-relaxed">
-            Whether you want to chat about books, share your favorite reads, 
-            discuss a potential collaboration, or just say hello — I'd love to hear from you!
+            {header.description}
           </p>
         </header>
 
@@ -225,7 +292,7 @@ export default function ContactPage() {
                     Response Time
                   </p>
                   <p className="font-body text-sm text-chai-brown-light">
-                    I typically respond within 24-48 hours
+                    {sidebar.responseTime}
                   </p>
                 </div>
                 <div>
@@ -241,7 +308,7 @@ export default function ContactPage() {
                     Just Want to Chat?
                   </p>
                   <p className="font-body text-sm text-chai-brown-light">
-                    I love hearing from fellow readers! Feel free to share book recommendations or just say hello.
+                    {sidebar.note}
                   </p>
                 </div>
               </div>

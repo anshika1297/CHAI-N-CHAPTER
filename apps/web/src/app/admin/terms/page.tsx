@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
+import { getPageSettings, putPageSettings } from '@/lib/api';
+import PageLoading from '@/components/PageLoading';
 
-export default function AdminTermsPage() {
-  const [termsContent, setTermsContent] = useState(`Welcome to chai.n.chapter ("we," "our," or "us"). These Terms and Conditions ("Terms") govern your access to and use of our website located at chai.n.chapter (the "Website"). By accessing or using our Website, you agree to be bound by these Terms.
+const defaultTerms = `Welcome to chapters.aur.chai ("we," "our," or "us"). These Terms and Conditions ("Terms") govern your access to and use of our website located at chaptersaurchai.com (the "Website"). By accessing or using our Website, you agree to be bound by these Terms.
 
 If you do not agree with any part of these Terms, please do not use our Website.
 
@@ -17,15 +18,44 @@ You may use our Website for personal, non-commercial purposes. You agree not to:
 - Use any automated system, including "robots," "spiders," or "offline readers," to access the Website
 
 Intellectual Property
-All content on this Website, including but not limited to text, graphics, logos, images, and software, is the property of chai.n.chapter or its content suppliers and is protected by copyright, trademark, and other intellectual property laws.
+All content on this Website, including but not limited to text, graphics, logos, images, and software, is the property of chapters.aur.chai or its content suppliers and is protected by copyright, trademark, and other intellectual property laws.
 
-You may not reproduce, distribute, modify, create derivative works of, publicly display, or otherwise use any content from this Website without our prior written consent.`);
+You may not reproduce, distribute, modify, create derivative works of, publicly display, or otherwise use any content from this Website without our prior written consent.`;
 
-  const handleSave = () => {
-    // TODO: Replace with actual API call
-    console.log('Saving terms content:', termsContent);
-    alert('Terms & Conditions saved successfully!');
+export default function AdminTermsPage() {
+  const [termsContent, setTermsContent] = useState(defaultTerms);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  useEffect(() => {
+    getPageSettings('terms')
+      .then(({ content }) => {
+        if (typeof content === 'string') setTermsContent(content);
+        else if (content && typeof content === 'object' && 'content' in content && typeof (content as { content: string }).content === 'string') {
+          setTermsContent((content as { content: string }).content);
+        }
+      })
+      .catch(() => setMessage({ type: 'error', text: 'Failed to load Terms' }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      await putPageSettings('terms', { content: termsContent });
+      setMessage({ type: 'success', text: 'Terms & Conditions saved successfully!' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return <PageLoading message="Loading Terms…" />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -40,12 +70,22 @@ You may not reproduce, distribute, modify, create derivative works of, publicly 
         </div>
         <button
           onClick={handleSave}
-          className="flex items-center gap-2 bg-terracotta text-white px-6 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body"
+          disabled={saving}
+          className="flex items-center gap-2 bg-terracotta text-white px-6 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body disabled:opacity-50"
         >
           <Save size={20} />
-          Save Changes
+          {saving ? 'Saving…' : 'Save Changes'}
         </button>
       </div>
+      {message && (
+        <div
+          className={`mb-6 px-4 py-3 rounded-lg font-body text-sm ${
+            message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
 
       <div className="bg-white rounded-lg border border-chai-brown/10 shadow-sm p-6">
         <label className="block font-body text-sm font-medium text-chai-brown mb-4">

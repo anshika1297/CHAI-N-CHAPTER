@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
+import { getPageSettings } from '@/lib/api';
 
-const navLinks = [
+const defaultNavLinks = [
   { name: 'Home', href: '/' },
   { name: 'About Me', href: '/about' },
   { name: 'Book Reviews', href: '/blog' },
@@ -14,9 +15,13 @@ const navLinks = [
   { name: 'Work With Me', href: '/work-with-me' },
 ];
 
+const defaultSiteName = 'Chapters.aur.Chai';
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [siteName, setSiteName] = useState(defaultSiteName);
+  const [navLinks, setNavLinks] = useState(defaultNavLinks);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +29,24 @@ export default function Header() {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    getPageSettings('header')
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content)) {
+          const c = content as { siteName?: string; navLinks?: { name: string; href: string }[] };
+          if (typeof c.siteName === 'string' && c.siteName.trim()) setSiteName(c.siteName.trim());
+          if (Array.isArray(c.navLinks) && c.navLinks.length > 0) {
+            setNavLinks(
+              c.navLinks
+                .filter((l): l is { name: string; href: string } => typeof l?.name === 'string' && typeof l?.href === 'string')
+                .map((l) => ({ name: l.name.trim(), href: l.href.trim() || '/' }))
+            );
+          }
+        }
+      })
+      .catch(() => {});
   }, []);
 
   return (
@@ -34,23 +57,20 @@ export default function Header() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between py-4">
-          {/* Logo */}
           <Link href="/" className="flex flex-col items-center group">
             <span className="font-serif text-2xl md:text-3xl text-chai-brown tracking-wide group-hover:text-terracotta transition-colors">
-              Chapters.aur.Chai
+              {siteName}
             </span>
-          
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-0 ml-auto">
             {navLinks.map((link, index) => (
               <div key={link.name} className="flex items-center">
                 {index > 0 && (
                   <span className="h-4 w-px bg-chai-brown/20 mx-3 xl:mx-4" />
                 )}
-                <Link 
-                  href={link.href} 
+                <Link
+                  href={link.href}
                   className="nav-link text-xs xl:text-sm whitespace-nowrap"
                 >
                   {link.name}
@@ -59,7 +79,6 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Mobile Menu Button */}
           <button
             className="lg:hidden text-chai-brown p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -69,7 +88,6 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Mobile Navigation */}
         <div
           className={`lg:hidden overflow-hidden transition-all duration-300 ${
             isMenuOpen ? 'max-h-96 pb-4' : 'max-h-0'

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, Mail } from 'lucide-react';
+import { login as apiLogin, setAdminToken } from '@/lib/api';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -15,16 +16,14 @@ export default function AdminLogin() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
-    // TODO: Replace with actual API call
-    // Simulating login for now
-    setTimeout(() => {
-      setLoading(false);
-      // For now, just redirect to dashboard
-      // In real implementation, check credentials and set auth token
-      localStorage.setItem('adminAuth', 'true');
+    try {
+      const { token } = await apiLogin(email, password);
+      setAdminToken(token);
       router.push('/admin/dashboard');
-    }, 1000);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Login failed');
+      setLoading(false);
+    }
   };
 
   return (

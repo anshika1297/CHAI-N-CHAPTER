@@ -1,7 +1,7 @@
-chai.n.chapter – Architecture Overview
+chapters.aur.chai – Architecture Overview
 
 Purpose:
-Defines the approved architecture for chai.n.chapter.
+Defines the approved architecture for chapters.aur.chai.
 
 System Architecture:
 3-Tier (Frontend → Backend → Database)

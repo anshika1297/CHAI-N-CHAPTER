@@ -1,33 +1,65 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
+import { getPageSettings, putPageSettings } from '@/lib/api';
+import PageLoading from '@/components/PageLoading';
+
+const defaultContactData = {
+  header: {
+    title: "Let's Connect",
+    subtitle: 'Over a cup of chai, of course!',
+    description: "Whether you want to chat about books, share your favorite reads, discuss a potential collaboration, or just say hello — I'd love to hear from you!",
+  },
+  socialLinks: [
+    { name: 'Email', url: 'mailto:hello@chaptersaurchai.com', color: 'text-chai-brown' },
+    { name: 'Instagram', url: 'https://instagram.com/chaptersaurchai', color: 'text-pink-500' },
+    { name: 'Facebook', url: 'https://facebook.com/chaptersaurchai', color: 'text-blue-600' },
+    { name: 'Goodreads', url: 'https://goodreads.com/chaptersaurchai', color: 'text-amber-700' },
+    { name: 'LinkedIn', url: 'https://linkedin.com/in/chaptersaurchai', color: 'text-blue-700' },
+    { name: 'Threads', url: 'https://www.threads.net/@chaptersaurchai', color: 'text-neutral-700' },
+    { name: 'YouTube', url: 'https://youtube.com/@chaptersaurchai', color: 'text-red-500' },
+  ],
+  sidebar: {
+    responseTime: 'I typically respond within 24-48 hours',
+    workWithMeLink: '/work-with-me',
+    note: 'For casual chats, book recommendations, or just to say hello, this is the perfect place!',
+  },
+};
 
 export default function AdminContactPage() {
-  const [contactData, setContactData] = useState({
-    header: {
-      title: "Let's Connect",
-      subtitle: 'Over a cup of chai, of course!',
-      description: "Whether you want to chat about books, share your favorite reads, discuss a potential collaboration, or just say hello — I'd love to hear from you!",
-    },
-    socialLinks: [
-      { name: 'Instagram', url: 'https://instagram.com/chainchapter', color: 'text-pink-500' },
-      { name: 'Twitter', url: 'https://twitter.com/chainchapter', color: 'text-blue-400' },
-      { name: 'YouTube', url: 'https://youtube.com/@chainchapter', color: 'text-red-500' },
-      { name: 'Email', url: 'mailto:hello@chainchapter.com', color: 'text-chai-brown' },
-    ],
-    sidebar: {
-      responseTime: 'I typically respond within 24-48 hours',
-      workWithMeLink: '/work-with-me',
-      note: 'For casual chats, book recommendations, or just to say hello, this is the perfect place!',
-    },
-  });
+  const [contactData, setContactData] = useState(defaultContactData);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const handleSave = () => {
-    // TODO: Replace with actual API call
-    console.log('Saving contact data:', contactData);
-    alert('Contact page content saved successfully!');
+  useEffect(() => {
+    getPageSettings('contact')
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content)) {
+          setContactData({ ...defaultContactData, ...(content as object) });
+        }
+      })
+      .catch(() => setMessage({ type: 'error', text: 'Failed to load contact data' }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      await putPageSettings('contact', contactData as Record<string, unknown>);
+      setMessage({ type: 'success', text: 'Contact page content saved successfully!' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return <PageLoading message="Loading contact settings…" />;
+  }
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -42,12 +74,22 @@ export default function AdminContactPage() {
         </div>
         <button
           onClick={handleSave}
-          className="flex items-center gap-2 bg-terracotta text-white px-6 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body"
+          disabled={saving}
+          className="flex items-center gap-2 bg-terracotta text-white px-6 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body disabled:opacity-50"
         >
           <Save size={20} />
-          Save Changes
+          {saving ? 'Saving…' : 'Save Changes'}
         </button>
       </div>
+      {message && (
+        <div
+          className={`mb-6 px-4 py-3 rounded-lg font-body text-sm ${
+            message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
 
       <div className="space-y-6">
         {/* Header Section */}

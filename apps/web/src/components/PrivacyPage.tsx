@@ -1,8 +1,51 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Shield } from 'lucide-react';
+import { getPageSettings } from '@/lib/api';
 
 export default function PrivacyPage() {
+  const [apiContent, setApiContent] = useState<string | null>(null);
+
+  useEffect(() => {
+    getPageSettings('privacy')
+      .then(({ content }) => {
+        if (typeof content === 'string' && content.trim()) setApiContent(content);
+        else if (content && typeof content === 'object' && 'content' in content && typeof (content as { content: string }).content === 'string') {
+          const c = (content as { content: string }).content;
+          if (c.trim()) setApiContent(c);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  if (apiContent) {
+    return (
+      <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+        <div className="max-w-4xl mx-auto">
+          <header className="text-center mb-12">
+            <div className="flex justify-center mb-4">
+              <Shield size={48} className="text-terracotta" />
+            </div>
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-chai-brown mb-4">
+              Privacy Policy
+            </h1>
+            <p className="font-body text-base text-chai-brown-light">
+              Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+          </header>
+          <div className="bg-cream-light rounded-2xl p-8 sm:p-12 border border-chai-brown/10">
+            <div className="prose prose-chai-brown max-w-none font-body text-chai-brown-light leading-relaxed">
+              {apiContent.split(/\n\n+/).map((para, i) => (
+                <p key={i} className="mb-4">{para.trim()}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
       <div className="max-w-4xl mx-auto">
@@ -19,14 +62,14 @@ export default function PrivacyPage() {
           </p>
         </header>
 
-        {/* Content */}
+        {/* Content - static fallback when API has no data */}
         <div className="bg-cream-light rounded-2xl p-8 sm:p-12 border border-chai-brown/10">
           <div className="prose prose-chai-brown max-w-none">
             <div className="space-y-8 font-body text-chai-brown-light leading-relaxed">
               <section>
                 <h2 className="font-serif text-2xl text-chai-brown mb-4">1. Introduction</h2>
                 <p className="mb-4">
-                  At chai.n.chapter ("we," "our," or "us"), we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website chai.n.chapter (the "Website").
+                  At chapters.aur.chai ("we," "our," or "us"), we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website chaptersaurchai.com (the "Website").
                 </p>
                 <p>
                   Please read this Privacy Policy carefully. By using our Website, you consent to the data practices described in this policy.

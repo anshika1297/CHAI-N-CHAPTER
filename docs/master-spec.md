@@ -1,5 +1,5 @@
 
-CHAI.N.CHAPTER
+CHAPTERS.AUR.CHAI
 MASTER SOFTWARE REQUIREMENTS & PRODUCT SPECIFICATION
 Version 1.0
 
@@ -25,7 +25,7 @@ TABLE OF CONTENTS
 --------------------------------------------------
 
 1. INTRODUCTION
-chai.n.chapter is a personal brand–driven book blog platform built to host book reviews,
+chapters.aur.chai is a personal brand–driven book blog platform built to host book reviews,
 reading wrap-ups, and reflective essays. The platform prioritizes reader comfort, trust,
 and long-term scalability over algorithmic noise.
 

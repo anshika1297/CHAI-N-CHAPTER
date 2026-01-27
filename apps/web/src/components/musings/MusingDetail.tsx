@@ -86,7 +86,7 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
     const text = `${dummyMusing.title}`;
     
     const shareUrls: Record<string, string> = {
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      threads: `https://www.threads.net/intent/post?text=${encodeURIComponent(text + ' ' + url)}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
       copy: url,
@@ -179,11 +179,11 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    handleShare('twitter');
+                    handleShare('threads');
                   }}
                   className="w-full text-left px-3 py-2 text-sm text-chai-brown hover:bg-cream-light rounded transition-colors"
                 >
-                  Twitter
+                  Threads
                 </button>
                 <button
                   type="button"

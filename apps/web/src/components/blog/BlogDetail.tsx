@@ -110,7 +110,7 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
     const text = `${dummyPost.title} - ${dummyPost.bookTitle}`;
     
     const shareUrls: Record<string, string> = {
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+      threads: `https://www.threads.net/intent/post?text=${encodeURIComponent(text + ' ' + url)}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
       whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`,
       copy: url,
@@ -202,10 +202,10 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
             {showShareMenu && (
               <div className="absolute top-8 left-0 bg-cream border border-chai-brown/20 rounded-lg shadow-lg p-2 z-10 min-w-[150px]">
                 <button
-                  onClick={() => handleShare('twitter')}
+                  onClick={() => handleShare('threads')}
                   className="w-full text-left px-3 py-2 text-sm text-chai-brown hover:bg-cream-light rounded transition-colors"
                 >
-                  Twitter
+                  Threads
                 </button>
                 <button
                   onClick={() => handleShare('facebook')}
