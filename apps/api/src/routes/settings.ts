@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { Page, PageSlug } from '../models/Page.js';
 import { requireAuth } from '../middlewares/auth.js';
 
-const SLUGS: PageSlug[] = ['contact', 'work-with-me', 'about', 'terms', 'privacy', 'header', 'home', 'book-clubs'];
+const SLUGS: PageSlug[] = ['contact', 'work-with-me', 'about', 'terms', 'privacy', 'header', 'home', 'book-clubs', 'blog', 'recommendations', 'musings'];
 
 const router = Router();
 
@@ -38,11 +38,13 @@ router.put('/pages/:slug', requireAuth, async (req: Request, res: Response): Pro
     res.status(400).json({ error: 'Missing body.content' });
     return;
   }
+  // Ensure content is a plain object (blog: { posts }, recommendations/musings: { items })
+  const contentObj = content !== null && typeof content === 'object' && !Array.isArray(content) ? content : {};
   try {
     const page = await Page.findOneAndUpdate(
       { slug },
-      { content, updatedAt: new Date() },
-      { new: true, upsert: true }
+      { $set: { content: contentObj, updatedAt: new Date() } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
     );
     res.status(200).json({ content: page.content });
   } catch (err) {

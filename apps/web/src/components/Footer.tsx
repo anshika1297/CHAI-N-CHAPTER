@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Instagram, Facebook, Linkedin, Youtube, Mail, Heart, BookOpen, AtSign, LucideIcon } from 'lucide-react';
 import { siteConfig } from '@/lib/seo';
-import { getPageSettings } from '@/lib/api';
+import { getPageSettings, subscribe } from '@/lib/api';
 
 const iconMap: Record<string, LucideIcon> = {
   email: Mail,
@@ -43,14 +43,35 @@ const defaultSocialLinks = [
 const quickLinks = [
   { name: 'Home', href: '/' },
   { name: 'About', href: '/about' },
-  { name: 'Book Reviews', href: '/blog?category=reviews' },
-  { name: 'Recommendations', href: '/blog?category=recommendations' },
+  { name: 'Book Reviews', href: '/blog' },
+  { name: 'Recommendations', href: '/recommendations' },
   { name: 'Book Clubs', href: '/book-clubs' },
+  { name: 'Subscribe', href: '/subscribe' },
   { name: 'Contact', href: '/contact' },
 ];
 
 export default function Footer() {
   const [socialLinks, setSocialLinks] = useState(defaultSocialLinks);
+  const [footerEmail, setFooterEmail] = useState('');
+  const [footerStatus, setFooterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [footerMessage, setFooterMessage] = useState('');
+
+  const handleFooterSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = footerEmail.trim();
+    if (!trimmed) return;
+    setFooterStatus('loading');
+    setFooterMessage('');
+    try {
+      await subscribe(trimmed, { source: 'footer' });
+      setFooterStatus('success');
+      setFooterMessage('Thanks for subscribing!');
+      setFooterEmail('');
+    } catch {
+      setFooterStatus('error');
+      setFooterMessage('Something went wrong. Try again or use the Subscribe page.');
+    }
+  };
 
   useEffect(() => {
     getPageSettings('contact')
@@ -123,19 +144,29 @@ export default function Footer() {
             <p className="text-cream/70 text-sm mb-4">
               Get the latest book recommendations and blog updates.
             </p>
-            <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
+            <form className="flex gap-2" onSubmit={handleFooterSubscribe}>
               <input
                 type="email"
                 placeholder="Your email"
-                className="flex-1 px-4 py-2 rounded-full bg-cream/10 border border-cream/20 text-cream placeholder:text-cream/50 text-sm focus:outline-none focus:border-terracotta"
+                value={footerEmail}
+                onChange={(e) => setFooterEmail(e.target.value)}
+                required
+                disabled={footerStatus === 'loading'}
+                className="flex-1 px-4 py-2 rounded-full bg-cream/10 border border-cream/20 text-cream placeholder:text-cream/50 text-sm focus:outline-none focus:border-terracotta disabled:opacity-50"
               />
               <button
                 type="submit"
-                className="px-4 py-2 bg-terracotta rounded-full text-sm font-medium hover:bg-terracotta-dark transition-colors"
+                disabled={footerStatus === 'loading'}
+                className="px-4 py-2 bg-terracotta rounded-full text-sm font-medium hover:bg-terracotta-dark transition-colors disabled:opacity-50"
               >
-                Join
+                {footerStatus === 'loading' ? '…' : 'Join'}
               </button>
             </form>
+            {footerMessage && (
+              <p className={`mt-2 text-xs ${footerStatus === 'error' ? 'text-red-300' : 'text-cream/70'}`}>
+                {footerMessage}
+              </p>
+            )}
           </div>
         </div>
       </div>

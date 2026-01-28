@@ -1,87 +1,45 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import BlogCard from './BlogCard';
 import Filters from './Filters';
 import Pagination from './Pagination';
+import { getBlogPosts } from '@/lib/api';
+import { getImageUrl } from '@/lib/api';
 
-// Dummy data - will be replaced with API data later
-const dummyPosts = [
-  {
-    id: '1',
-    title: 'The Art of Slow Living: Finding Peace in Pages',
-    excerpt: 'A beautiful meditation on slowing down and finding joy in the simple act of reading. This book changed how I approach my daily routine and taught me the value of mindful reading...',
-    image: '',
-    category: 'Book Review',
-    slug: 'art-of-slow-living',
-    readingTime: 5,
-    author: 'Anshika Mishra',
-    bookTitle: 'The Art of Slow Living',
-    publishedAt: '2024-01-15',
-  },
-  {
-    id: '2',
-    title: 'Finding Hygge in Hardcover: Winter Reads',
-    excerpt: 'As the winter settles in, there\'s nothing quite like curling up with a warm cup of chai and these cozy reads that feel like a warm hug...',
-    image: '',
-    category: 'Book Review',
-    slug: 'finding-hygge-winter-reads',
-    readingTime: 7,
-    author: 'Anshika Mishra',
-    bookTitle: 'The Little Book of Hygge',
-    publishedAt: '2024-01-10',
-  },
-  {
-    id: '3',
-    title: 'Stories That Stayed: My All-Time Favorites',
-    excerpt: 'Some books leave an imprint on your soul. Here are the stories that I carry with me, the ones that shaped my reading journey...',
-    image: '',
-    category: 'Reflection',
-    slug: 'stories-that-stayed',
-    readingTime: 6,
-    author: 'Anshika Mishra',
-    bookTitle: 'Various',
-    publishedAt: '2024-01-05',
-  },
-  {
-    id: '4',
-    title: 'A Journey Through Indian Literature',
-    excerpt: 'Exploring the rich tapestry of Indian storytelling, from ancient epics to contemporary voices that speak to our modern hearts...',
-    image: '',
-    category: 'Book Review',
-    slug: 'journey-indian-literature',
-    readingTime: 8,
-    author: 'Anshika Mishra',
-    bookTitle: 'The God of Small Things',
-    publishedAt: '2023-12-28',
-  },
-  {
-    id: '5',
-    title: 'Romance Novels That Made Me Believe in Love Again',
-    excerpt: 'In a world full of cynicism, these romance novels reminded me that love stories can be both escapist and deeply meaningful...',
-    image: '',
-    category: 'Book Review',
-    slug: 'romance-novels-love',
-    readingTime: 4,
-    author: 'Anshika Mishra',
-    bookTitle: 'The Seven Husbands of Evelyn Hugo',
-    publishedAt: '2023-12-20',
-  },
-  {
-    id: '6',
-    title: 'Mystery and Thriller: Books That Kept Me Up All Night',
-    excerpt: 'From psychological thrillers to cozy mysteries, here are the books that had me turning pages until dawn...',
-    image: '',
-    category: 'Book Review',
-    slug: 'mystery-thriller-all-night',
-    readingTime: 6,
-    author: 'Anshika Mishra',
-    bookTitle: 'Gone Girl',
-    publishedAt: '2023-12-15',
-  },
-];
+type BlogPostItem = {
+  id: string;
+  title: string;
+  excerpt: string;
+  image: string;
+  category: string;
+  slug: string;
+  readingTime: number;
+  author?: string;
+  bookTitle?: string;
+  publishedAt: string;
+};
+
+function toPostItem(p: Record<string, unknown>): BlogPostItem | null {
+  if (typeof p?.title !== 'string' || typeof p?.slug !== 'string') return null;
+  return {
+    id: String(p.id ?? p.slug),
+    title: String(p.title).trim(),
+    excerpt: typeof p.excerpt === 'string' ? p.excerpt : '',
+    image: typeof p.image === 'string' ? p.image : '',
+    category: typeof p.category === 'string' ? p.category : 'Book Review',
+    slug: String(p.slug).trim(),
+    readingTime: typeof p.readingTime === 'number' ? p.readingTime : Number(p.readingTime) || 5,
+    author: typeof p.author === 'string' ? p.author : undefined,
+    bookTitle: typeof p.bookTitle === 'string' ? p.bookTitle : undefined,
+    publishedAt: typeof p.publishedAt === 'string' ? p.publishedAt : new Date().toISOString().slice(0, 10),
+  };
+}
 
 export default function BlogListing() {
+  const [posts, setPosts] = useState<BlogPostItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     category: '',
@@ -92,36 +50,58 @@ export default function BlogListing() {
   const [sortBy, setSortBy] = useState('newest');
   const postsPerPage = 6;
 
-  // Filter and sort posts (dummy logic - will be replaced with API)
-  const filteredPosts = dummyPosts.filter((post) => {
+  useEffect(() => {
+    getBlogPosts()
+      .then(({ posts: raw }) => {
+        const list = Array.isArray(raw) ? raw.map((p) => toPostItem(p as Record<string, unknown>)).filter((p): p is BlogPostItem => p != null) : [];
+        setPosts(list);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load posts'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const filteredPosts = posts.filter((post) => {
     if (filters.category && post.category !== filters.category) return false;
-    if (filters.author && !post.author.toLowerCase().includes(filters.author.toLowerCase())) return false;
-    if (filters.book && !post.bookTitle.toLowerCase().includes(filters.book.toLowerCase())) return false;
+    if (filters.author && !(post.author ?? '').toLowerCase().includes(filters.author.toLowerCase())) return false;
+    if (filters.book && !(post.bookTitle ?? '').toLowerCase().includes(filters.book.toLowerCase())) return false;
     if (filters.title && !post.title.toLowerCase().includes(filters.title.toLowerCase())) return false;
     return true;
   });
 
-  // Sort posts
   const sortedPosts = [...filteredPosts].sort((a, b) => {
-    if (sortBy === 'newest') {
-      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-    } else if (sortBy === 'oldest') {
-      return new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime();
-    } else if (sortBy === 'reading-time') {
-      return b.readingTime - a.readingTime;
-    }
+    if (sortBy === 'newest') return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    if (sortBy === 'oldest') return new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime();
+    if (sortBy === 'reading-time') return b.readingTime - a.readingTime;
     return 0;
   });
 
-  // Pagination
   const totalPages = Math.ceil(sortedPosts.length / postsPerPage);
   const startIndex = (currentPage - 1) * postsPerPage;
   const paginatedPosts = sortedPosts.slice(startIndex, startIndex + postsPerPage);
 
+  if (loading) {
+    return (
+      <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+        <div className="max-w-7xl mx-auto text-center py-16">
+          <p className="font-body text-chai-brown-light">Loading book reviews…</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+        <div className="max-w-7xl mx-auto text-center py-16">
+          <p className="font-body text-red-600">{error}</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        {/* Page Header */}
         <div className="text-center mb-8 sm:mb-12">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-chai-brown mb-3">
             Book Reviews
@@ -132,7 +112,6 @@ export default function BlogListing() {
         </div>
 
         <div className="grid lg:grid-cols-4 gap-6 lg:gap-8">
-          {/* Filters Sidebar */}
           <aside className="lg:col-span-1">
             <Filters
               filters={filters}
@@ -142,17 +121,24 @@ export default function BlogListing() {
             />
           </aside>
 
-          {/* Posts Grid */}
           <div className="lg:col-span-3">
             {paginatedPosts.length > 0 ? (
               <>
                 <div className="grid sm:grid-cols-2 gap-6 mb-8">
                   {paginatedPosts.map((post) => (
-                    <BlogCard key={post.id} {...post} />
+                    <BlogCard
+                      key={post.id}
+                      title={post.title}
+                      excerpt={post.excerpt}
+                      image={getImageUrl(post.image)}
+                      category={post.category}
+                      slug={post.slug}
+                      readingTime={post.readingTime}
+                      author={post.author}
+                      bookTitle={post.bookTitle}
+                    />
                   ))}
                 </div>
-
-                {/* Pagination */}
                 {totalPages > 1 && (
                   <Pagination
                     currentPage={currentPage}

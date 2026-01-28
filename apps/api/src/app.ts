@@ -1,3 +1,4 @@
+import path from 'path';
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -10,6 +11,13 @@ import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
 import dashboardRoutes from './routes/dashboard.js';
 import bookClubsRoutes from './routes/book-clubs.js';
+import blogRoutes from './routes/blog.js';
+import recommendationsRoutes from './routes/recommendations.js';
+import musingsRoutes from './routes/musings.js';
+import subscriptionRoutes from './routes/subscriptions.js';
+import subscribersRoutes from './routes/subscribers.js';
+import uploadRoutes from './routes/upload.js';
+import { UPLOADS_BASE } from './routes/upload.js';
 
 const app: Application = express();
 
@@ -27,9 +35,9 @@ if (config.nodeEnv === 'development') {
   app.use(morgan('dev'));
 }
 
-// Body parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parsing (higher limit for blog/recommendations/musings with many posts/items)
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Health check endpoint (includes DB name so you can verify the API is using chai-n-chapter)
 app.get('/health', (_req: Request, res: Response) => {
@@ -107,12 +115,21 @@ app.get('/api', (_req: Request, res: Response) => {
   res.json({ message: 'chai.n.chapter API' });
 });
 
-// Settings, auth, users, dashboard, book-clubs routes
+// Settings, auth, users, dashboard, book-clubs, blog, recommendations, musings, upload routes
 app.use('/api/settings', settingsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/book-clubs', bookClubsRoutes);
+app.use('/api/blog', blogRoutes);
+app.use('/api/recommendations', recommendationsRoutes);
+app.use('/api/musings', musingsRoutes);
+app.use('/api/subscribe', subscriptionRoutes);
+app.use('/api/subscribers', subscribersRoutes);
+app.use('/api/upload', uploadRoutes);
+
+// Serve uploaded files (public read)
+app.use('/api/uploads', express.static(UPLOADS_BASE));
 
 // 404 handler
 app.use((_req: Request, res: Response) => {

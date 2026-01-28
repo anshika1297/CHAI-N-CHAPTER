@@ -54,6 +54,7 @@ const defaultAboutData = {
       { label: 'Perfect Reading Spot', value: 'Cozy Corner + Chai' },
     ],
   },
+  pictureCorner: [] as { id: string; imageUrl: string; title?: string; description?: string }[],
 };
 
 export default function AboutPageContent() {
@@ -63,7 +64,18 @@ export default function AboutPageContent() {
     getPageSettings('about')
       .then(({ content }) => {
         if (content && typeof content === 'object' && !Array.isArray(content)) {
-          setAboutData({ ...defaultAboutData, ...(content as object) } as typeof defaultAboutData);
+          const c = content as Record<string, unknown>;
+          const pictureCorner = Array.isArray(c.pictureCorner)
+            ? (c.pictureCorner as Record<string, unknown>[])
+                .filter((x) => x && typeof x === 'object' && typeof (x as { id?: unknown }).id === 'string')
+                .map((x) => ({
+                  id: String((x as { id: string }).id),
+                  imageUrl: typeof (x as { imageUrl?: unknown }).imageUrl === 'string' ? (x as { imageUrl: string }).imageUrl : '',
+                  title: typeof (x as { title?: unknown }).title === 'string' ? (x as { title: string }).title : '',
+                  description: typeof (x as { description?: unknown }).description === 'string' ? (x as { description: string }).description : '',
+                }))
+            : defaultAboutData.pictureCorner;
+          setAboutData({ ...defaultAboutData, ...(content as object), pictureCorner } as typeof defaultAboutData);
         } else {
           setAboutData(defaultAboutData);
         }
@@ -82,7 +94,7 @@ export default function AboutPageContent() {
       <ReadingJourney readingJourney={data.readingJourney} />
       <BlogStory blogStory={data.blogStory} />
       <ReadingDNA readingDNA={data.readingDNA} />
-      <PictureGallery />
+      <PictureGallery images={data.pictureCorner} />
     </>
   );
 }

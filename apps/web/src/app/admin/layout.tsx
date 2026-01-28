@@ -20,14 +20,18 @@ import {
   Sparkles,
   PanelTop,
   Home,
+  UserCircle,
+  Mail,
 } from 'lucide-react';
 import { getAdminToken, clearAdminToken } from '@/lib/api';
 
 const adminNavLinks = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Admin Users', href: '/admin/users', icon: Users },
+  { name: 'Subscribers', href: '/admin/subscribers', icon: Mail },
   { name: 'Home (Hero)', href: '/admin/home', icon: Home },
   { name: 'Header', href: '/admin/header', icon: PanelTop },
+  { name: 'About Me', href: '/admin/about', icon: UserCircle },
   { name: 'Book Reviews', href: '/admin/blog', icon: PenSquare },
   { name: 'Book Recommendations', href: '/admin/recommendations', icon: ListOrdered },
   { name: 'Her Musings Verse', href: '/admin/musings', icon: Sparkles },

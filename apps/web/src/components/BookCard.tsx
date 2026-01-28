@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import { getImageUrl } from '@/lib/api';
 
 interface BookCardProps {
   title: string;
@@ -10,9 +11,11 @@ interface BookCardProps {
   category: string;
   slug: string;
   readingTime?: number;
+  /** Base path for "Read More" link; default /blog */
+  basePath?: string;
 }
 
-export default function BookCard({ title, excerpt, image, category, slug, readingTime }: BookCardProps) {
+export default function BookCard({ title, excerpt, image, category, slug, readingTime, basePath = '/blog' }: BookCardProps) {
   return (
     <article className="card group">
       {/* Image */}
@@ -20,7 +23,7 @@ export default function BookCard({ title, excerpt, image, category, slug, readin
         <div 
           className="absolute inset-0 bg-gradient-to-br from-chai-brown to-chai-brown-dark"
           style={{ 
-            backgroundImage: image ? `url(${image})` : undefined,
+            backgroundImage: image ? `url(${getImageUrl(image)})` : undefined,
             backgroundSize: 'cover',
             backgroundPosition: 'center'
           }}
@@ -60,7 +63,7 @@ export default function BookCard({ title, excerpt, image, category, slug, readin
         </p>
 
         <Link 
-          href={`/blog/${slug}`}
+          href={`${basePath}/${slug}`}
           className="inline-flex items-center gap-2 text-terracotta font-sans text-sm font-medium hover:gap-3 transition-all"
         >
           Read More

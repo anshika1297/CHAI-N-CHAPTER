@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Save } from 'lucide-react';
 import Link from 'next/link';
+import { getPageSettings, putPageSettings } from '@/lib/api';
+import PageLoading from '@/components/PageLoading';
+import ImageUploadField from '@/components/ImageUploadField';
 
 export interface BlogHighlight {
   id: string;
@@ -145,11 +148,80 @@ function formatKeywordsForInput(keywords: string[]): string {
   return (keywords ?? []).join('\n');
 }
 
+function toPost(x: Record<string, unknown>): BlogPost | null {
+  if (typeof x?.title !== 'string' || typeof x?.slug !== 'string') return null;
+  return {
+    id: String(x.id ?? x.slug),
+    title: String(x.title).trim(),
+    slug: String(x.slug).trim(),
+    excerpt: typeof x.excerpt === 'string' ? x.excerpt : '',
+    content: typeof x.content === 'string' ? x.content : '',
+    image: typeof x.image === 'string' ? x.image : '',
+    category: typeof x.category === 'string' ? x.category : 'Book Review',
+    readingTime: typeof x.readingTime === 'number' ? x.readingTime : Number(x.readingTime) || 5,
+    author: typeof x.author === 'string' ? x.author : '',
+    bookTitle: typeof x.bookTitle === 'string' ? x.bookTitle : '',
+    bookAuthor: typeof x.bookAuthor === 'string' ? x.bookAuthor : '',
+    publishedAt: typeof x.publishedAt === 'string' ? x.publishedAt : new Date().toISOString().slice(0, 10),
+    highlights: Array.isArray(x.highlights) ? (x.highlights as Record<string, unknown>[]).map((h) => ({ id: String(h?.id ?? ''), quote: String(h?.quote ?? '').trim(), page: typeof h?.page === 'number' ? h.page : undefined, image: typeof h?.image === 'string' ? h.image : '' })).filter((h) => h.quote) : [],
+    seoKeywords: Array.isArray(x.seoKeywords) ? (x.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+  };
+}
+
 export default function AdminBlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>(defaultPosts);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [formData, setFormData] = useState<Omit<BlogPost, 'id'>>(emptyForm);
+
+  useEffect(() => {
+    getPageSettings('blog')
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content) && Array.isArray((content as { posts?: unknown }).posts)) {
+          const list = ((content as { posts: Record<string, unknown>[] }).posts).map(toPost).filter((p): p is BlogPost => p != null);
+          if (list.length) setPosts(list);
+        }
+      })
+      .catch(() => setMessage({ type: 'error', text: 'Failed to load posts' }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  /** Build serializable payload and call PUT /api/settings/pages/blog */
+  const savePostsToApi = async (postsToSave: BlogPost[]) => {
+    const postsPayload = postsToSave.map((p) => ({
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      excerpt: p.excerpt,
+      content: p.content,
+      image: p.image ?? '',
+      category: p.category ?? 'Book Review',
+      readingTime: Number(p.readingTime) || 5,
+      author: p.author ?? '',
+      bookTitle: p.bookTitle ?? '',
+      bookAuthor: p.bookAuthor ?? '',
+      publishedAt: p.publishedAt ?? new Date().toISOString().slice(0, 10),
+      highlights: Array.isArray(p.highlights) ? p.highlights.map((h) => ({ id: h.id, quote: h.quote ?? '', page: h.page, image: h.image ?? '' })) : [],
+      seoKeywords: Array.isArray(p.seoKeywords) ? p.seoKeywords : [],
+    }));
+    await putPageSettings('blog', { posts: postsPayload });
+  };
+
+  const handleSaveToSite = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      await savePostsToApi(posts);
+      setMessage({ type: 'success', text: 'Book reviews saved to site!' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleTitleChange = (title: string) => {
     setFormData({
@@ -159,24 +231,34 @@ export default function AdminBlogPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let nextPosts: BlogPost[];
     if (editingPost) {
-      setPosts(
-        posts.map((p) =>
-          p.id === editingPost.id ? { ...formData, id: editingPost.id } : p
-        )
+      nextPosts = posts.map((p) =>
+        p.id === editingPost.id ? { ...formData, id: editingPost.id } : p
       );
     } else {
       const newPost: BlogPost = {
         ...formData,
         id: Date.now().toString(),
       };
-      setPosts([...posts, newPost]);
+      nextPosts = [...posts, newPost];
     }
+    setPosts(nextPosts);
     setFormData(emptyForm);
     setShowForm(false);
     setEditingPost(null);
+    setSaving(true);
+    setMessage(null);
+    try {
+      await savePostsToApi(nextPosts);
+      setMessage({ type: 'success', text: 'Post saved to site!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEdit = (post: BlogPost) => {
@@ -199,9 +281,19 @@ export default function AdminBlogPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this post? This cannot be undone.')) {
-      setPosts(posts.filter((p) => p.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
+    const nextPosts = posts.filter((p) => p.id !== id);
+    setPosts(nextPosts);
+    setSaving(true);
+    setMessage(null);
+    try {
+      await savePostsToApi(nextPosts);
+      setMessage({ type: 'success', text: 'Post removed and saved.' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -223,6 +315,8 @@ export default function AdminBlogPage() {
     }
   };
 
+  if (loading) return <PageLoading message="Loading book reviews…" />;
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -231,17 +325,33 @@ export default function AdminBlogPage() {
             Manage Book Reviews
           </h1>
           <p className="font-body text-chai-brown-light">
-            Create, edit, and publish blog posts
+            Create, edit, and publish blog posts. Home page shows newest 3.
           </p>
         </div>
-        <button
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSaveToSite}
+            disabled={saving}
+            className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body text-sm disabled:opacity-50"
+          >
+            <Save size={20} />
+            {saving ? 'Saving…' : 'Save to site'}
+          </button>
+          <button
           onClick={openCreate}
           className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body text-sm"
         >
           <Plus size={20} />
           Add Post
         </button>
+        </div>
       </div>
+      {message && (
+        <div className={`mb-6 px-4 py-3 rounded-lg font-body text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}`}>
+          {message.text}
+        </div>
+      )}
 
       {/* Form Modal */}
       {showForm && (
@@ -305,16 +415,13 @@ export default function AdminBlogPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-body text-sm font-medium text-chai-brown mb-2">
-                    Featured Image URL
-                  </label>
-                  <p className="text-xs text-chai-brown-light mb-1">Use any public URL (Imgur, imgbb, etc.) or a path like /images/blog/… if the file is in <code className="bg-cream px-1 rounded">public/images/</code>. No cloud storage needed.</p>
-                  <input
-                    type="text"
+                  <ImageUploadField
+                    label="Featured image"
                     value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://... or /images/..."
-                    className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
+                    onChange={(url) => setFormData({ ...formData, image: url })}
+                    module="blog"
+                    placeholder="Paste URL or click Upload"
+                    className="font-body"
                   />
                 </div>
                 <div>
@@ -441,7 +548,7 @@ export default function AdminBlogPage() {
                   </button>
                 </div>
                 <p className="text-xs text-chai-brown-light mb-2">
-                  Optional. Shown as “Favorite Quotes & Highlights” on the post. Use any image URL or path like /images/…
+                  Optional. Shown as “Favorite Quotes & Highlights” on the post. Upload or paste URL for each quote image.
                 </p>
                 {(formData.highlights ?? []).map((h, idx) => (
                   <div
@@ -487,16 +594,16 @@ export default function AdminBlogPage() {
                         placeholder="Page number (optional)"
                         className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
                       />
-                      <input
-                        type="text"
+                      <ImageUploadField
                         value={h.image ?? ''}
-                        onChange={(e) => {
+                        onChange={(url) => {
                           const next = [...(formData.highlights ?? [])];
-                          next[idx] = { ...h, image: e.target.value || undefined };
+                          next[idx] = { ...h, image: url || '' };
                           setFormData({ ...formData, highlights: next });
                         }}
-                        placeholder="Image URL (optional)"
-                        className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
+                        module="blog"
+                        placeholder="Quote image (optional)"
+                        className="font-body"
                       />
                     </div>
                   </div>

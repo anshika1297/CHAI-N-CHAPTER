@@ -1,6 +1,7 @@
 import Hero from '@/components/Hero';
 import BookReviews from '@/components/BookReviews';
 import BookRecommendations from '@/components/BookRecommendations';
+import MusingsVerse from '@/components/MusingsVerse';
 import BookClubs from '@/components/BookClubs';
 import Contact from '@/components/Contact';
 import { buildMetadata } from '@/lib/metadata';
@@ -18,6 +19,7 @@ export default function Home() {
       <Hero />
       <BookReviews />
       <BookRecommendations />
+      <MusingsVerse />
       <BookClubs />
       <Contact />
     </>

@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Save } from 'lucide-react';
 import Link from 'next/link';
+import { getPageSettings, putPageSettings } from '@/lib/api';
+import PageLoading from '@/components/PageLoading';
+import ImageUploadField from '@/components/ImageUploadField';
 
 export interface Musing {
   id: string;
@@ -115,11 +118,73 @@ function formatKeywordsForInput(keywords: string[]): string {
   return (keywords ?? []).join('\n');
 }
 
+function toMusing(x: Record<string, unknown>): Musing | null {
+  if (typeof x?.title !== 'string' || typeof x?.slug !== 'string') return null;
+  return {
+    id: String(x.id ?? x.slug),
+    title: String(x.title).trim(),
+    slug: String(x.slug).trim(),
+    excerpt: typeof x.excerpt === 'string' ? x.excerpt : '',
+    content: typeof x.content === 'string' ? x.content : '',
+    image: typeof x.image === 'string' ? x.image : '',
+    category: typeof x.category === 'string' ? x.category : 'Reflection',
+    readingTime: typeof x.readingTime === 'number' ? x.readingTime : Number(x.readingTime) || 3,
+    author: typeof x.author === 'string' ? x.author : '',
+    publishedAt: typeof x.publishedAt === 'string' ? x.publishedAt : new Date().toISOString().slice(0, 10),
+    seoKeywords: Array.isArray(x.seoKeywords) ? (x.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+  };
+}
+
 export default function AdminMusingsPage() {
   const [items, setItems] = useState<Musing[]>(defaultMusings);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Musing | null>(null);
   const [formData, setFormData] = useState<Omit<Musing, 'id'>>(emptyForm);
+
+  useEffect(() => {
+    getPageSettings('musings')
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content) && Array.isArray((content as { items?: unknown }).items)) {
+          const list = ((content as { items: Record<string, unknown>[] }).items).map(toMusing).filter((p): p is Musing => p != null);
+          if (list.length) setItems(list);
+        }
+      })
+      .catch(() => setMessage({ type: 'error', text: 'Failed to load musings' }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const saveItemsToApi = async (itemsToSave: Musing[]) => {
+    const itemsPayload = itemsToSave.map((i) => ({
+      id: i.id,
+      title: i.title,
+      slug: i.slug,
+      excerpt: i.excerpt ?? '',
+      content: i.content ?? '',
+      image: i.image ?? '',
+      category: i.category ?? 'Reflection',
+      readingTime: Number(i.readingTime) || 3,
+      author: i.author ?? '',
+      publishedAt: i.publishedAt ?? new Date().toISOString().slice(0, 10),
+      seoKeywords: Array.isArray(i.seoKeywords) ? i.seoKeywords : [],
+    }));
+    await putPageSettings('musings', { items: itemsPayload });
+  };
+
+  const handleSaveToSite = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveItemsToApi(items);
+      setMessage({ type: 'success', text: 'Musings saved to site!' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleTitleChange = (title: string) => {
     setFormData({
@@ -129,20 +194,30 @@ export default function AdminMusingsPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let nextItems: Musing[];
     if (editing) {
-      setItems(
-        items.map((p) =>
-          p.id === editing.id ? { ...formData, id: editing.id } : p
-        )
+      nextItems = items.map((p) =>
+        p.id === editing.id ? { ...formData, id: editing.id } : p
       );
     } else {
-      setItems([...items, { ...formData, id: Date.now().toString() }]);
+      nextItems = [...items, { ...formData, id: Date.now().toString() }];
     }
+    setItems(nextItems);
     setFormData(emptyForm);
     setShowForm(false);
     setEditing(null);
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveItemsToApi(nextItems);
+      setMessage({ type: 'success', text: 'Musing saved to site!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEdit = (item: Musing) => {
@@ -162,9 +237,19 @@ export default function AdminMusingsPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Delete this musing? This cannot be undone.')) {
-      setItems(items.filter((p) => p.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this musing? This cannot be undone.')) return;
+    const nextItems = items.filter((p) => p.id !== id);
+    setItems(nextItems);
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveItemsToApi(nextItems);
+      setMessage({ type: 'success', text: 'Musing removed and saved.' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -180,6 +265,8 @@ export default function AdminMusingsPage() {
     }
   };
 
+  if (loading) return <PageLoading message="Loading musings…" />;
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -188,21 +275,37 @@ export default function AdminMusingsPage() {
             Her Musings Verse
           </h1>
           <p className="font-body text-chai-brown-light">
-            Create and edit musings, reflections, and short stories
+            Create and edit musings. Home page shows newest 3.
           </p>
         </div>
-        <button
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSaveToSite}
+            disabled={saving}
+            className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body text-sm disabled:opacity-50"
+          >
+            <Save size={20} />
+            {saving ? 'Saving…' : 'Save to site'}
+          </button>
+          <button
           onClick={() => {
             setEditing(null);
             setFormData(emptyForm);
             setShowForm(true);
           }}
-          className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body text-sm"
+          className="flex items-center gap-2 bg-sage/80 text-chai-brown px-4 py-2 rounded-lg hover:bg-sage transition-colors font-body text-sm"
         >
           <Plus size={20} />
           Add Musing
         </button>
+        </div>
       </div>
+      {message && (
+        <div className={`mb-6 px-4 py-3 rounded-lg font-body text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}`}>
+          {message.text}
+        </div>
+      )}
 
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -256,13 +359,13 @@ export default function AdminMusingsPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-body text-sm font-medium text-chai-brown mb-2">Cover image URL</label>
-                  <input
-                    type="text"
+                  <ImageUploadField
+                    label="Cover image"
                     value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
+                    onChange={(url) => setFormData({ ...formData, image: url })}
+                    module="musings"
+                    placeholder="Paste URL or click Upload"
+                    className="font-body"
                   />
                 </div>
                 <div>

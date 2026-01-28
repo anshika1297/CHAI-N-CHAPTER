@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getPageSettings } from '@/lib/api';
+import { getPageSettings, getImageUrl } from '@/lib/api';
 
 const defaultHome = {
   welcomeText: 'Welcome to my cozy corner',
@@ -62,7 +62,7 @@ export default function Hero() {
                 <div className="aspect-square bg-chai-brown relative flex items-center justify-center">
                   <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)' }} />
                   {data.imageUrl ? (
-                    <img src={data.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    <img src={getImageUrl(data.imageUrl)} alt="" className="absolute inset-0 w-full h-full object-cover" />
                   ) : (
                     <div className="relative z-10 text-center px-4">
                       <p className="font-serif text-lg text-cream/90 font-medium">Author Image</p>

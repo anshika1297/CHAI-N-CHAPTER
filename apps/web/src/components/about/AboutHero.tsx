@@ -1,5 +1,7 @@
 'use client';
 
+import { getImageUrl } from '@/lib/api';
+
 export type HeroData = {
   name: string;
   greeting: string;
@@ -57,7 +59,7 @@ export default function AboutHero({ hero: heroProp }: Props) {
                   />
                   {hero.imageUrl ? (
                     <img
-                      src={hero.imageUrl}
+                      src={getImageUrl(hero.imageUrl)}
                       alt={hero.name}
                       className="absolute inset-0 w-full h-full object-cover"
                     />

@@ -2,81 +2,78 @@
 
 import { useState, useEffect } from 'react';
 import { Clock, Tag, User, BookOpen, Share2, Quote } from 'lucide-react';
-import Image from 'next/image';
+import { getImageUrl, getBlogPostBySlug } from '@/lib/api';
 
 interface BlogDetailProps {
   slug: string;
 }
 
-// Dummy data - will be replaced with API data
-const dummyPost = {
-  id: '1',
-  title: 'The Art of Slow Living: Finding Peace in Pages',
-  content: `
-    <p>In a world that moves at breakneck speed, there's something revolutionary about slowing down. This book, "The Art of Slow Living," found me at exactly the right moment—when I was drowning in deadlines and feeling disconnected from the simple joys of life.</p>
-    
-    <p>The author beautifully weaves together philosophy, personal anecdotes, and practical advice on how to embrace a slower pace. Each chapter feels like a gentle reminder to breathe, to notice, to appreciate.</p>
-    
-    <h2>What I Loved</h2>
-    <p>The book doesn't preach or make you feel guilty for your busy life. Instead, it offers gentle invitations to slow down in small, meaningful ways. The chapter on mindful reading particularly resonated with me—the idea that reading isn't just about consuming words, but about creating space for reflection and connection.</p>
-    
-    <p>One of my favorite passages talks about how the act of reading itself is a form of slow living. When we read, we're forced to pause, to process, to imagine. We can't rush through a book the way we scroll through social media. There's something inherently meditative about turning pages and letting a story unfold at its own pace.</p>
-    
-    <h2>Key Takeaways</h2>
-    <p>The book emphasizes that slow living isn't about doing less, but about doing things with intention and presence. It's about quality over quantity, depth over breadth. This philosophy has completely transformed how I approach my reading life.</p>
-    
-    <p>I've started setting aside dedicated reading time without distractions—no phone, no background noise, just me and the book. And you know what? It's made reading feel like a luxury again, not just another item on my to-do list.</p>
-    
-    <h2>Final Thoughts</h2>
-    <p>If you're feeling overwhelmed, disconnected, or just craving a more intentional way of living, this book is a beautiful companion. It's not a quick fix, but rather a gentle guide toward a more mindful existence.</p>
-    
-    <p>Rating: 5/5 stars. This is a book I'll return to again and again, like visiting an old friend who always knows exactly what you need to hear.</p>
-  `,
-  excerpt: 'A beautiful meditation on slowing down and finding joy in the simple act of reading.',
-  image: '',
-  bookCover: '', // Book cover image
-  categories: ['Book Review', 'Self-Help', 'Mindfulness'], // Multiple categories
-  slug: 'art-of-slow-living',
-  readingTime: 5,
-  author: 'Anshika Mishra',
-  bookTitle: 'The Art of Slow Living',
-  bookAuthor: 'Marie Kondo',
-  publishedAt: '2024-01-15',
-  tags: ['Self-Help', 'Mindfulness', 'Lifestyle', 'Philosophy'],
-  bookImages: [ // Additional book-related images (highlights, book stacks, etc.)
-    '',
-    '',
-    '',
-  ],
-  // Category lists for different post types
-  // For Book Reviews: ['Book Review', 'Fiction', 'Non-Fiction', 'Self-Help', 'Romance', 'Mystery', 'Thriller', 'Fantasy', 'Historical Fiction', 'Contemporary', 'Literary Fiction', 'Biography', 'Memoir', 'Philosophy', 'Mindfulness', 'Lifestyle']
-  // For Recommendations: ['Book List', 'Weekly Wrap-Up', 'Monthly Wrap-Up', 'Yearly Wrap-Up', 'Genre Recommendations', 'Author Spotlight']
-  // For Musings: ['Reflection', 'Short Story', 'Thoughts', 'Personal', 'Poetry', 'Random']
-  highlights: [
-    {
-      id: '1',
-      quote: "Reading isn't just about consuming words, but about creating space for reflection and connection.",
-      page: 45,
-      image: '',
-    },
-    {
-      id: '2',
-      quote: "Slow living isn't about doing less, but about doing things with intention and presence.",
-      page: 120,
-      image: '',
-    },
-    {
-      id: '3',
-      quote: "When we read, we're forced to pause, to process, to imagine. We can't rush through a book the way we scroll through social media.",
-      page: 78,
-      image: '',
-    },
-  ],
+type Highlight = { id: string; quote: string; page?: number; image?: string };
+type PostData = {
+  title: string;
+  content: string;
+  excerpt: string;
+  image: string;
+  bookCover: string;
+  categories: string[];
+  slug: string;
+  readingTime: number;
+  author: string;
+  bookTitle: string;
+  bookAuthor: string;
+  publishedAt: string;
+  tags: string[];
+  bookImages: string[];
+  highlights: Highlight[];
 };
 
+function normalizePost(p: Record<string, unknown>): PostData {
+  const category = typeof p.category === 'string' ? p.category : '';
+  const highlights = Array.isArray(p.highlights)
+    ? (p.highlights as Record<string, unknown>[]).map((h) => ({
+        id: String(h?.id ?? ''),
+        quote: String(h?.quote ?? '').trim(),
+        page: typeof h?.page === 'number' ? h.page : undefined,
+        image: typeof h?.image === 'string' ? h.image : '',
+      }))
+    : [];
+  return {
+    title: String(p.title ?? '').trim(),
+    content: typeof p.content === 'string' ? p.content : '',
+    excerpt: typeof p.excerpt === 'string' ? p.excerpt : '',
+    image: typeof p.image === 'string' ? p.image : '',
+    bookCover: typeof p.image === 'string' ? p.image : '',
+    categories: category ? [category] : [],
+    slug: String(p.slug ?? '').trim(),
+    readingTime: typeof p.readingTime === 'number' ? p.readingTime : Number(p.readingTime) || 5,
+    author: typeof p.author === 'string' ? p.author : '',
+    bookTitle: typeof p.bookTitle === 'string' ? p.bookTitle : '',
+    bookAuthor: typeof p.bookAuthor === 'string' ? p.bookAuthor : '',
+    publishedAt: typeof p.publishedAt === 'string' ? p.publishedAt : new Date().toISOString().slice(0, 10),
+    tags: Array.isArray(p.seoKeywords) ? (p.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+    bookImages: [],
+    highlights,
+  };
+}
+
 export default function BlogDetail({ slug }: BlogDetailProps) {
+  const [post, setPost] = useState<PostData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [showShareMenu, setShowShareMenu] = useState(false);
+
+  useEffect(() => {
+    getBlogPostBySlug(slug)
+      .then(({ post: raw }) => {
+        setPost(normalizePost(raw as Record<string, unknown>));
+      })
+      .catch((e) => {
+        if (e instanceof Error && e.message === 'Post not found') setNotFound(true);
+        else setPost(null);
+      })
+      .finally(() => setLoading(false));
+  }, [slug]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -106,8 +103,9 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
   }, [showShareMenu]);
 
   const handleShare = (platform: string) => {
+    if (!post) return;
     const url = window.location.href;
-    const text = `${dummyPost.title} - ${dummyPost.bookTitle}`;
+    const text = `${post.title} - ${post.bookTitle}`;
     
     const shareUrls: Record<string, string> = {
       threads: `https://www.threads.net/intent/post?text=${encodeURIComponent(text + ' ' + url)}`,
@@ -126,6 +124,26 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
     }
   };
 
+  if (loading) {
+    return (
+      <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+        <div className="max-w-4xl mx-auto text-center py-16">
+          <p className="font-body text-chai-brown-light">Loading…</p>
+        </div>
+      </article>
+    );
+  }
+
+  if (notFound || !post) {
+    return (
+      <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+        <div className="max-w-4xl mx-auto text-center py-16">
+          <p className="font-body text-chai-brown-light">Post not found.</p>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
       {/* Reading Progress Bar */}
@@ -140,9 +158,9 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
         {/* Header Section */}
         <header className="mb-8">
           {/* Category Badges */}
-          {dummyPost.categories && dummyPost.categories.length > 0 && (
+          {post.categories && post.categories.length > 0 && (
             <div className="mb-4 flex flex-wrap items-center gap-2">
-              {dummyPost.categories.map((category) => (
+              {post.categories.map((category) => (
                 <span
                   key={category}
                   className="bg-terracotta text-cream text-xs font-sans px-3 py-1 rounded-full inline-flex items-center gap-1"
@@ -156,31 +174,31 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
 
           {/* Title */}
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-chai-brown mb-4 leading-tight">
-            {dummyPost.title}
+            {post.title}
           </h1>
 
           {/* Meta Information */}
           <div className="flex flex-wrap items-center gap-4 text-sm text-chai-brown-light font-sans mb-6">
             <div className="flex items-center gap-2">
               <Clock size={14} />
-              <span>{dummyPost.readingTime} min read</span>
+              <span>{post.readingTime} min read</span>
             </div>
             <div className="flex items-center gap-2">
               <User size={14} />
-              <span>{dummyPost.author}</span>
+              <span>{post.author}</span>
             </div>
             <div className="flex items-center gap-2">
               <BookOpen size={14} />
-              <span className="italic">{dummyPost.bookTitle}</span>
-              {dummyPost.bookAuthor && (
+              <span className="italic">{post.bookTitle}</span>
+              {post.bookAuthor && (
                 <>
                   <span>by</span>
-                  <span>{dummyPost.bookAuthor}</span>
+                  <span>{post.bookAuthor}</span>
                 </>
               )}
             </div>
             <div className="text-xs">
-              {new Date(dummyPost.publishedAt).toLocaleDateString('en-US', {
+              {new Date(post.publishedAt).toLocaleDateString('en-US', {
                 month: 'long',
                 day: 'numeric',
                 year: 'numeric',
@@ -231,12 +249,12 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
         </header>
 
         {/* Book Cover Image */}
-        {dummyPost.bookCover ? (
+        {post.bookCover ? (
           <div className="w-full max-w-3xl mx-auto mb-8 rounded-2xl overflow-hidden shadow-xl">
             <div className="relative w-full flex justify-center items-center bg-cream-light p-4">
               <img
-                src={dummyPost.bookCover}
-                alt={`${dummyPost.bookTitle} cover`}
+                src={getImageUrl(post.bookCover)}
+                alt={`${post.bookTitle} cover`}
                 className="max-w-full h-auto rounded-lg object-contain"
                 style={{ maxHeight: '600px' }}
               />
@@ -247,9 +265,9 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center px-4">
                 <span className="text-6xl mb-4 block">📖</span>
-                <p className="font-serif text-lg text-cream/90 font-medium">{dummyPost.bookTitle}</p>
-                {dummyPost.bookAuthor && (
-                  <p className="font-body text-sm text-cream/70 mt-2">by {dummyPost.bookAuthor}</p>
+                <p className="font-serif text-lg text-cream/90 font-medium">{post.bookTitle}</p>
+                {post.bookAuthor && (
+                  <p className="font-body text-sm text-cream/70 mt-2">by {post.bookAuthor}</p>
                 )}
               </div>
             </div>
@@ -259,18 +277,18 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
         {/* Main Content */}
         <div
           className="blog-content max-w-none font-body text-chai-brown-light leading-relaxed mb-12"
-          dangerouslySetInnerHTML={{ __html: dummyPost.content }}
+          dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
         {/* Highlights Section */}
-        {dummyPost.highlights && dummyPost.highlights.length > 0 && (
+        {post.highlights && post.highlights.length > 0 && (
           <section className="mb-12">
             <h2 className="font-serif text-2xl md:text-3xl text-chai-brown mb-6 flex items-center gap-2">
               <Quote size={24} className="text-terracotta" />
               Favorite Quotes & Highlights
             </h2>
             <div className="space-y-6">
-              {dummyPost.highlights.map((highlight) => (
+              {post.highlights.map((highlight) => (
                 <div
                   key={highlight.id}
                   className="bg-cream-light rounded-xl p-6 border-l-4 border-terracotta"
@@ -285,11 +303,10 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
                   )}
                   {highlight.image && (
                     <div className="mt-4 relative aspect-[4/3] rounded-lg overflow-hidden max-w-md">
-                      <Image
-                        src={highlight.image}
+                      <img
+                        src={getImageUrl(highlight.image)}
                         alt="Highlight"
-                        fill
-                        className="object-cover"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   )}
@@ -300,41 +317,38 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
         )}
 
         {/* Book Images Gallery - Highlights and Related Images */}
-        {dummyPost.bookImages && dummyPost.bookImages.some((img) => img) && (
+        {post.bookImages && post.bookImages.some((img) => img) && (
           <section className="mb-12">
             <h2 className="font-serif text-2xl md:text-3xl text-chai-brown mb-6">
               Book Highlights & Images
             </h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {dummyPost.bookImages
+              {post.bookImages
                 .filter((img) => img)
                 .map((image, index) => (
                   <div
                     key={index}
                     className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow"
                   >
-                    <Image
-                      src={image}
+                    <img
+                      src={getImageUrl(image)}
                       alt={`Book highlight ${index + 1}`}
-                      fill
-                      className="object-cover"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                 ))}
-              {/* Also include highlight images if they exist */}
-              {dummyPost.highlights &&
-                dummyPost.highlights
+              {post.highlights &&
+                post.highlights
                   .filter((h) => h.image)
                   .map((highlight) => (
                     <div
                       key={`highlight-${highlight.id}`}
                       className="relative aspect-[4/3] rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow"
                     >
-                      <Image
-                        src={highlight.image!}
+                      <img
+                        src={getImageUrl(highlight.image!)}
                         alt="Book highlight"
-                        fill
-                        className="object-cover"
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   ))}
@@ -343,11 +357,11 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
         )}
 
         {/* Categories Section */}
-        {dummyPost.categories && dummyPost.categories.length > 0 && (
+        {post.categories && post.categories.length > 0 && (
           <section className="mb-6 pt-8 border-t border-chai-brown/10">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-sans font-medium text-chai-brown mr-2">Categories:</span>
-              {dummyPost.categories.map((category) => (
+              {post.categories.map((category) => (
                 <span
                   key={category}
                   className="bg-terracotta/10 text-terracotta text-xs font-sans px-3 py-1 rounded-full border border-terracotta/30 hover:bg-terracotta/20 transition-colors cursor-pointer"
@@ -360,11 +374,11 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
         )}
 
         {/* Tags Section */}
-        {dummyPost.tags && dummyPost.tags.length > 0 && (
+        {post.tags && post.tags.length > 0 && (
           <section className="mb-8 pt-4">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-sans font-medium text-chai-brown mr-2">Tags:</span>
-              {dummyPost.tags.map((tag) => (
+              {post.tags.map((tag) => (
                 <span
                   key={tag}
                   className="bg-cream-light text-chai-brown text-xs font-sans px-3 py-1 rounded-full border border-chai-brown/20 hover:border-terracotta transition-colors cursor-pointer"

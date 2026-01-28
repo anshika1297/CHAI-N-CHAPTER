@@ -1,9 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Save } from 'lucide-react';
+import { Save, Plus, Trash2 } from 'lucide-react';
 import { getPageSettings, putPageSettings } from '@/lib/api';
 import PageLoading from '@/components/PageLoading';
+import ImageUploadField from '@/components/ImageUploadField';
+
+type PictureCornerItem = { id: string; imageUrl: string; title?: string; description?: string };
 
 const defaultAboutData = {
   hero: {
@@ -50,6 +53,7 @@ const defaultAboutData = {
       { label: 'Perfect Reading Spot', value: 'Cozy Corner + Chai' },
     ],
   },
+  pictureCorner: [] as PictureCornerItem[],
 };
 
 export default function AdminAboutPage() {
@@ -62,7 +66,22 @@ export default function AdminAboutPage() {
     getPageSettings('about')
       .then(({ content }) => {
         if (content && typeof content === 'object' && !Array.isArray(content)) {
-          setAboutData({ ...defaultAboutData, ...(content as object) } as typeof defaultAboutData);
+          const c = content as Record<string, unknown>;
+          const items: PictureCornerItem[] = Array.isArray(c.pictureCorner)
+            ? (c.pictureCorner as Record<string, unknown>[])
+                .filter((x) => x && typeof x === 'object' && typeof (x as { id?: unknown }).id === 'string')
+                .map((x) => ({
+                  id: String((x as { id: string }).id),
+                  imageUrl: typeof (x as { imageUrl?: unknown }).imageUrl === 'string' ? (x as { imageUrl: string }).imageUrl : '',
+                  title: typeof (x as { title?: unknown }).title === 'string' ? (x as { title: string }).title : '',
+                  description: typeof (x as { description?: unknown }).description === 'string' ? (x as { description: string }).description : '',
+                }))
+            : defaultAboutData.pictureCorner;
+          setAboutData({
+            ...defaultAboutData,
+            ...(content as object),
+            pictureCorner: items.length ? items : defaultAboutData.pictureCorner,
+          } as typeof defaultAboutData);
         }
       })
       .catch(() => setMessage({ type: 'error', text: 'Failed to load About data' }))
@@ -119,8 +138,25 @@ export default function AdminAboutPage() {
       <div className="space-y-6">
         {/* Hero Section */}
         <div className="bg-white rounded-lg p-6 border border-chai-brown/10">
-          <h2 className="font-serif text-xl text-chai-brown mb-4">Hero Section</h2>
+          <h2 className="font-serif text-xl text-chai-brown mb-4">Hero Section (top of About Me)</h2>
           <div className="space-y-4">
+            {/* About Me / Author photo – prominent at top */}
+            <div className="p-4 rounded-lg bg-cream/50 border border-chai-brown/10">
+              <ImageUploadField
+                label="About Me photo (author image)"
+                value={aboutData.hero.imageUrl}
+                onChange={(url) => setAboutData({
+                  ...aboutData,
+                  hero: { ...aboutData.hero, imageUrl: url }
+                })}
+                module="about"
+                placeholder="Paste URL or click Upload to choose from device"
+                className="font-body"
+              />
+              <p className="mt-2 text-xs text-chai-brown-light font-body">
+                This image appears at the top of the About Me page. Use the Upload button to pick an image from your device, or paste a URL.
+              </p>
+            </div>
             <div>
               <label className="block font-body text-sm font-medium text-chai-brown mb-2">
                 Name
@@ -146,21 +182,6 @@ export default function AdminAboutPage() {
                   hero: { ...aboutData.hero, introText: e.target.value }
                 })}
                 rows={4}
-                className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
-              />
-            </div>
-            <div>
-              <label className="block font-body text-sm font-medium text-chai-brown mb-2">
-                Image URL
-              </label>
-              <input
-                type="text"
-                value={aboutData.hero.imageUrl}
-                onChange={(e) => setAboutData({
-                  ...aboutData,
-                  hero: { ...aboutData.hero, imageUrl: e.target.value }
-                })}
-                placeholder="https://example.com/image.jpg"
                 className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
               />
             </div>
@@ -271,6 +292,100 @@ export default function AdminAboutPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Picture Corner (carousel on About Me page) */}
+        <div className="bg-white rounded-lg p-6 border border-chai-brown/10">
+          <h2 className="font-serif text-xl text-chai-brown mb-2">Picture Corner (carousel)</h2>
+          <p className="font-body text-sm text-chai-brown-light mb-4">
+            Images shown in the &quot;Picture Corner&quot; carousel on the About Me page. Add images from book fairs, reading nooks, etc.
+          </p>
+          <div className="space-y-4">
+            {aboutData.pictureCorner.map((item, index) => (
+              <div
+                key={item.id}
+                className="p-4 rounded-lg border border-chai-brown/20 bg-cream/30 space-y-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-body text-sm font-medium text-chai-brown">Image {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setAboutData({
+                        ...aboutData,
+                        pictureCorner: aboutData.pictureCorner.filter((i) => i.id !== item.id),
+                      })
+                    }
+                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                    aria-label="Remove"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-chai-brown-light mb-1">Title (optional)</label>
+                    <input
+                      type="text"
+                      value={item.title ?? ''}
+                      onChange={(e) => {
+                        const next = [...aboutData.pictureCorner];
+                        const i = next.findIndex((x) => x.id === item.id);
+                        if (i !== -1) next[i] = { ...next[i], title: e.target.value };
+                        setAboutData({ ...aboutData, pictureCorner: next });
+                      }}
+                      placeholder="e.g. Book Fair 2024"
+                      className="w-full px-3 py-2 border border-chai-brown/20 rounded-lg font-body text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-chai-brown-light mb-1">Description (optional)</label>
+                    <input
+                      type="text"
+                      value={item.description ?? ''}
+                      onChange={(e) => {
+                        const next = [...aboutData.pictureCorner];
+                        const i = next.findIndex((x) => x.id === item.id);
+                        if (i !== -1) next[i] = { ...next[i], description: e.target.value };
+                        setAboutData({ ...aboutData, pictureCorner: next });
+                      }}
+                      placeholder="e.g. Exploring the Delhi Book Fair"
+                      className="w-full px-3 py-2 border border-chai-brown/20 rounded-lg font-body text-sm"
+                    />
+                  </div>
+                </div>
+                <ImageUploadField
+                  label="Image"
+                  value={item.imageUrl}
+                  onChange={(url) => {
+                    const next = [...aboutData.pictureCorner];
+                    const i = next.findIndex((x) => x.id === item.id);
+                    if (i !== -1) next[i] = { ...next[i], imageUrl: url };
+                    setAboutData({ ...aboutData, pictureCorner: next });
+                  }}
+                  module="about"
+                  placeholder="Upload or paste URL"
+                  className="font-body"
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={() =>
+                setAboutData({
+                  ...aboutData,
+                  pictureCorner: [
+                    ...aboutData.pictureCorner,
+                    { id: crypto.randomUUID?.() ?? `pc-${Date.now()}-${Math.random().toString(36).slice(2)}`, imageUrl: '', title: '', description: '' },
+                  ],
+                })
+              }
+              className="flex items-center gap-2 px-4 py-2 border border-chai-brown/30 rounded-lg font-body text-sm text-chai-brown hover:bg-cream"
+            >
+              <Plus size={18} />
+              Add image
+            </button>
           </div>
         </div>
 

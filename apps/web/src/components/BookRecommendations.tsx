@@ -31,12 +31,17 @@ export default function BookRecommendations() {
   const [cards, setCards] = useState<CardItem[]>(defaultRecommendations);
 
   useEffect(() => {
-    getPageSettings('home')
+    getPageSettings('recommendations')
       .then(({ content }) => {
         if (content && typeof content === 'object' && !Array.isArray(content)) {
-          const c = content as { recommendations?: Record<string, unknown>[] };
-          if (Array.isArray(c.recommendations) && c.recommendations.length > 0) {
-            const list = c.recommendations.map(toCardItem).filter((x): x is CardItem => x != null);
+          const c = content as { items?: Record<string, unknown>[] };
+          if (Array.isArray(c.items) && c.items.length > 0) {
+            const sorted = [...c.items].sort((a, b) => {
+              const da = typeof (a as { publishedAt?: string }).publishedAt === 'string' ? new Date((a as { publishedAt: string }).publishedAt).getTime() : 0;
+              const db = typeof (b as { publishedAt?: string }).publishedAt === 'string' ? new Date((b as { publishedAt: string }).publishedAt).getTime() : 0;
+              return db - da;
+            });
+            const list = sorted.slice(0, 3).map(toCardItem).filter((x): x is CardItem => x != null);
             if (list.length) setCards(list);
           }
         }
@@ -59,7 +64,7 @@ export default function BookRecommendations() {
           ))}
         </div>
         <div className="text-center mt-6 sm:mt-8">
-          <Link href="/blog?category=recommendations" className="inline-flex items-center gap-2 btn-terracotta">
+          <Link href="/recommendations" className="inline-flex items-center gap-2 btn-terracotta">
             View All Recommendations
             <ArrowRight size={18} />
           </Link>

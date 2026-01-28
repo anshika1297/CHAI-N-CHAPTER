@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Save } from 'lucide-react';
 import Link from 'next/link';
+import { getPageSettings, putPageSettings } from '@/lib/api';
+import PageLoading from '@/components/PageLoading';
+import ImageUploadField from '@/components/ImageUploadField';
 
 export interface RecommendationBook {
   id: string;
@@ -114,11 +117,89 @@ function formatKeywordsForInput(keywords: string[]): string {
   return (keywords ?? []).join('\n');
 }
 
+function toReco(x: Record<string, unknown>): Recommendation | null {
+  if (typeof x?.title !== 'string' || typeof x?.slug !== 'string') return null;
+  const books = Array.isArray((x as { books?: unknown }).books)
+    ? ((x as { books: Record<string, unknown>[] }).books).map((b) => ({
+        id: String(b?.id ?? ''),
+        title: String(b?.title ?? '').trim(),
+        author: String(b?.author ?? '').trim(),
+        image: typeof b?.image === 'string' ? b.image : '',
+        rating: typeof b?.rating === 'number' ? b.rating : Number(b?.rating) || 0,
+        description: String(b?.description ?? '').trim(),
+      }))
+    : [];
+  return {
+    id: String(x.id ?? x.slug),
+    title: String(x.title).trim(),
+    slug: String(x.slug).trim(),
+    excerpt: typeof x.excerpt === 'string' ? x.excerpt : '',
+    intro: typeof x.intro === 'string' ? x.intro : '',
+    conclusion: typeof x.conclusion === 'string' ? x.conclusion : '',
+    image: typeof x.image === 'string' ? x.image : '',
+    category: typeof x.category === 'string' ? x.category : 'Book List',
+    readingTime: typeof x.readingTime === 'number' ? x.readingTime : Number(x.readingTime) || 5,
+    author: typeof x.author === 'string' ? x.author : '',
+    publishedAt: typeof x.publishedAt === 'string' ? x.publishedAt : new Date().toISOString().slice(0, 10),
+    bookCount: typeof x.bookCount === 'number' ? x.bookCount : books.length,
+    books,
+    seoKeywords: Array.isArray(x.seoKeywords) ? (x.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+  };
+}
+
 export default function AdminRecommendationsPage() {
   const [items, setItems] = useState<Recommendation[]>(defaultRecos);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Recommendation | null>(null);
   const [formData, setFormData] = useState<Omit<Recommendation, 'id'>>(emptyForm);
+
+  useEffect(() => {
+    getPageSettings('recommendations')
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content) && Array.isArray((content as { items?: unknown }).items)) {
+          const list = ((content as { items: Record<string, unknown>[] }).items).map(toReco).filter((p): p is Recommendation => p != null);
+          if (list.length) setItems(list);
+        }
+      })
+      .catch(() => setMessage({ type: 'error', text: 'Failed to load recommendations' }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const saveItemsToApi = async (itemsToSave: Recommendation[]) => {
+    const itemsPayload = itemsToSave.map((i) => ({
+      id: i.id,
+      title: i.title,
+      slug: i.slug,
+      excerpt: i.excerpt ?? '',
+      intro: i.intro ?? '',
+      conclusion: i.conclusion ?? '',
+      image: i.image ?? '',
+      category: i.category ?? 'Book List',
+      readingTime: Number(i.readingTime) || 5,
+      author: i.author ?? '',
+      publishedAt: i.publishedAt ?? new Date().toISOString().slice(0, 10),
+      bookCount: Number(i.bookCount) ?? (i.books?.length ?? 0),
+      books: Array.isArray(i.books) ? i.books.map((b) => ({ id: b.id, title: b.title ?? '', author: b.author ?? '', image: b.image ?? '', rating: Number(b.rating) || 0, description: b.description ?? '' })) : [],
+      seoKeywords: Array.isArray(i.seoKeywords) ? i.seoKeywords : [],
+    }));
+    await putPageSettings('recommendations', { items: itemsPayload });
+  };
+
+  const handleSaveToSite = async () => {
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveItemsToApi(items);
+      setMessage({ type: 'success', text: 'Recommendations saved to site!' });
+    } catch (e) {
+      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleTitleChange = (title: string) => {
     setFormData({
@@ -128,23 +209,30 @@ export default function AdminRecommendationsPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    let nextItems: Recommendation[];
     if (editing) {
-      setItems(
-        items.map((p) =>
-          p.id === editing.id ? { ...formData, id: editing.id } : p
-        )
+      nextItems = items.map((p) =>
+        p.id === editing.id ? { ...formData, id: editing.id } : p
       );
     } else {
-      setItems([
-        ...items,
-        { ...formData, id: Date.now().toString() },
-      ]);
+      nextItems = [...items, { ...formData, id: Date.now().toString() }];
     }
+    setItems(nextItems);
     setFormData(emptyForm);
     setShowForm(false);
     setEditing(null);
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveItemsToApi(nextItems);
+      setMessage({ type: 'success', text: 'Recommendation saved to site!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEdit = (item: Recommendation) => {
@@ -167,9 +255,19 @@ export default function AdminRecommendationsPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Delete this recommendation list? This cannot be undone.')) {
-      setItems(items.filter((p) => p.id !== id));
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this recommendation list? This cannot be undone.')) return;
+    const nextItems = items.filter((p) => p.id !== id);
+    setItems(nextItems);
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveItemsToApi(nextItems);
+      setMessage({ type: 'success', text: 'Recommendation removed and saved.' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -185,6 +283,8 @@ export default function AdminRecommendationsPage() {
     }
   };
 
+  if (loading) return <PageLoading message="Loading recommendations…" />;
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -193,21 +293,37 @@ export default function AdminRecommendationsPage() {
             Manage Book Recommendations
           </h1>
           <p className="font-body text-chai-brown-light">
-            Create and edit recommendation lists (wrap-ups, book lists, etc.)
+            Create and edit recommendation lists. Home page shows newest 3.
           </p>
         </div>
-        <button
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleSaveToSite}
+            disabled={saving}
+            className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body text-sm disabled:opacity-50"
+          >
+            <Save size={20} />
+            {saving ? 'Saving…' : 'Save to site'}
+          </button>
+          <button
           onClick={() => {
             setEditing(null);
             setFormData(emptyForm);
             setShowForm(true);
           }}
-          className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body text-sm"
+          className="flex items-center gap-2 bg-sage/80 text-chai-brown px-4 py-2 rounded-lg hover:bg-sage transition-colors font-body text-sm"
         >
           <Plus size={20} />
           Add List
         </button>
+        </div>
       </div>
+      {message && (
+        <div className={`mb-6 px-4 py-3 rounded-lg font-body text-sm ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}`}>
+          {message.text}
+        </div>
+      )}
 
       {showForm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -271,13 +387,13 @@ export default function AdminRecommendationsPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-body text-sm font-medium text-chai-brown mb-2">Cover image URL</label>
-                  <input
-                    type="text"
+                  <ImageUploadField
+                    label="Cover image"
                     value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
+                    onChange={(url) => setFormData({ ...formData, image: url })}
+                    module="recommendations"
+                    placeholder="Paste URL or click Upload"
+                    className="font-body"
                   />
                 </div>
                 <div>
@@ -361,7 +477,7 @@ export default function AdminRecommendationsPage() {
                   </button>
                 </div>
                 <p className="text-xs text-chai-brown-light mb-2">
-                  Each book can have its own cover image URL (e.g. from Goodreads, or /images/…). No app cloud storage needed.
+                  Each book can have its own cover image. Use Upload or paste a URL.
                 </p>
                 {formData.books.map((book, idx) => (
                   <div
@@ -408,16 +524,16 @@ export default function AdminRecommendationsPage() {
                       />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <input
-                        type="text"
+                      <ImageUploadField
                         value={book.image}
-                        onChange={(e) => {
+                        onChange={(url) => {
                           const next = [...formData.books];
-                          next[idx] = { ...book, image: e.target.value };
+                          next[idx] = { ...book, image: url };
                           setFormData({ ...formData, books: next });
                         }}
-                        placeholder="Cover image URL (optional)"
-                        className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
+                        module="recommendations"
+                        placeholder="Cover image (optional)"
+                        className="font-body"
                       />
                       <div className="flex items-center gap-2">
                         <label className="text-xs text-chai-brown-light">Rating (1–5):</label>
