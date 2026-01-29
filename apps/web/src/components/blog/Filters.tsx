@@ -13,11 +13,11 @@ interface FiltersProps {
   setFilters: (filters: any) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;
+  /** Categories that exist on the current blog posts (dropdown shows only these) */
+  categories?: string[];
 }
 
-const categories = ['Book Review', 'Reflection', 'Recommendation', 'Weekly Wrap-Up', 'Monthly Wrap-Up'];
-
-export default function Filters({ filters, setFilters, sortBy, setSortBy }: FiltersProps) {
+export default function Filters({ filters, setFilters, sortBy, setSortBy, categories = [] }: FiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const updateFilter = (key: string, value: string) => {

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { Clock, Tag, User, Share2, Star, BookOpen } from 'lucide-react';
-import { getRecommendationBySlug, getImageUrl } from '@/lib/api';
+import { getRecommendationBySlug, getImageUrl, getRecommendations } from '@/lib/api';
 
 interface RecommendationDetailProps {
   slug: string;
@@ -58,6 +59,8 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
   const [notFound, setNotFound] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [prevSlug, setPrevSlug] = useState<string | null>(null);
+  const [nextSlug, setNextSlug] = useState<string | null>(null);
   const shareMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -68,6 +71,19 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
         else setItem(null);
       })
       .finally(() => setLoading(false));
+  }, [slug]);
+
+  useEffect(() => {
+    getRecommendations({ limit: 9999, sort: 'newest' })
+      .then(({ items: list }) => {
+        const slugs = (list as Record<string, unknown>[])
+          .map((r) => (typeof r.slug === 'string' ? r.slug : ''))
+          .filter(Boolean);
+        const idx = slugs.indexOf(slug);
+        setPrevSlug(idx > 0 ? slugs[idx - 1] ?? null : null);
+        setNextSlug(idx >= 0 && idx < slugs.length - 1 ? slugs[idx + 1] ?? null : null);
+      })
+      .catch(() => {});
   }, [slug]);
 
   useEffect(() => {
@@ -427,12 +443,20 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
 
         {/* Navigation to Next/Previous */}
         <div className="flex justify-between items-center pt-8 border-t border-chai-brown/10">
-          <button className="text-sage font-sans text-sm hover:underline">
-            ← Previous List
-          </button>
-          <button className="text-sage font-sans text-sm hover:underline">
-            Next List →
-          </button>
+          {prevSlug ? (
+            <Link href={`/recommendations/${prevSlug}`} className="text-sage font-sans text-sm hover:underline">
+              ← Previous List
+            </Link>
+          ) : (
+            <span className="text-sage/50 font-sans text-sm cursor-default">← Previous List</span>
+          )}
+          {nextSlug ? (
+            <Link href={`/recommendations/${nextSlug}`} className="text-sage font-sans text-sm hover:underline">
+              Next List →
+            </Link>
+          ) : (
+            <span className="text-sage/50 font-sans text-sm cursor-default">Next List →</span>
+          )}
         </div>
       </div>
     </article>

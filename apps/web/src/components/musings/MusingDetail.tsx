@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { Clock, Tag, User, Share2 } from 'lucide-react';
-import { getMusingBySlug, getImageUrl } from '@/lib/api';
+import { getMusingBySlug, getImageUrl, getMusings } from '@/lib/api';
 
 interface MusingDetailProps {
   slug: string;
@@ -45,6 +46,8 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
   const [notFound, setNotFound] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [prevSlug, setPrevSlug] = useState<string | null>(null);
+  const [nextSlug, setNextSlug] = useState<string | null>(null);
   const shareMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,6 +58,19 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
         else setItem(null);
       })
       .finally(() => setLoading(false));
+  }, [slug]);
+
+  useEffect(() => {
+    getMusings({ limit: 9999, sort: 'newest' })
+      .then(({ items: list }) => {
+        const slugs = (list as Record<string, unknown>[])
+          .map((m) => (typeof m.slug === 'string' ? m.slug : ''))
+          .filter(Boolean);
+        const idx = slugs.indexOf(slug);
+        setPrevSlug(idx > 0 ? slugs[idx - 1] ?? null : null);
+        setNextSlug(idx >= 0 && idx < slugs.length - 1 ? slugs[idx + 1] ?? null : null);
+      })
+      .catch(() => {});
   }, [slug]);
 
   useEffect(() => {
@@ -318,12 +334,20 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
 
         {/* Navigation to Next/Previous */}
         <div className="flex justify-between items-center pt-8 border-t border-chai-brown/10">
-          <button className="text-chai-brown-light font-sans text-sm hover:underline">
-            ← Previous Musing
-          </button>
-          <button className="text-chai-brown-light font-sans text-sm hover:underline">
-            Next Musing →
-          </button>
+          {prevSlug ? (
+            <Link href={`/musings/${prevSlug}`} className="text-chai-brown-light font-sans text-sm hover:underline">
+              ← Previous Musing
+            </Link>
+          ) : (
+            <span className="text-chai-brown-light/50 font-sans text-sm cursor-default">← Previous Musing</span>
+          )}
+          {nextSlug ? (
+            <Link href={`/musings/${nextSlug}`} className="text-chai-brown-light font-sans text-sm hover:underline">
+              Next Musing →
+            </Link>
+          ) : (
+            <span className="text-chai-brown-light/50 font-sans text-sm cursor-default">Next Musing →</span>
+          )}
         </div>
       </div>
     </article>

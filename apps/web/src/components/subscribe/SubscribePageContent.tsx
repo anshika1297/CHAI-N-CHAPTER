@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { subscribe } from '@/lib/api';
+import WelcomeWithBookClubs from './WelcomeWithBookClubs';
 
 export default function SubscribePageContent() {
   const [email, setEmail] = useState('');
@@ -22,7 +23,6 @@ export default function SubscribePageContent() {
     try {
       await subscribe(trimmed, { name: name.trim() || undefined, source: 'subscribe-page' });
       setStatus('success');
-      setMessage('You’re subscribed! Check your inbox for updates.');
       setEmail('');
       setName('');
     } catch (err) {
@@ -42,15 +42,7 @@ export default function SubscribePageContent() {
         </p>
 
         {status === 'success' ? (
-          <div className="bg-cream-light border border-chai-brown/10 rounded-2xl p-8">
-            <p className="text-terracotta font-body text-lg mb-2">✓ {message}</p>
-            <p className="text-chai-brown-light text-sm mb-2">
-              You can unsubscribe at any time from the link in our emails.
-            </p>
-            <a href="/subscribe/unsubscribe" className="text-chai-brown-light text-sm hover:text-terracotta underline">
-              Unsubscribe
-            </a>
-          </div>
+          <WelcomeWithBookClubs />
         ) : (
           <form onSubmit={handleSubmit} className="bg-cream-light border border-chai-brown/10 rounded-2xl p-6 sm:p-8 text-left">
             <div className="mb-4">

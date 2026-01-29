@@ -75,18 +75,18 @@ export default function BookClubs() {
           <p className="text-terracotta-light font-body italic text-lg mb-4">{section.sectionSubtitle}</p>
           <p className="text-cream/80 max-w-2xl mx-auto">{section.sectionIntro}</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 mb-6 sm:mb-8">
           {section.clubs.map((club, index) => {
             const PlatformIcon = platformIcons[club.platform] || Users;
             return (
-              <div key={club.name} className="bg-cream/10 backdrop-blur-sm rounded-2xl p-6 hover:bg-cream/15 transition-all duration-300 group">
-                <div className="flex items-center gap-2 mb-4">
+              <div key={club.name} className="w-full sm:w-[320px] lg:max-w-[360px] h-full flex flex-col bg-cream/10 backdrop-blur-sm rounded-2xl p-6 hover:bg-cream/15 transition-all duration-300 group">
+                <div className="flex items-center gap-2 mb-4 shrink-0">
                   <PlatformIcon size={18} className="text-terracotta-light" />
                   <span className="text-xs uppercase tracking-wider text-cream/60">{club.platform}</span>
                 </div>
-                <h3 className="font-serif text-xl mb-2 group-hover:text-terracotta-light transition-colors">{club.name}</h3>
-                <p className="text-cream/70 text-sm mb-4 leading-relaxed">{club.description}</p>
-                <div className="flex items-center justify-between text-sm">
+                <h3 className="font-serif text-xl mb-2 group-hover:text-terracotta-light transition-colors shrink-0 line-clamp-2">{club.name}</h3>
+                <p className="text-cream/70 text-sm mb-4 leading-relaxed flex-1 min-h-0 line-clamp-4">{club.description}</p>
+                <div className="flex items-center justify-between text-sm shrink-0">
                   <span className="text-sage-light">{club.focus}</span>
                   <span className="text-cream/60">{club.members} members</span>
                 </div>

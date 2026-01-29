@@ -19,9 +19,11 @@ import {
   ListOrdered,
   Sparkles,
   PanelTop,
+  PanelBottom,
   Home,
   UserCircle,
   Mail,
+  Inbox,
 } from 'lucide-react';
 import { getAdminToken, clearAdminToken } from '@/lib/api';
 
@@ -31,12 +33,14 @@ const adminNavLinks = [
   { name: 'Subscribers', href: '/admin/subscribers', icon: Mail },
   { name: 'Home (Hero)', href: '/admin/home', icon: Home },
   { name: 'Header', href: '/admin/header', icon: PanelTop },
+  { name: 'Footer', href: '/admin/footer', icon: PanelBottom },
   { name: 'About Me', href: '/admin/about', icon: UserCircle },
   { name: 'Book Reviews', href: '/admin/blog', icon: PenSquare },
   { name: 'Book Recommendations', href: '/admin/recommendations', icon: ListOrdered },
   { name: 'Her Musings Verse', href: '/admin/musings', icon: Sparkles },
   { name: 'Work With Me', href: '/admin/work-with-me', icon: Briefcase },
   { name: 'Contact Page', href: '/admin/contact', icon: MessageSquare },
+  { name: 'Enquiries', href: '/admin/messages', icon: Inbox },
   { name: 'Book Clubs', href: '/admin/book-clubs', icon: BookOpen },
   { name: 'Categories', href: '/admin/categories', icon: FolderTree },
   { name: 'Terms & Conditions', href: '/admin/terms', icon: FileText },

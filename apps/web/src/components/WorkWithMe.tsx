@@ -18,7 +18,7 @@ import {
   AtSign
 } from 'lucide-react';
 import { siteConfig } from '@/lib/seo';
-import { getPageSettings } from '@/lib/api';
+import { getPageSettings, submitWorkWithMeMessage } from '@/lib/api';
 
 type IconComp = React.ComponentType<{ size?: number; className?: string }>;
 const iconByKey: Record<string, IconComp> = {
@@ -128,16 +128,27 @@ export default function WorkWithMe() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission - will be replaced with actual API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    const selectedId = formData.service.trim();
+    const serviceName =
+      selectedId === 'other'
+        ? 'Other / General Inquiry'
+        : services.find((s) => s.id === selectedId)?.title ?? selectedId;
+    try {
+      await submitWorkWithMeMessage({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        service: serviceName,
+        message: formData.message.trim(),
+      });
       setIsSubmitted(true);
       setFormData({ name: '', email: '', service: '', message: '' });
-      
-      // Reset success message after 5 seconds
       setTimeout(() => setIsSubmitted(false), 5000);
-    }, 1000);
+    } catch (err) {
+      setFormData((prev) => ({ ...prev }));
+      alert(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

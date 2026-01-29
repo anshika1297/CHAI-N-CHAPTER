@@ -3,7 +3,7 @@
  * Base URL: NEXT_PUBLIC_API_URL or http://localhost:5000
  */
 
-export type PageSlug = 'contact' | 'work-with-me' | 'about' | 'terms' | 'privacy' | 'header' | 'home' | 'book-clubs' | 'blog' | 'recommendations' | 'musings';
+export type PageSlug = 'contact' | 'work-with-me' | 'about' | 'terms' | 'privacy' | 'header' | 'footer' | 'home' | 'book-clubs' | 'blog' | 'recommendations' | 'musings';
 
 const getBaseUrl = (): string => {
   if (typeof window !== 'undefined') {
@@ -13,25 +13,21 @@ const getBaseUrl = (): string => {
 };
 
 /**
- * Resolve image URL for display. Upload paths (e.g. /api/uploads/...) are proxied by Next.js
- * to the API (see next.config.js rewrites), so we return the path only so the browser
- * requests the same origin and the image loads. External URLs (http/https) are returned as-is.
+ * Resolve image URL for display. /api/img/... and /api/uploads/... are proxied by Next.js
+ * to the API, so we return the path only for same-origin requests. External URLs returned as-is.
  */
 export function getImageUrl(url: string | undefined | null): string {
   if (!url || typeof url !== 'string' || !url.trim()) return '';
   const trimmed = url.trim();
-  // External URL: use as-is
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    // If it's our API upload path, use path only so Next.js rewrite proxies it (same-origin = reliable)
     try {
       const u = new URL(trimmed);
-      if (u.pathname.startsWith('/api/uploads/')) return u.pathname;
+      if (u.pathname.startsWith('/api/uploads/') || u.pathname.startsWith('/api/img/')) return u.pathname;
     } catch {
       /* ignore */
     }
     return trimmed;
   }
-  // Relative path: ensure leading slash so it hits our origin and gets proxied
   return trimmed.startsWith('/') ? trimmed : '/' + trimmed;
 }
 
@@ -155,13 +151,147 @@ export async function putBookClubs(content: Record<string, unknown>): Promise<{ 
   return res.json();
 }
 
+// ——— Categories (public by type; admin CRUD) ———
+
+export type CategoryType = 'blog' | 'recommendations' | 'musings';
+
+export interface CategoryDto {
+  _id: string;
+  name: string;
+  slug: string;
+  description: string;
+  type: CategoryType;
+  order?: number;
+}
+
+const categoriesCache = new Map<string, { data: { categories: CategoryDto[] }; expires: number }>();
+const categoriesInFlight = new Map<string, Promise<{ categories: CategoryDto[] }>>();
+
+/** Call after admin create/update/delete category so listing pages refetch. */
+export function invalidateCategoriesCache(): void {
+  categoriesCache.clear();
+}
+
+/** GET /api/categories?type=… – returns { categories } (public). Deduplicated & short TTL cache. */
+export function getCategories(type: CategoryType): Promise<{ categories: CategoryDto[] }> {
+  const key = `categories-${type}`;
+  const entry = categoriesCache.get(key);
+  if (entry && Date.now() <= entry.expires) return Promise.resolve(entry.data);
+  const inFlight = categoriesInFlight.get(key);
+  if (inFlight) return inFlight;
+  const promise = (async () => {
+    try {
+      const res = await fetch(`${getBaseUrl()}/api/categories?type=${encodeURIComponent(type)}`);
+      if (!res.ok) throw new Error(`Failed to load categories: ${res.status}`);
+      const data = await res.json();
+      categoriesCache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
+      return data;
+    } finally {
+      categoriesInFlight.delete(key);
+    }
+  })();
+  categoriesInFlight.set(key, promise);
+  return promise;
+}
+
+/** GET /api/categories – returns all categories (no type filter). Public so list always loads; no auth required. */
+export async function getAdminCategories(): Promise<{ categories: CategoryDto[] }> {
+  const res = await fetch(`${getBaseUrl()}/api/categories`);
+  if (!res.ok) throw new Error(`Failed to load categories: ${res.status}`);
+  return res.json();
+}
+
+/** POST /api/categories – admin: create category. Always sends request; server returns 401 if not logged in. */
+export async function createCategory(data: { name: string; slug?: string; description?: string; type: CategoryType }): Promise<{ category: CategoryDto }> {
+  const token = getAdminToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${getBaseUrl()}/api/categories`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((body as { error?: string }).error || `Failed to create category: ${res.status}`);
+  invalidateCategoriesCache();
+  return body as { category: CategoryDto };
+}
+
+/** PUT /api/categories/:id – admin: update category. Always sends request; server returns 401 if not logged in. */
+export async function updateCategory(id: string, data: Partial<{ name: string; slug: string; description: string; type: CategoryType; order: number }>): Promise<{ category: CategoryDto }> {
+  const token = getAdminToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${getBaseUrl()}/api/categories/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(data),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((body as { error?: string }).error || `Failed to update category: ${res.status}`);
+  invalidateCategoriesCache();
+  return body as { category: CategoryDto };
+}
+
+/** DELETE /api/categories/:id – admin: delete category. Always sends request; server returns 401 if not logged in. */
+export async function deleteCategory(id: string): Promise<void> {
+  const token = getAdminToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(`${getBaseUrl()}/api/categories/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    headers,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `Failed to delete category: ${res.status}`);
+  }
+  invalidateCategoriesCache();
+}
+
+// ——— List APIs in-flight dedup (same params = same promise, avoids double calls) ———
+
+const blogListInFlight = new Map<string, Promise<{ posts: unknown[]; total: number; page: number; limit: number }>>();
+const recListInFlight = new Map<string, Promise<{ items: unknown[]; total: number; page: number; limit: number }>>();
+const musingsListInFlight = new Map<string, Promise<{ items: unknown[]; total: number; page: number; limit: number }>>();
+
 // ——— Blog (Book Reviews) – public list & single post ———
 
-/** GET /api/blog/posts – returns { posts } (public). */
-export async function getBlogPosts(): Promise<{ posts: unknown[] }> {
-  const res = await fetch(`${getBaseUrl()}/api/blog/posts`);
-  if (!res.ok) throw new Error(`Failed to load blog posts: ${res.status}`);
-  return res.json();
+export interface BlogListParams {
+  page?: number;
+  limit?: number;
+  category?: string;
+  author?: string;
+  book?: string;
+  title?: string;
+  sort?: string;
+}
+
+/** GET /api/blog/posts – returns { posts, total, page, limit } (public). Filter & pagination on backend. */
+export function getBlogPosts(params?: BlogListParams): Promise<{ posts: unknown[]; total: number; page: number; limit: number }> {
+  const search = new URLSearchParams();
+  if (params?.page != null) search.set('page', String(params.page));
+  if (params?.limit != null) search.set('limit', String(params.limit));
+  if (params?.category) search.set('category', params.category);
+  if (params?.author) search.set('author', params.author);
+  if (params?.book) search.set('book', params.book);
+  if (params?.title) search.set('title', params.title);
+  search.set('sort', params?.sort || 'newest');
+  const qs = search.toString();
+  const key = `blog-${qs}`;
+  const inFlight = blogListInFlight.get(key);
+  if (inFlight) return inFlight;
+  const promise = (async () => {
+    try {
+      const res = await fetch(`${getBaseUrl()}/api/blog/posts${qs ? `?${qs}` : ''}`);
+      if (!res.ok) throw new Error(`Failed to load blog posts: ${res.status}`);
+      return res.json();
+    } finally {
+      blogListInFlight.delete(key);
+    }
+  })();
+  blogListInFlight.set(key, promise);
+  return promise;
 }
 
 /** GET /api/blog/posts/:slug – returns { post } or 404 (public). */
@@ -176,11 +306,41 @@ export async function getBlogPostBySlug(slug: string): Promise<{ post: unknown }
 
 // ——— Recommendations – public list & single ———
 
-/** GET /api/recommendations – returns { items } (public). */
-export async function getRecommendations(): Promise<{ items: unknown[] }> {
-  const res = await fetch(`${getBaseUrl()}/api/recommendations`);
-  if (!res.ok) throw new Error(`Failed to load recommendations: ${res.status}`);
-  return res.json();
+export interface RecListParams {
+  page?: number;
+  limit?: number;
+  category?: string;
+  author?: string;
+  book?: string;
+  title?: string;
+  sort?: string;
+}
+
+/** GET /api/recommendations – returns { items, total, page, limit } (public). Filter & pagination on backend. */
+export function getRecommendations(params?: RecListParams): Promise<{ items: unknown[]; total: number; page: number; limit: number }> {
+  const search = new URLSearchParams();
+  if (params?.page != null) search.set('page', String(params.page));
+  if (params?.limit != null) search.set('limit', String(params.limit));
+  if (params?.category) search.set('category', params.category);
+  if (params?.author) search.set('author', params.author);
+  if (params?.book) search.set('book', params.book);
+  if (params?.title) search.set('title', params.title);
+  search.set('sort', params?.sort || 'newest');
+  const qs = search.toString();
+  const key = `rec-${qs}`;
+  const inFlight = recListInFlight.get(key);
+  if (inFlight) return inFlight;
+  const promise = (async () => {
+    try {
+      const res = await fetch(`${getBaseUrl()}/api/recommendations${qs ? `?${qs}` : ''}`);
+      if (!res.ok) throw new Error(`Failed to load recommendations: ${res.status}`);
+      return res.json();
+    } finally {
+      recListInFlight.delete(key);
+    }
+  })();
+  recListInFlight.set(key, promise);
+  return promise;
 }
 
 /** GET /api/recommendations/:slug – returns { item } or 404 (public). */
@@ -195,11 +355,37 @@ export async function getRecommendationBySlug(slug: string): Promise<{ item: unk
 
 // ——— Musings (Her Musings Verse) – public list & single ———
 
-/** GET /api/musings – returns { items } (public). */
-export async function getMusings(): Promise<{ items: unknown[] }> {
-  const res = await fetch(`${getBaseUrl()}/api/musings`);
-  if (!res.ok) throw new Error(`Failed to load musings: ${res.status}`);
-  return res.json();
+export interface MusingsListParams {
+  page?: number;
+  limit?: number;
+  category?: string;
+  title?: string;
+  sort?: string;
+}
+
+/** GET /api/musings – returns { items, total, page, limit } (public). Filter & pagination on backend. */
+export function getMusings(params?: MusingsListParams): Promise<{ items: unknown[]; total: number; page: number; limit: number }> {
+  const search = new URLSearchParams();
+  if (params?.page != null) search.set('page', String(params.page));
+  if (params?.limit != null) search.set('limit', String(params.limit));
+  if (params?.category) search.set('category', params.category);
+  if (params?.title) search.set('title', params.title);
+  search.set('sort', params?.sort || 'newest');
+  const qs = search.toString();
+  const key = `musings-${qs}`;
+  const inFlight = musingsListInFlight.get(key);
+  if (inFlight) return inFlight;
+  const promise = (async () => {
+    try {
+      const res = await fetch(`${getBaseUrl()}/api/musings${qs ? `?${qs}` : ''}`);
+      if (!res.ok) throw new Error(`Failed to load musings: ${res.status}`);
+      return res.json();
+    } finally {
+      musingsListInFlight.delete(key);
+    }
+  })();
+  musingsListInFlight.set(key, promise);
+  return promise;
 }
 
 /** GET /api/musings/:slug – returns { item } or 404 (public). */
@@ -238,6 +424,92 @@ export async function unsubscribe(email: string): Promise<{ message: string; sub
   return data as { message: string; subscribed: boolean };
 }
 
+// ——— Contact / Work With Me messages ———
+
+/** POST /api/messages – submit contact form (public). */
+export async function submitContactMessage(data: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}): Promise<{ message: string }> {
+  const res = await fetch(`${getBaseUrl()}/api/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...data, source: 'contact' }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((body as { error?: string }).error || 'Failed to send message');
+  return body as { message: string };
+}
+
+/** POST /api/messages – submit work-with-me form (public). */
+export async function submitWorkWithMeMessage(data: {
+  name: string;
+  email: string;
+  service: string;
+  message: string;
+}): Promise<{ message: string }> {
+  const res = await fetch(`${getBaseUrl()}/api/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...data, source: 'work-with-me' }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((body as { error?: string }).error || 'Failed to send message');
+  return body as { message: string };
+}
+
+export interface MessageDto {
+  id: string;
+  name: string;
+  email: string;
+  subject?: string;
+  message: string;
+  service?: string;
+  source: 'contact' | 'work-with-me';
+  read: boolean;
+  createdAt: string;
+}
+
+/** GET /api/messages – admin only. List contact/work-with-me submissions. */
+export async function getMessages(params?: { page?: number; limit?: number; source?: 'contact' | 'work-with-me' }): Promise<{
+  list: MessageDto[];
+  total: number;
+  page: number;
+  limit: number;
+}> {
+  const token = getAdminToken();
+  if (!token) throw new Error('Not logged in');
+  const search = new URLSearchParams();
+  if (params?.page != null) search.set('page', String(params.page));
+  if (params?.limit != null) search.set('limit', String(params.limit));
+  if (params?.source) search.set('source', params.source);
+  const qs = search.toString();
+  const res = await fetch(`${getBaseUrl()}/api/messages${qs ? `?${qs}` : ''}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error || `Failed to load messages: ${res.status}`);
+  }
+  return res.json();
+}
+
+/** PATCH /api/messages/:id/read – admin only. Mark message as read. */
+export async function markMessageRead(id: string): Promise<void> {
+  const token = getAdminToken();
+  if (!token) throw new Error('Not logged in');
+  const res = await fetch(`${getBaseUrl()}/api/messages/${id}/read`, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error((err as { error?: string }).error || 'Failed to update');
+  }
+}
+
 export interface SubscriberDto {
   id: string;
   email: string;
@@ -273,7 +545,7 @@ export async function getSubscribers(params?: { page?: number; limit?: number; s
 
 // ——— Image upload (admin only) ———
 
-export type UploadModule = 'home' | 'about' | 'book-clubs' | 'blog' | 'recommendations' | 'musings' | 'contact' | 'work-with-me';
+export type UploadModule = 'home' | 'about' | 'book-clubs' | 'blog' | 'recommendations' | 'musings' | 'contact' | 'work-with-me' | 'footer' | 'header';
 
 /** POST /api/upload – multipart "file" + optional "module". Returns { url } (absolute path to use as imageUrl). */
 export async function uploadImage(file: File, module: UploadModule = 'home'): Promise<{ url: string }> {

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Subscriber } from '../models/Subscriber.js';
 import { requireAuth } from '../middlewares/auth.js';
+import { sendWelcomeEmail } from '../services/welcomeEmail.js';
 
 const router = Router();
 
@@ -29,6 +30,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       if (source !== undefined) existing.source = source || undefined;
       await existing.save();
       res.status(200).json({ message: 'You are subscribed!', subscribed: true });
+      sendWelcomeEmail(normalized, existing.name ?? name).catch((err) => console.error('Welcome email', err));
       return;
     }
     await Subscriber.create({
@@ -39,6 +41,7 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       subscribedAt: new Date(),
     });
     res.status(201).json({ message: 'You are subscribed!', subscribed: true });
+    sendWelcomeEmail(normalized, name).catch((err) => console.error('Welcome email', err));
   } catch (err) {
     console.error('POST /api/subscribe', err);
     res.status(500).json({ error: 'Failed to subscribe' });

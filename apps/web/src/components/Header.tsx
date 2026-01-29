@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
-import { getPageSettings } from '@/lib/api';
+import { getPageSettings, getImageUrl } from '@/lib/api';
 
 const defaultNavLinks = [
   { name: 'Home', href: '/' },
@@ -22,6 +23,7 @@ export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [siteName, setSiteName] = useState(defaultSiteName);
   const [navLinks, setNavLinks] = useState(defaultNavLinks);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,6 +51,19 @@ export default function Header() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    getPageSettings('footer')
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content)) {
+          const c = content as { logoUrl?: string };
+          if (typeof c.logoUrl === 'string' && c.logoUrl.trim()) setLogoUrl(c.logoUrl.trim());
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const logoSrc = logoUrl ? getImageUrl(logoUrl) : '';
+
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -56,14 +71,26 @@ export default function Header() {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between py-4">
-          <Link href="/" className="flex flex-col items-center group">
-            <span className="font-serif text-2xl md:text-3xl text-chai-brown tracking-wide group-hover:text-terracotta transition-colors">
+        <div className="flex items-center justify-between py-4 gap-6">
+          <Link href="/" className="flex items-center group shrink-0">
+            {logoSrc ? (
+              <span className="relative block w-14 h-9 md:w-16 md:h-10 shrink-0 overflow-hidden flex-shrink-0">
+                <Image
+                  src={logoSrc}
+                  alt=""
+                  fill
+                  className="object-contain object-left"
+                  sizes="64px"
+                  unoptimized={logoSrc.startsWith('/')}
+                />
+              </span>
+            ) : null}
+            <span className="font-serif text-2xl md:text-3xl text-chai-brown tracking-wide group-hover:text-terracotta transition-colors whitespace-nowrap">
               {siteName}
             </span>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-0 ml-auto">
+          <nav className="hidden lg:flex items-center gap-0 ml-auto min-w-0">
             {navLinks.map((link, index) => (
               <div key={link.name} className="flex items-center">
                 {index > 0 && (

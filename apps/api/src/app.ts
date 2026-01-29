@@ -16,8 +16,11 @@ import recommendationsRoutes from './routes/recommendations.js';
 import musingsRoutes from './routes/musings.js';
 import subscriptionRoutes from './routes/subscriptions.js';
 import subscribersRoutes from './routes/subscribers.js';
+import messagesRoutes from './routes/messages.js';
+import categoriesRoutes from './routes/categories.js';
+import './models/Category.js'; // ensure Category model is registered so MongoDB creates "categories" collection
 import uploadRoutes from './routes/upload.js';
-import { UPLOADS_BASE } from './routes/upload.js';
+import { UPLOADS_BASE, imgRouter } from './routes/upload.js';
 
 const app: Application = express();
 
@@ -126,9 +129,12 @@ app.use('/api/recommendations', recommendationsRoutes);
 app.use('/api/musings', musingsRoutes);
 app.use('/api/subscribe', subscriptionRoutes);
 app.use('/api/subscribers', subscribersRoutes);
+app.use('/api/messages', messagesRoutes);
+app.use('/api/categories', categoriesRoutes);
 app.use('/api/upload', uploadRoutes);
-
-// Serve uploaded files (public read)
+// Opaque image URLs (no folder structure exposed): GET /api/img/:token
+app.use('/api', imgRouter);
+// Legacy: serve uploaded files by path (keeps old /api/uploads/module/filename URLs working)
 app.use('/api/uploads', express.static(UPLOADS_BASE));
 
 // 404 handler

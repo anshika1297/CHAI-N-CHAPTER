@@ -11,18 +11,11 @@ interface FiltersProps {
   setFilters: (filters: any) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;
+  /** Categories that exist on the current musings (dropdown shows only these) */
+  categories?: string[];
 }
 
-const categories = [
-  'Reflection',
-  'Short Story',
-  'Thoughts',
-  'Personal',
-  'Poetry',
-  'Random',
-];
-
-export default function Filters({ filters, setFilters, sortBy, setSortBy }: FiltersProps) {
+export default function Filters({ filters, setFilters, sortBy, setSortBy, categories = [] }: FiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const updateFilter = (key: string, value: string) => {

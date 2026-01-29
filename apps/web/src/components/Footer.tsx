@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Instagram, Facebook, Linkedin, Youtube, Mail, Heart, BookOpen, AtSign, LucideIcon } from 'lucide-react';
 import { siteConfig } from '@/lib/seo';
-import { getPageSettings, subscribe } from '@/lib/api';
+import { getPageSettings, subscribe, getImageUrl } from '@/lib/api';
 
 const iconMap: Record<string, LucideIcon> = {
   email: Mail,
@@ -50,8 +51,15 @@ const quickLinks = [
   { name: 'Contact', href: '/contact' },
 ];
 
+const defaultFooterContent = {
+  heading: siteConfig.name,
+  tagline: 'A cozy corner of the internet where books meet chai, and every story finds a home.',
+  logoUrl: '',
+};
+
 export default function Footer() {
   const [socialLinks, setSocialLinks] = useState(defaultSocialLinks);
+  const [footerContent, setFooterContent] = useState(defaultFooterContent);
   const [footerEmail, setFooterEmail] = useState('');
   const [footerStatus, setFooterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [footerMessage, setFooterMessage] = useState('');
@@ -93,16 +101,44 @@ export default function Footer() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    getPageSettings('footer')
+      .then(({ content }) => {
+        if (content && typeof content === 'object' && !Array.isArray(content)) {
+          const c = content as { heading?: string; tagline?: string; logoUrl?: string };
+          setFooterContent({
+            heading: typeof c.heading === 'string' && c.heading.trim() ? c.heading.trim() : defaultFooterContent.heading,
+            tagline: typeof c.tagline === 'string' && c.tagline.trim() ? c.tagline.trim() : defaultFooterContent.tagline,
+            logoUrl: typeof c.logoUrl === 'string' ? c.logoUrl : defaultFooterContent.logoUrl,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <footer className="bg-chai-brown text-cream">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <div>
             <Link href="/" className="inline-block mb-4">
-              <span className="font-serif text-2xl tracking-wide">{siteConfig.name}</span>
+              {footerContent.logoUrl ? (
+                <span className="relative block w-[160px] h-10">
+                  <Image
+                    src={getImageUrl(footerContent.logoUrl)}
+                    alt={footerContent.heading}
+                    fill
+                    className="object-contain object-left"
+                    sizes="160px"
+                    unoptimized={getImageUrl(footerContent.logoUrl).startsWith('/')}
+                  />
+                </span>
+              ) : (
+                <span className="font-serif text-2xl tracking-wide">{footerContent.heading}</span>
+              )}
             </Link>
             <p className="text-cream/70 text-sm leading-relaxed mb-4">
-              A cozy corner of the internet where books meet chai, and every story finds a home.
+              {footerContent.tagline}
             </p>
             <div className="flex gap-4">
               {socialLinks.map((social) => {
@@ -165,6 +201,9 @@ export default function Footer() {
             {footerMessage && (
               <p className={`mt-2 text-xs ${footerStatus === 'error' ? 'text-red-300' : 'text-cream/70'}`}>
                 {footerMessage}
+                {footerStatus === 'success' && (
+                  <> Interested in our book clubs? <Link href="/book-clubs" className="text-terracotta-light hover:text-terracotta underline">View book clubs</Link></>
+                )}
               </p>
             )}
           </div>

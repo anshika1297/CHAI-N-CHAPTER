@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import RecommendationCard from './RecommendationCard';
 import Filters from './Filters';
 import Pagination from '../blog/Pagination';
-import { getRecommendations } from '@/lib/api';
-import { getImageUrl } from '@/lib/api';
+import { useDebounce } from '@/hooks/useDebounce';
+import { getRecommendations, getCategories, getImageUrl } from '@/lib/api';
 
 type RecItem = {
   id: string;
@@ -35,8 +35,12 @@ function toRecItem(r: Record<string, unknown>): RecItem | null {
   };
 }
 
+const POSTS_PER_PAGE = 6;
+const KEYWORD_DEBOUNCE_MS = 400;
+
 export default function RecommendationsListing() {
   const [items, setItems] = useState<RecItem[]>([]);
+  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,49 +51,73 @@ export default function RecommendationsListing() {
     title: '',
   });
   const [sortBy, setSortBy] = useState('newest');
-  const postsPerPage = 6;
+  const [categories, setCategories] = useState<string[]>([]);
 
-  useEffect(() => {
-    getRecommendations()
-      .then(({ items: raw }) => {
-        const list = Array.isArray(raw) ? raw.map((r) => toRecItem(r as Record<string, unknown>)).filter((r): r is RecItem => r != null) : [];
-        setItems(list);
+  const debouncedAuthor = useDebounce(filters.author, KEYWORD_DEBOUNCE_MS);
+  const debouncedBook = useDebounce(filters.book, KEYWORD_DEBOUNCE_MS);
+  const debouncedTitle = useDebounce(filters.title, KEYWORD_DEBOUNCE_MS);
+
+  const fetchCategories = useCallback(() => {
+    getCategories('recommendations')
+      .then(({ categories: list }) => {
+        setCategories(list.map((c) => c.name).filter(Boolean).sort());
       })
-      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load recommendations'))
-      .finally(() => setLoading(false));
+      .catch(() => {});
   }, []);
 
-  const filtered = items.filter((rec) => {
-    if (filters.category && rec.category !== filters.category) return false;
-    if (filters.author && !rec.title.toLowerCase().includes(filters.author.toLowerCase())) return false;
-    if (filters.book && !rec.title.toLowerCase().includes(filters.book.toLowerCase())) return false;
-    if (filters.title && !rec.title.toLowerCase().includes(filters.title.toLowerCase())) return false;
-    return true;
-  });
+  const fetchItems = useCallback(() => {
+    const startedAt = Date.now();
+    setLoading(true);
+    getRecommendations({
+      page: currentPage,
+      limit: POSTS_PER_PAGE,
+      category: filters.category || undefined,
+      author: debouncedAuthor || undefined,
+      book: debouncedBook || undefined,
+      title: debouncedTitle || undefined,
+      sort: sortBy,
+    })
+      .then(({ items: raw, total: t }) => {
+        const list = Array.isArray(raw) ? raw.map((r) => toRecItem(r as Record<string, unknown>)).filter((r): r is RecItem => r != null) : [];
+        setItems(list);
+        setTotal(t);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load recommendations'))
+      .finally(() => {
+        const elapsed = Date.now() - startedAt;
+        const minLoadingMs = 300;
+        const remaining = Math.max(0, minLoadingMs - elapsed);
+        if (remaining > 0) {
+          setTimeout(() => setLoading(false), remaining);
+        } else {
+          setLoading(false);
+        }
+      });
+  }, [currentPage, filters.category, debouncedAuthor, debouncedBook, debouncedTitle, sortBy]);
 
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortBy === 'newest') return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-    if (sortBy === 'oldest') return new Date(a.publishedAt).getTime() - new Date(b.publishedAt).getTime();
-    if (sortBy === 'reading-time') return b.readingTime - a.readingTime;
-    if (sortBy === 'book-count') return b.bookCount - a.bookCount;
-    return 0;
-  });
+  const setFiltersAndResetPage = useCallback((arg: React.SetStateAction<typeof filters>) => {
+    setFilters(arg);
+    setCurrentPage(1);
+  }, []);
 
-  const totalPages = Math.ceil(sorted.length / postsPerPage);
-  const startIndex = (currentPage - 1) * postsPerPage;
-  const paginated = sorted.slice(startIndex, startIndex + postsPerPage);
+  const setSortByAndResetPage = useCallback((value: string) => {
+    setSortBy(value);
+    setCurrentPage(1);
+  }, []);
 
-  if (loading) {
-    return (
-      <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-7xl mx-auto text-center py-16">
-          <p className="font-body text-chai-brown-light">Loading recommendations…</p>
-        </div>
-      </section>
-    );
-  }
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
-  if (error) {
+  useEffect(() => {
+    fetchItems();
+  }, [fetchItems]);
+
+  const totalPages = Math.ceil(total / POSTS_PER_PAGE) || 1;
+  const paginated = items;
+  const isInitialLoad = loading && items.length === 0;
+
+  if (error && items.length === 0) {
     return (
       <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
         <div className="max-w-7xl mx-auto text-center py-16">
@@ -113,11 +141,31 @@ export default function RecommendationsListing() {
 
         <div className="grid lg:grid-cols-4 gap-6 lg:gap-8">
           <aside className="lg:col-span-1">
-            <Filters filters={filters} setFilters={setFilters} sortBy={sortBy} setSortBy={setSortBy} />
+            <Filters filters={filters} setFilters={setFiltersAndResetPage} sortBy={sortBy} setSortBy={setSortByAndResetPage} categories={categories} />
           </aside>
 
-          <div className="lg:col-span-3">
-            {paginated.length > 0 ? (
+          <div className="lg:col-span-3 relative min-h-[200px]">
+            {loading && (
+              <div
+                className="absolute inset-0 z-10 flex items-center justify-center bg-cream/80 rounded-xl"
+                aria-hidden="true"
+              >
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-10 h-10 border-2 border-terracotta/30 border-t-terracotta rounded-full animate-spin" />
+                  <p className="font-body text-sm text-chai-brown-light">
+                    {isInitialLoad ? 'Loading recommendations…' : 'Updating…'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {error && items.length > 0 && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 font-body text-sm">
+                {error}
+              </div>
+            )}
+
+            {!isInitialLoad && paginated.length > 0 ? (
               <>
                 <div className="grid sm:grid-cols-2 gap-6 mb-8">
                   {paginated.map((rec) => (
@@ -137,13 +185,13 @@ export default function RecommendationsListing() {
                   <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 )}
               </>
-            ) : (
+            ) : !isInitialLoad ? (
               <div className="text-center py-12">
                 <p className="text-chai-brown-light font-body text-lg">
                   No recommendations found matching your filters.
                 </p>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Clock, Tag, User, BookOpen, Share2, Quote } from 'lucide-react';
-import { getImageUrl, getBlogPostBySlug } from '@/lib/api';
+import { getImageUrl, getBlogPostBySlug, getBlogPosts } from '@/lib/api';
 
 interface BlogDetailProps {
   slug: string;
@@ -62,6 +63,8 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
   const [notFound, setNotFound] = useState(false);
   const [readingProgress, setReadingProgress] = useState(0);
   const [showShareMenu, setShowShareMenu] = useState(false);
+  const [prevSlug, setPrevSlug] = useState<string | null>(null);
+  const [nextSlug, setNextSlug] = useState<string | null>(null);
 
   useEffect(() => {
     getBlogPostBySlug(slug)
@@ -73,6 +76,19 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
         else setPost(null);
       })
       .finally(() => setLoading(false));
+  }, [slug]);
+
+  useEffect(() => {
+    getBlogPosts({ limit: 9999, sort: 'newest' })
+      .then(({ posts }) => {
+        const slugs = (posts as Record<string, unknown>[])
+          .map((p) => (typeof p.slug === 'string' ? p.slug : ''))
+          .filter(Boolean);
+        const idx = slugs.indexOf(slug);
+        setPrevSlug(idx > 0 ? slugs[idx - 1] ?? null : null);
+        setNextSlug(idx >= 0 && idx < slugs.length - 1 ? slugs[idx + 1] ?? null : null);
+      })
+      .catch(() => {});
   }, [slug]);
 
   useEffect(() => {
@@ -392,12 +408,20 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
 
         {/* Navigation to Next/Previous */}
         <div className="flex justify-between items-center pt-8 border-t border-chai-brown/10">
-          <button className="text-terracotta font-sans text-sm hover:underline">
-            ← Previous Review
-          </button>
-          <button className="text-terracotta font-sans text-sm hover:underline">
-            Next Review →
-          </button>
+          {prevSlug ? (
+            <Link href={`/blog/${prevSlug}`} className="text-terracotta font-sans text-sm hover:underline">
+              ← Previous Review
+            </Link>
+          ) : (
+            <span className="text-terracotta/50 font-sans text-sm cursor-default">← Previous Review</span>
+          )}
+          {nextSlug ? (
+            <Link href={`/blog/${nextSlug}`} className="text-terracotta font-sans text-sm hover:underline">
+              Next Review →
+            </Link>
+          ) : (
+            <span className="text-terracotta/50 font-sans text-sm cursor-default">Next Review →</span>
+          )}
         </div>
       </div>
     </article>

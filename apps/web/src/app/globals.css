@@ -130,3 +130,14 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #6B4F3F;
 }
+
+/* Navigation loader bar (instant feedback on link click) */
+@keyframes navigation-progress {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(200%); }
+  100% { transform: translateX(-100%); }
+}
+
+.navigation-loader-bar {
+  animation: navigation-progress 1.5s ease-in-out infinite;
+}

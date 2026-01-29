@@ -13,18 +13,11 @@ interface FiltersProps {
   setFilters: (filters: any) => void;
   sortBy: string;
   setSortBy: (sortBy: string) => void;
+  /** Categories that exist on the current recommendation lists (dropdown shows only these) */
+  categories?: string[];
 }
 
-const categories = [
-  'Book List',
-  'Weekly Wrap-Up',
-  'Monthly Wrap-Up',
-  'Yearly Wrap-Up',
-  'Genre Recommendations',
-  'Author Spotlight',
-];
-
-export default function Filters({ filters, setFilters, sortBy, setSortBy }: FiltersProps) {
+export default function Filters({ filters, setFilters, sortBy, setSortBy, categories = [] }: FiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const updateFilter = (key: string, value: string) => {

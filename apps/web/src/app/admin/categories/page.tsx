@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import { getAdminCategories, createCategory, updateCategory, deleteCategory, type CategoryDto, type CategoryType } from '@/lib/api';
 
 interface Category {
   id: string;
@@ -11,13 +12,21 @@ interface Category {
   type: 'blog' | 'recommendations' | 'musings';
 }
 
+function toCategory(c: CategoryDto): Category {
+  return {
+    id: c._id,
+    name: c.name,
+    slug: c.slug,
+    description: c.description ?? '',
+    type: c.type,
+  };
+}
+
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([
-    { id: '1', name: 'Fiction', slug: 'fiction', description: 'Fictional stories and novels', type: 'blog' },
-    { id: '2', name: 'Non-Fiction', slug: 'non-fiction', description: 'Non-fiction books and memoirs', type: 'blog' },
-    { id: '3', name: 'Monthly Wrap-ups', slug: 'monthly-wrapups', description: 'Monthly reading summaries', type: 'recommendations' },
-    { id: '4', name: 'Short Stories', slug: 'short-stories', description: 'Short story collections', type: 'musings' },
-  ]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState<Omit<Category, 'id'>>({
@@ -26,6 +35,21 @@ export default function AdminCategoriesPage() {
     description: '',
     type: 'blog',
   });
+
+  const fetchCategories = useCallback(() => {
+    setLoading(true);
+    getAdminCategories()
+      .then(({ categories: list }) => {
+        setCategories(list.map(toCategory));
+        setError(null);
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load categories'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   const generateSlug = (name: string) => {
     return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -41,22 +65,29 @@ export default function AdminCategoriesPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingCategory) {
-      setCategories(categories.map(c => 
-        c.id === editingCategory.id 
-          ? { ...formData, id: editingCategory.id }
-          : c
-      ));
-    } else {
-      const newCategory: Category = {
-        ...formData,
-        id: Date.now().toString(),
-      };
-      setCategories([...categories, newCategory]);
-    }
-    setFormData({ name: '', slug: '', description: '', type: 'blog' });
-    setShowForm(false);
-    setEditingCategory(null);
+    setError(null);
+    setSaving(true);
+    const payload = {
+      name: formData.name.trim(),
+      slug: formData.slug.trim() || generateSlug(formData.name),
+      description: formData.description.trim(),
+      type: formData.type as CategoryType,
+    };
+    (editingCategory
+      ? updateCategory(editingCategory.id, payload)
+      : createCategory(payload)
+    )
+      .then(() => {
+        setFormData({ name: '', slug: '', description: '', type: 'blog' });
+        setShowForm(false);
+        setEditingCategory(null);
+        fetchCategories();
+      })
+      .catch((e) => {
+        const msg = e instanceof Error ? e.message : 'Failed to save category';
+        setError(msg.includes('Unauthorized') || msg.includes('Not logged in') ? `${msg} Please log in again.` : msg);
+      })
+      .finally(() => setSaving(false));
   };
 
   const handleEdit = (category: Category) => {
@@ -71,9 +102,10 @@ export default function AdminCategoriesPage() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this category?')) {
-      setCategories(categories.filter(c => c.id !== id));
-    }
+    if (!confirm('Are you sure you want to delete this category?')) return;
+    deleteCategory(id)
+      .then(() => fetchCategories())
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to delete category'));
   };
 
   const categoriesByType = {
@@ -82,8 +114,21 @@ export default function AdminCategoriesPage() {
     musings: categories.filter(c => c.type === 'musings'),
   };
 
+  if (loading && categories.length === 0) {
+    return (
+      <div className="max-w-7xl mx-auto py-8">
+        <p className="font-body text-chai-brown-light">Loading categories…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
+      {error && (
+        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 font-body text-sm">
+          {error}
+        </div>
+      )}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="font-serif text-3xl sm:text-4xl text-chai-brown mb-2">
@@ -166,17 +211,19 @@ export default function AdminCategoriesPage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-terracotta text-white py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body"
+                  disabled={saving}
+                  className="flex-1 bg-terracotta text-white py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body disabled:opacity-50"
                 >
-                  {editingCategory ? 'Update' : 'Create'}
+                  {saving ? 'Saving…' : (editingCategory ? 'Update' : 'Create')}
                 </button>
                 <button
                   type="button"
+                  disabled={saving}
                   onClick={() => {
                     setShowForm(false);
                     setEditingCategory(null);
                   }}
-                  className="flex-1 bg-gray-200 text-chai-brown py-2 rounded-lg hover:bg-gray-300 transition-colors font-body"
+                  className="flex-1 bg-gray-200 text-chai-brown py-2 rounded-lg hover:bg-gray-300 transition-colors font-body disabled:opacity-50"
                 >
                   Cancel
                 </button>

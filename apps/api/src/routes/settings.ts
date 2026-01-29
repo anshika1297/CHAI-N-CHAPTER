@@ -1,8 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { Page, PageSlug } from '../models/Page.js';
 import { requireAuth } from '../middlewares/auth.js';
+import { rewriteImageUrlsInObject } from './upload.js';
 
-const SLUGS: PageSlug[] = ['contact', 'work-with-me', 'about', 'terms', 'privacy', 'header', 'home', 'book-clubs', 'blog', 'recommendations', 'musings'];
+const SLUGS: PageSlug[] = ['contact', 'work-with-me', 'about', 'terms', 'privacy', 'header', 'footer', 'home', 'book-clubs', 'blog', 'recommendations', 'musings'];
 
 const router = Router();
 
@@ -19,7 +20,8 @@ router.get('/pages/:slug', async (req: Request, res: Response): Promise<void> =>
       res.status(200).json({ content: null });
       return;
     }
-    res.status(200).json({ content: page.content });
+    const content = rewriteImageUrlsInObject(page.content) as typeof page.content;
+    res.status(200).json({ content });
   } catch (err) {
     console.error('GET /api/settings/pages/:slug', err);
     res.status(500).json({ error: 'Failed to load page' });

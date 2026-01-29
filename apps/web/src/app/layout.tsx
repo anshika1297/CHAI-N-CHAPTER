@@ -1,5 +1,6 @@
 import './globals.css';
 import ConditionalSiteShell from '@/components/ConditionalSiteShell';
+import NavigationLoader from '@/components/NavigationLoader';
 import { buildMetadata } from '@/lib/metadata';
 import { PersonSchema, WebSiteSchema } from '@/components/JsonLd';
 
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en-IN">
       <body className="min-h-screen flex flex-col">
+        <NavigationLoader />
         <PersonSchema />
         <WebSiteSchema />
         <ConditionalSiteShell>{children}</ConditionalSiteShell>

@@ -16,7 +16,7 @@ import {
   AtSign
 } from 'lucide-react';
 import { siteConfig } from '@/lib/seo';
-import { getPageSettings } from '@/lib/api';
+import { getPageSettings, submitContactMessage } from '@/lib/api';
 
 const iconByLabel: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   Email: Mail,
@@ -108,16 +108,22 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission - will be replaced with actual API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await submitContactMessage({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
+      });
       setIsSubmitted(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
-      
-      // Reset success message after 5 seconds
       setTimeout(() => setIsSubmitted(false), 5000);
-    }, 1000);
+    } catch (err) {
+      setFormData((prev) => ({ ...prev }));
+      alert(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

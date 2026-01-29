@@ -56,9 +56,9 @@ export default function BookRecommendations() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-chai-brown mb-2">Book Recommendations</h2>
           <p className="section-subheading">Handpicked reads for every mood and moment</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
           {cards.map((rec, index) => (
-            <div key={rec.slug} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+            <div key={rec.slug} className="w-full sm:w-[320px] lg:max-w-[340px] animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
               <BookCard {...rec} />
             </div>
           ))}

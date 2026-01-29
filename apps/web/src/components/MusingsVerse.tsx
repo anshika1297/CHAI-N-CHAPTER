@@ -55,9 +55,9 @@ export default function MusingsVerse() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-chai-brown mb-2">Her Musings Verse</h2>
           <p className="section-subheading">Reflections, short stories, and thoughts from the heart</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
           {cards.map((musing, index) => (
-            <div key={musing.slug} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+            <div key={musing.slug} className="w-full sm:w-[320px] lg:max-w-[340px] animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
               <BookCard {...musing} basePath="/musings" />
             </div>
           ))}

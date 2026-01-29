@@ -17,9 +17,9 @@ interface BookCardProps {
 
 export default function BookCard({ title, excerpt, image, category, slug, readingTime, basePath = '/blog' }: BookCardProps) {
   return (
-    <article className="card group">
+    <article className="card group h-full flex flex-col">
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="relative aspect-[4/3] overflow-hidden shrink-0">
         <div 
           className="absolute inset-0 bg-gradient-to-br from-chai-brown to-chai-brown-dark"
           style={{ 
@@ -47,24 +47,24 @@ export default function BookCard({ title, excerpt, image, category, slug, readin
       </div>
 
       {/* Content */}
-      <div className="p-4 sm:p-5">
+      <div className="p-4 sm:p-5 flex-1 flex flex-col min-h-0">
         {readingTime && (
-          <p className="text-xs text-chai-brown-light mb-2 font-sans">
+          <p className="text-xs text-chai-brown-light mb-2 font-sans shrink-0">
             {readingTime} min read
           </p>
         )}
         
-        <h3 className="font-serif text-lg sm:text-xl text-chai-brown mb-2 sm:mb-3 line-clamp-2 group-hover:text-terracotta transition-colors">
+        <h3 className="font-serif text-lg sm:text-xl text-chai-brown mb-2 sm:mb-3 line-clamp-2 group-hover:text-terracotta transition-colors shrink-0">
           {title}
         </h3>
         
-        <p className="text-chai-brown-light font-body text-sm leading-relaxed line-clamp-3 mb-4">
+        <p className="text-chai-brown-light font-body text-sm leading-relaxed line-clamp-3 mb-4 flex-1 min-h-0">
           {excerpt}
         </p>
 
         <Link 
           href={`${basePath}/${slug}`}
-          className="inline-flex items-center gap-2 text-terracotta font-sans text-sm font-medium hover:gap-3 transition-all"
+          className="inline-flex items-center gap-2 text-terracotta font-sans text-sm font-medium hover:gap-3 transition-all shrink-0"
         >
           Read More
           <ArrowRight size={16} />

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { Page } from '../models/Page.js';
 import { requireAuth } from '../middlewares/auth.js';
+import { rewriteImageUrlsInObject } from './upload.js';
 
 const BOOK_CLUBS_SLUG = 'book-clubs' as const;
 
@@ -14,7 +15,8 @@ router.get('/', async (_req: Request, res: Response): Promise<void> => {
       res.status(200).json({ content: null });
       return;
     }
-    res.status(200).json({ content: page.content });
+    const content = rewriteImageUrlsInObject(page.content) as typeof page.content;
+    res.status(200).json({ content });
   } catch (err) {
     console.error('GET /api/book-clubs', err);
     res.status(500).json({ error: 'Failed to load book clubs' });
