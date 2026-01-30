@@ -26,6 +26,12 @@ export interface BlogPost {
   author: string;
   bookTitle: string;
   bookAuthor: string;
+  /** Book rating 1–5 (optional). */
+  rating?: number;
+  /** URL for the book (e.g. Goodreads, Amazon). Shown as hyperlink on book title. */
+  bookLink?: string;
+  /** URL for the author profile. Shown as hyperlink on author name. */
+  authorLink?: string;
   publishedAt: string;
   highlights?: BlogHighlight[];
   /** SEO keywords for this post; merged with site-wide keywords in meta. */
@@ -59,6 +65,9 @@ const defaultPosts: BlogPost[] = [
     author: 'Anshika Mishra',
     bookTitle: 'The Art of Slow Living',
     bookAuthor: 'Marie Kondo',
+    rating: 5,
+    bookLink: '',
+    authorLink: '',
     publishedAt: '2024-01-15',
     highlights: [
       { id: '1', quote: "Reading isn't just about consuming words, but about creating space for reflection and connection.", page: 45, image: '' },
@@ -129,9 +138,12 @@ const emptyForm: Omit<BlogPost, 'id'> = {
   category: 'Book Review',
   readingTime: 5,
   author: 'Anshika Mishra',
-  bookTitle: '',
-  bookAuthor: '',
-  publishedAt: new Date().toISOString().slice(0, 10),
+    bookTitle: '',
+    bookAuthor: '',
+    rating: undefined,
+    bookLink: '',
+    authorLink: '',
+    publishedAt: new Date().toISOString().slice(0, 10),
   highlights: [],
   seoKeywords: [],
 };
@@ -162,6 +174,9 @@ function toPost(x: Record<string, unknown>): BlogPost | null {
     author: typeof x.author === 'string' ? x.author : '',
     bookTitle: typeof x.bookTitle === 'string' ? x.bookTitle : '',
     bookAuthor: typeof x.bookAuthor === 'string' ? x.bookAuthor : '',
+    rating: typeof x.rating === 'number' && x.rating >= 1 && x.rating <= 5 ? x.rating : undefined,
+    bookLink: typeof x.bookLink === 'string' ? x.bookLink : '',
+    authorLink: typeof x.authorLink === 'string' ? x.authorLink : '',
     publishedAt: typeof x.publishedAt === 'string' ? x.publishedAt : new Date().toISOString().slice(0, 10),
     highlights: Array.isArray(x.highlights) ? (x.highlights as Record<string, unknown>[]).map((h) => ({ id: String(h?.id ?? ''), quote: String(h?.quote ?? '').trim(), page: typeof h?.page === 'number' ? h.page : undefined, image: typeof h?.image === 'string' ? h.image : '' })).filter((h) => h.quote) : [],
     seoKeywords: Array.isArray(x.seoKeywords) ? (x.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
@@ -203,6 +218,9 @@ export default function AdminBlogPage() {
       author: p.author ?? '',
       bookTitle: p.bookTitle ?? '',
       bookAuthor: p.bookAuthor ?? '',
+      rating: p.rating != null && p.rating >= 1 && p.rating <= 5 ? p.rating : undefined,
+      bookLink: p.bookLink ?? '',
+      authorLink: p.authorLink ?? '',
       publishedAt: p.publishedAt ?? new Date().toISOString().slice(0, 10),
       highlights: Array.isArray(p.highlights) ? p.highlights.map((h) => ({ id: h.id, quote: h.quote ?? '', page: h.page, image: h.image ?? '' })) : [],
       seoKeywords: Array.isArray(p.seoKeywords) ? p.seoKeywords : [],
@@ -274,6 +292,9 @@ export default function AdminBlogPage() {
       author: post.author,
       bookTitle: post.bookTitle,
       bookAuthor: post.bookAuthor,
+      rating: post.rating,
+      bookLink: post.bookLink ?? '',
+      authorLink: post.authorLink ?? '',
       publishedAt: post.publishedAt,
       highlights: post.highlights ?? [],
       seoKeywords: post.seoKeywords ?? [],
@@ -505,6 +526,56 @@ export default function AdminBlogPage() {
                   />
                 </div>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block font-body text-sm font-medium text-chai-brown mb-2">
+                    Rating (1–5)
+                  </label>
+                  <select
+                    value={formData.rating ?? ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        rating: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                      })
+                    }
+                    className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
+                  >
+                    <option value="">No rating</option>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <option key={n} value={n}>
+                        {n} / 5
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block font-body text-sm font-medium text-chai-brown mb-2">
+                    Book link (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.bookLink ?? ''}
+                    onChange={(e) => setFormData({ ...formData, bookLink: e.target.value })}
+                    placeholder="https://… (Goodreads, Amazon, etc.)"
+                    className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
+                  />
+                  <p className="text-xs text-chai-brown-light mt-0.5">Book title becomes a clickable link.</p>
+                </div>
+                <div>
+                  <label className="block font-body text-sm font-medium text-chai-brown mb-2">
+                    Author profile link (URL)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.authorLink ?? ''}
+                    onChange={(e) => setFormData({ ...formData, authorLink: e.target.value })}
+                    placeholder="https://… (author site, Goodreads, etc.)"
+                    className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
+                  />
+                  <p className="text-xs text-chai-brown-light mt-0.5">Author name becomes a clickable link.</p>
+                </div>
+              </div>
 
               {/* SEO / Meta keywords */}
               <div>
@@ -649,6 +720,9 @@ export default function AdminBlogPage() {
                   Book
                 </th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">
+                  Rating
+                </th>
+                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">
                   Published
                 </th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">
@@ -683,6 +757,9 @@ export default function AdminBlogPage() {
                     {post.bookAuthor && (
                       <span className="block text-xs">by {post.bookAuthor}</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3 font-body text-sm text-chai-brown-light">
+                    {post.rating != null ? `${post.rating}/5` : '—'}
                   </td>
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">
                     {formatDate(post.publishedAt)}

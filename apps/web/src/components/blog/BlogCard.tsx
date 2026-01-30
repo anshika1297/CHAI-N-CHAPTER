@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Clock, Tag } from 'lucide-react';
+import { Clock, Tag, Star } from 'lucide-react';
 
 interface BlogCardProps {
   title: string;
@@ -12,6 +12,8 @@ interface BlogCardProps {
   readingTime: number;
   author?: string;
   bookTitle?: string;
+  /** Book rating 1–5 (optional). */
+  rating?: number;
 }
 
 export default function BlogCard({
@@ -23,6 +25,7 @@ export default function BlogCard({
   readingTime,
   author,
   bookTitle,
+  rating,
 }: BlogCardProps) {
   return (
     <article className="card group h-full flex flex-col">
@@ -59,10 +62,18 @@ export default function BlogCard({
 
       {/* Content */}
       <div className="p-5 flex-1 flex flex-col">
-        {/* Reading Time */}
-        <div className="flex items-center gap-2 text-xs text-chai-brown-light mb-2 font-sans">
-          <Clock size={14} />
-          <span>{readingTime} min read</span>
+        {/* Reading Time & Rating */}
+        <div className="flex flex-wrap items-center gap-3 text-xs text-chai-brown-light mb-2 font-sans">
+          <span className="flex items-center gap-2">
+            <Clock size={14} />
+            {readingTime} min read
+          </span>
+          {rating != null && (
+            <span className="flex items-center gap-1 text-terracotta">
+              <Star size={14} className="fill-terracotta" />
+              {rating}/5
+            </span>
+          )}
         </div>
 
         {/* Title */}

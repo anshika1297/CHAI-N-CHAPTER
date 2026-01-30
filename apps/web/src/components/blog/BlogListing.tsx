@@ -17,6 +17,8 @@ type BlogPostItem = {
   readingTime: number;
   author?: string;
   bookTitle?: string;
+  /** Book rating 1–5 (optional). */
+  rating?: number;
   publishedAt: string;
 };
 
@@ -32,6 +34,7 @@ function toPostItem(p: Record<string, unknown>): BlogPostItem | null {
     readingTime: typeof p.readingTime === 'number' ? p.readingTime : Number(p.readingTime) || 5,
     author: typeof p.author === 'string' ? p.author : undefined,
     bookTitle: typeof p.bookTitle === 'string' ? p.bookTitle : undefined,
+    rating: typeof p.rating === 'number' && p.rating >= 1 && p.rating <= 5 ? p.rating : undefined,
     publishedAt: typeof p.publishedAt === 'string' ? p.publishedAt : new Date().toISOString().slice(0, 10),
   };
 }
@@ -186,6 +189,7 @@ export default function BlogListing() {
                       readingTime={post.readingTime}
                       author={post.author}
                       bookTitle={post.bookTitle}
+                      rating={post.rating}
                     />
                   ))}
                 </div>

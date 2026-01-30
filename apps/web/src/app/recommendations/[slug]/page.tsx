@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const postKeywords = meta?.keywords ?? [];
   return buildMetadata({
     title: meta ? meta.title : `Book Recommendations: ${fallbackTitle}`,
-    description: meta?.description ?? `Curated book recommendations by Anshika Mishra. Fiction, history & mythology from around the world. Discover your next read.`,
+    description: meta?.description ?? `Curated book recommendations by Anshika Mishra, book blogger & content creator. Fiction, history & mythology for readers in India & UAE and worldwide. Discover your next read.`,
     path: `/recommendations/${slug}`,
     type: 'article',
     image: meta?.image,

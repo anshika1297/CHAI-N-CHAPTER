@@ -9,7 +9,18 @@ interface RecommendationDetailProps {
   slug: string;
 }
 
-type BookItem = { id: string; title: string; author: string; image: string; rating: number; description: string };
+type BookItem = {
+  id: string;
+  title: string;
+  author: string;
+  image: string;
+  rating: number;
+  description: string;
+  /** URL for the book; book title links here when set. */
+  bookLink?: string;
+  /** URL for the author profile; author name links here when set. */
+  authorLink?: string;
+};
 type ItemData = {
   title: string;
   intro: string;
@@ -35,6 +46,8 @@ function normalizeItem(r: Record<string, unknown>): ItemData {
         image: typeof b?.image === 'string' ? b.image : '',
         rating: typeof b?.rating === 'number' ? b.rating : Number(b?.rating) || 0,
         description: String(b?.description ?? '').trim(),
+        bookLink: typeof b?.bookLink === 'string' && b.bookLink.trim() ? b.bookLink.trim() : undefined,
+        authorLink: typeof b?.authorLink === 'string' && b.authorLink.trim() ? b.authorLink.trim() : undefined,
       }))
     : [];
   return {
@@ -318,10 +331,11 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
 
         {/* Introduction */}
         {item.intro && (
-          <div className="mb-12">
-            <p className="font-body text-lg text-chai-brown-light leading-relaxed">
-              {item.intro}
-            </p>
+          <div className="mb-12 blog-content">
+            <div
+              className="font-body text-lg text-chai-brown-light leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: item.intro }}
+            />
           </div>
         )}
 
@@ -362,10 +376,33 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
                     <div className="flex-1">
                       <div className="mb-3">
                         <h3 className="font-serif text-xl sm:text-2xl text-chai-brown mb-1">
-                          {book.title}
+                          {book.bookLink ? (
+                            <a
+                              href={book.bookLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-chai-brown hover:text-sage underline"
+                            >
+                              {book.title}
+                            </a>
+                          ) : (
+                            book.title
+                          )}
                         </h3>
                         <p className="font-body text-sm text-chai-brown-light italic">
-                          by {book.author}
+                          by{' '}
+                          {book.authorLink ? (
+                            <a
+                              href={book.authorLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sage hover:underline"
+                            >
+                              {book.author}
+                            </a>
+                          ) : (
+                            book.author
+                          )}
                         </p>
                       </div>
 
@@ -383,9 +420,10 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
 
                       {/* Description */}
                       {book.description && (
-                        <p className="font-body text-base text-chai-brown-light leading-relaxed">
-                          {book.description}
-                        </p>
+                        <div
+                          className="blog-content font-body text-base text-chai-brown-light leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: book.description }}
+                        />
                       )}
                     </div>
                   </div>
@@ -400,9 +438,10 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
           <section className="mb-12">
             <div className="bg-cream-light rounded-xl p-6 sm:p-8 border-l-4 border-sage">
               <h3 className="font-serif text-xl text-chai-brown mb-4">Final Thoughts</h3>
-              <p className="font-body text-base text-chai-brown-light leading-relaxed">
-                {item.conclusion}
-              </p>
+              <div
+                className="blog-content font-body text-base text-chai-brown-light leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: item.conclusion }}
+              />
             </div>
           </section>
         )}

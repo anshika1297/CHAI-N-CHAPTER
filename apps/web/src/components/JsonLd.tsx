@@ -13,8 +13,8 @@ export function PersonSchema() {
     name: siteConfig.author,
     url: canonicalUrl('/about'),
     description:
-      'Book blogger and book critic. Reviews fiction, history & mythology from around the world. Indian blogger with global reach—open to authors who write in English.',
-    jobTitle: 'Book Blogger & Book Critic',
+      'Book blogger & content creator. Literary services for readers, authors, publishers & lit fest committees. Based in Abu Dhabi. Fiction, history & mythology—India & UAE.',
+    jobTitle: 'Book Blogger, Content Creator & Literary Services',
     sameAs: Object.values(siteConfig.social),
     worksFor: {
       '@type': 'Organization',

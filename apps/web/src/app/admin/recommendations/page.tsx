@@ -14,6 +14,10 @@ export interface RecommendationBook {
   image: string;
   rating: number;
   description: string;
+  /** URL for the book (e.g. Goodreads, Amazon). Shown as hyperlink on book title. */
+  bookLink?: string;
+  /** URL for the author profile. Shown as hyperlink on author name. */
+  authorLink?: string;
 }
 
 export interface Recommendation {
@@ -67,8 +71,8 @@ const defaultRecos: Recommendation[] = [
     publishedAt: '2024-01-20',
     bookCount: 4,
     books: [
-      { id: '1', title: 'The Seven Husbands of Evelyn Hugo', author: 'Taylor Jenkins Reid', image: '', rating: 5, description: 'This book completely swept me away!' },
-      { id: '2', title: 'The Little Book of Hygge', author: 'Meik Wiking', image: '', rating: 4, description: 'Perfect for understanding the Danish concept of coziness.' },
+      { id: '1', title: 'The Seven Husbands of Evelyn Hugo', author: 'Taylor Jenkins Reid', image: '', rating: 5, description: 'This book completely swept me away!', bookLink: '', authorLink: '' },
+      { id: '2', title: 'The Little Book of Hygge', author: 'Meik Wiking', image: '', rating: 4, description: 'Perfect for understanding the Danish concept of coziness.', bookLink: '', authorLink: '' },
     ],
   },
   {
@@ -127,6 +131,8 @@ function toReco(x: Record<string, unknown>): Recommendation | null {
         image: typeof b?.image === 'string' ? b.image : '',
         rating: typeof b?.rating === 'number' ? b.rating : Number(b?.rating) || 0,
         description: String(b?.description ?? '').trim(),
+        bookLink: typeof b?.bookLink === 'string' ? b.bookLink.trim() : '',
+        authorLink: typeof b?.authorLink === 'string' ? b.authorLink.trim() : '',
       }))
     : [];
   return {
@@ -182,7 +188,7 @@ export default function AdminRecommendationsPage() {
       author: i.author ?? '',
       publishedAt: i.publishedAt ?? new Date().toISOString().slice(0, 10),
       bookCount: Number(i.bookCount) ?? (i.books?.length ?? 0),
-      books: Array.isArray(i.books) ? i.books.map((b) => ({ id: b.id, title: b.title ?? '', author: b.author ?? '', image: b.image ?? '', rating: Number(b.rating) || 0, description: b.description ?? '' })) : [],
+      books: Array.isArray(i.books) ? i.books.map((b) => ({ id: b.id, title: b.title ?? '', author: b.author ?? '', image: b.image ?? '', rating: Number(b.rating) || 0, description: b.description ?? '', bookLink: b.bookLink ?? '', authorLink: b.authorLink ?? '' })) : [],
       seoKeywords: Array.isArray(i.seoKeywords) ? i.seoKeywords : [],
     }));
     await putPageSettings('recommendations', { items: itemsPayload });
@@ -467,7 +473,7 @@ export default function AdminRecommendationsPage() {
                         ...formData,
                         books: [
                           ...formData.books,
-                          { id: Date.now().toString(), title: '', author: '', image: '', rating: 0, description: '' },
+                          { id: Date.now().toString(), title: '', author: '', image: '', rating: 0, description: '', bookLink: '', authorLink: '' },
                         ],
                       })
                     }
@@ -549,6 +555,38 @@ export default function AdminRecommendationsPage() {
                           }}
                           className="w-16 px-2 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
                         />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs text-chai-brown-light mb-1">Book link (URL)</label>
+                        <input
+                          type="url"
+                          value={book.bookLink ?? ''}
+                          onChange={(e) => {
+                            const next = [...formData.books];
+                            next[idx] = { ...book, bookLink: e.target.value };
+                            setFormData({ ...formData, books: next });
+                          }}
+                          placeholder="https://… (Goodreads, Amazon, etc.)"
+                          className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
+                        />
+                        <p className="text-[11px] text-chai-brown-light mt-0.5">Book title becomes a clickable link.</p>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-chai-brown-light mb-1">Author profile link (URL)</label>
+                        <input
+                          type="url"
+                          value={book.authorLink ?? ''}
+                          onChange={(e) => {
+                            const next = [...formData.books];
+                            next[idx] = { ...book, authorLink: e.target.value };
+                            setFormData({ ...formData, books: next });
+                          }}
+                          placeholder="https://… (author site, Goodreads, etc.)"
+                          className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
+                        />
+                        <p className="text-[11px] text-chai-brown-light mt-0.5">Author name becomes a clickable link.</p>
                       </div>
                     </div>
                     <textarea

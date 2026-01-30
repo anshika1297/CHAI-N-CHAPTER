@@ -2,8 +2,8 @@
  * Content metadata for SEO. Used by generateMetadata in blog, recommendations, musings.
  * Replace with API/DB lookups when you have a backend.
  *
- * Per-blog keywords: merged with site-wide primaryKeywords + extendedKeywords in buildMetadata.
- * Add them here (or from your API) so each blog page gets its own meta keywords.
+ * Site-wide focus: India & UAE (Abu Dhabi). Book blogger, content creator, literary services.
+ * Per-post keywords: merged with site-wide primaryKeywords + extendedKeywords in buildMetadata.
  */
 
 export type ContentMeta = {

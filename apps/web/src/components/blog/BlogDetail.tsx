@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Clock, Tag, User, BookOpen, Share2, Quote } from 'lucide-react';
+import { Clock, Tag, User, BookOpen, Share2, Quote, Star } from 'lucide-react';
 import { getImageUrl, getBlogPostBySlug, getBlogPosts } from '@/lib/api';
 
 interface BlogDetailProps {
@@ -22,6 +22,12 @@ type PostData = {
   author: string;
   bookTitle: string;
   bookAuthor: string;
+  /** Book rating 1–5 (optional). */
+  rating?: number;
+  /** URL for the book; book title links here when set. */
+  bookLink?: string;
+  /** URL for the author profile; author name links here when set. */
+  authorLink?: string;
   publishedAt: string;
   tags: string[];
   bookImages: string[];
@@ -50,6 +56,9 @@ function normalizePost(p: Record<string, unknown>): PostData {
     author: typeof p.author === 'string' ? p.author : '',
     bookTitle: typeof p.bookTitle === 'string' ? p.bookTitle : '',
     bookAuthor: typeof p.bookAuthor === 'string' ? p.bookAuthor : '',
+    rating: typeof p.rating === 'number' && p.rating >= 1 && p.rating <= 5 ? p.rating : undefined,
+    bookLink: typeof p.bookLink === 'string' && p.bookLink.trim() ? p.bookLink.trim() : undefined,
+    authorLink: typeof p.authorLink === 'string' && p.authorLink.trim() ? p.authorLink.trim() : undefined,
     publishedAt: typeof p.publishedAt === 'string' ? p.publishedAt : new Date().toISOString().slice(0, 10),
     tags: Array.isArray(p.seoKeywords) ? (p.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
     bookImages: [],
@@ -199,17 +208,47 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
               <Clock size={14} />
               <span>{post.readingTime} min read</span>
             </div>
+            {post.rating != null && (
+              <div className="flex items-center gap-2">
+                <Star size={14} className="text-terracotta fill-terracotta" />
+                <span>{post.rating}/5</span>
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <User size={14} />
               <span>{post.author}</span>
             </div>
             <div className="flex items-center gap-2">
               <BookOpen size={14} />
-              <span className="italic">{post.bookTitle}</span>
+              {post.bookTitle ? (
+                post.bookLink ? (
+                  <a
+                    href={post.bookLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="italic text-terracotta hover:underline"
+                  >
+                    {post.bookTitle}
+                  </a>
+                ) : (
+                  <span className="italic">{post.bookTitle}</span>
+                )
+              ) : null}
               {post.bookAuthor && (
                 <>
                   <span>by</span>
-                  <span>{post.bookAuthor}</span>
+                  {post.authorLink ? (
+                    <a
+                      href={post.authorLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-terracotta hover:underline"
+                    >
+                      {post.bookAuthor}
+                    </a>
+                  ) : (
+                    <span>{post.bookAuthor}</span>
+                  )}
                 </>
               )}
             </div>
@@ -281,9 +320,36 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="text-center px-4">
                 <span className="text-6xl mb-4 block">📖</span>
-                <p className="font-serif text-lg text-cream/90 font-medium">{post.bookTitle}</p>
+                <p className="font-serif text-lg text-cream/90 font-medium">
+                  {post.bookTitle && post.bookLink ? (
+                    <a
+                      href={post.bookLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-cream/90 hover:text-cream underline"
+                    >
+                      {post.bookTitle}
+                    </a>
+                  ) : (
+                    post.bookTitle
+                  )}
+                </p>
                 {post.bookAuthor && (
-                  <p className="font-body text-sm text-cream/70 mt-2">by {post.bookAuthor}</p>
+                  <p className="font-body text-sm text-cream/70 mt-2">
+                    by{' '}
+                    {post.authorLink ? (
+                      <a
+                        href={post.authorLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-cream/70 hover:text-cream underline"
+                      >
+                        {post.bookAuthor}
+                      </a>
+                    ) : (
+                      post.bookAuthor
+                    )}
+                  </p>
                 )}
               </div>
             </div>

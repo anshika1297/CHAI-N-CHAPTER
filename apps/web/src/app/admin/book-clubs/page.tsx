@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Save } from 'lucide-react';
-import { getBookClubs, putBookClubs } from '@/lib/api';
+import { Plus, Edit, Trash2 } from 'lucide-react';
+import { getPageSettings, putPageSettings } from '@/lib/api';
 import PageLoading from '@/components/PageLoading';
+import ImageUploadField from '@/components/ImageUploadField';
 
 interface BookClub {
   id: string;
@@ -13,11 +14,13 @@ interface BookClub {
   joinLink: string;
   members: string;
   focus: string;
+  /** Book club logo image URL (optional). */
+  logo?: string;
 }
 
 const defaultClubs: BookClub[] = [
-  { id: '1', name: 'The Chai Circle', description: 'A cozy community for slow readers who love to discuss books over virtual chai sessions.', platform: 'instagram', joinLink: 'https://instagram.com/chaptersaurchai', members: '500+', focus: 'Fiction & Literary' },
-  { id: '2', name: 'Desi Readers Club', description: 'Celebrating South Asian literature and authors. Monthly reads featuring diverse voices.', platform: 'whatsapp', joinLink: 'https://wa.me/1234567890', members: '300+', focus: 'Indian Literature' },
+  { id: '1', name: 'The Chai Circle', description: 'A cozy community for slow readers who love to discuss books over virtual chai sessions.', platform: 'instagram', joinLink: 'https://instagram.com/chaptersaurchai', members: '500+', focus: 'Fiction & Literary', logo: '' },
+  { id: '2', name: 'Desi Readers Club', description: 'Celebrating South Asian literature and authors. Monthly reads featuring diverse voices.', platform: 'whatsapp', joinLink: 'https://wa.me/1234567890', members: '300+', focus: 'Indian Literature', logo: '' },
 ];
 
 const sectionPageDefaults = {
@@ -43,6 +46,7 @@ function toFormClub(x: Record<string, unknown>): BookClub | null {
   const members = typeof membersVal === 'string' ? membersVal : (memberCount ? String(memberCount) + '+' : '');
   const themeOrFocus = typeof x.theme === 'string' ? String(x.theme).trim() : (typeof x.focus === 'string' ? String(x.focus).trim() : '');
   const platform = (['instagram', 'whatsapp', 'other'].includes(String(x.platform || '').toLowerCase()) ? (x.platform as BookClub['platform']) : 'instagram') as BookClub['platform'];
+  const logo = typeof x.logo === 'string' ? x.logo.trim() : '';
   const out: BookClub = {
     id: String(x.id ?? x.name),
     name: String(x.name).trim(),
@@ -51,6 +55,7 @@ function toFormClub(x: Record<string, unknown>): BookClub | null {
     joinLink,
     members,
     focus: themeOrFocus,
+    logo: logo || undefined,
   };
   return out;
 }
@@ -65,7 +70,7 @@ function toApiClub(c: BookClub): Record<string, unknown> {
     platform: c.platform,
     members: c.members,
     focus: c.focus,
-    logo: '',
+    logo: c.logo ?? '',
     joinLink: c.joinLink,
     memberCount: isNaN(n) ? 0 : n,
     meetingFrequency: 'Monthly',
@@ -87,10 +92,11 @@ export default function AdminBookClubsPage() {
     joinLink: '',
     members: '',
     focus: '',
+    logo: '',
   });
 
   useEffect(() => {
-    getBookClubs()
+    getPageSettings('book-clubs')
       .then(({ content }) => {
         if (content && typeof content === 'object' && !Array.isArray(content)) {
           const c = content as { clubs?: Record<string, unknown>[]; pageClubs?: Record<string, unknown>[] };
@@ -103,24 +109,34 @@ export default function AdminBookClubsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const saveBookClubsToApi = async (clubs: BookClub[]) => {
+    const content = {
+      ...sectionPageDefaults,
+      clubs: clubs.map(toApiClub),
+      pageClubs: clubs.map(toApiClub),
+    };
+    await putPageSettings('book-clubs', content as Record<string, unknown>);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingClub) {
-      setBookClubs(bookClubs.map(c => 
-        c.id === editingClub.id 
-          ? { ...formData, id: editingClub.id }
-          : c
-      ));
-    } else {
-      const newClub: BookClub = {
-        ...formData,
-        id: Date.now().toString(),
-      };
-      setBookClubs([...bookClubs, newClub]);
-    }
-    setFormData({ name: '', description: '', platform: 'instagram', joinLink: '', members: '', focus: '' });
+    const nextBookClubs: BookClub[] = editingClub
+      ? bookClubs.map((c) => (c.id === editingClub.id ? { ...formData, id: editingClub.id } : c))
+      : [...bookClubs, { ...formData, id: Date.now().toString() }];
+    setBookClubs(nextBookClubs);
+    setFormData({ name: '', description: '', platform: 'instagram', joinLink: '', members: '', focus: '', logo: '' });
     setShowForm(false);
     setEditingClub(null);
+    setMessage(null);
+    setSaving(true);
+    try {
+      await saveBookClubsToApi(nextBookClubs);
+      setMessage({ type: 'success', text: editingClub ? 'Book club updated and saved!' : 'Book club added and saved!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleEdit = (club: BookClub) => {
@@ -132,29 +148,22 @@ export default function AdminBookClubsPage() {
       joinLink: club.joinLink,
       members: club.members,
       focus: club.focus,
+      logo: club.logo ?? '',
     });
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this book club?')) {
-      setBookClubs(bookClubs.filter(c => c.id !== id));
-    }
-  };
-
-  const handleSaveToSite = async () => {
-    setSaving(true);
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this book club?')) return;
+    const nextBookClubs = bookClubs.filter((c) => c.id !== id);
+    setBookClubs(nextBookClubs);
     setMessage(null);
+    setSaving(true);
     try {
-      const payload = {
-        ...sectionPageDefaults,
-        clubs: bookClubs.map(toApiClub),
-        pageClubs: bookClubs.map(toApiClub),
-      };
-      await putBookClubs(payload as Record<string, unknown>);
-      setMessage({ type: 'success', text: 'Book clubs saved to site!' });
-    } catch (e) {
-      setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save' });
+      await saveBookClubsToApi(nextBookClubs);
+      setMessage({ type: 'success', text: 'Book club removed and saved!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
     } finally {
       setSaving(false);
     }
@@ -172,23 +181,15 @@ export default function AdminBookClubsPage() {
             Manage Book Clubs
           </h1>
           <p className="font-body text-chai-brown-light">
-            Add, edit, or remove book clubs. Save to site to update homepage and /book-clubs.
+            Add, edit, or remove book clubs. Changes are saved automatically to the site.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <button
-            onClick={handleSaveToSite}
-            disabled={saving}
-            className="flex items-center gap-2 bg-terracotta text-white px-4 py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body text-sm disabled:opacity-50"
-          >
-            <Save size={20} />
-            {saving ? 'Saving…' : 'Save to site'}
-          </button>
-          <button
             onClick={() => {
               setShowForm(true);
               setEditingClub(null);
-              setFormData({ name: '', description: '', platform: 'instagram', joinLink: '', members: '', focus: '' });
+              setFormData({ name: '', description: '', platform: 'instagram', joinLink: '', members: '', focus: '', logo: '' });
             }}
             className="flex items-center gap-2 bg-sage/80 text-chai-brown px-4 py-2 rounded-lg hover:bg-sage transition-colors font-body text-sm"
           >
@@ -222,6 +223,19 @@ export default function AdminBookClubsPage() {
                   required
                   className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
                 />
+              </div>
+              <div>
+                <label className="block font-body text-sm font-medium text-chai-brown mb-2">
+                  Book club logo
+                </label>
+                <ImageUploadField
+                  value={formData.logo ?? ''}
+                  onChange={(url) => setFormData({ ...formData, logo: url })}
+                  module="book-clubs"
+                  placeholder="Upload or paste logo URL (optional)"
+                  className="font-body"
+                />
+                <p className="text-xs text-chai-brown-light mt-0.5">Shown at the top of the club card on the book clubs page.</p>
               </div>
               <div>
                 <label className="block font-body text-sm font-medium text-chai-brown mb-2">
@@ -291,9 +305,10 @@ export default function AdminBookClubsPage() {
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
-                  className="flex-1 bg-terracotta text-white py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body"
+                  disabled={saving}
+                  className="flex-1 bg-terracotta text-white py-2 rounded-lg hover:bg-terracotta/90 transition-colors font-body disabled:opacity-50"
                 >
-                  {editingClub ? 'Update' : 'Create'}
+                  {saving ? 'Saving…' : editingClub ? 'Update' : 'Create'}
                 </button>
                 <button
                   type="button"

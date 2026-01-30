@@ -40,7 +40,7 @@ export default function MusingsVerse() {
               const db = typeof (b as { publishedAt?: string }).publishedAt === 'string' ? new Date((b as { publishedAt: string }).publishedAt).getTime() : 0;
               return db - da;
             });
-            const list = sorted.slice(0, 3).map(toCardItem).filter((x): x is CardItem => x != null);
+            const list = sorted.slice(0, 4).map(toCardItem).filter((x): x is CardItem => x != null);
             if (list.length) setCards(list);
           }
         }
@@ -50,14 +50,14 @@ export default function MusingsVerse() {
 
   return (
     <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-cream-dark/30">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8 sm:mb-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-chai-brown mb-2">Her Musings Verse</h2>
           <p className="section-subheading">Reflections, short stories, and thoughts from the heart</p>
         </div>
-        <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {cards.map((musing, index) => (
-            <div key={musing.slug} className="w-full sm:w-[320px] lg:max-w-[340px] animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
+            <div key={musing.slug} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
               <BookCard {...musing} basePath="/musings" />
             </div>
           ))}

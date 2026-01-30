@@ -669,11 +669,16 @@ export interface DashboardStats {
   totalVisitors: number;
   monthlyVisitors: number;
   totalPosts: number;
+  totalRecommendations: number;
+  totalMusings: number;
+  totalBookClubs: number;
   totalSubscribers: number;
-  totalAdminUsers?: number;
+  totalMessages: number;
+  unreadMessages: number;
+  totalAdminUsers: number;
 }
 
-/** GET /api/dashboard/stats – returns stats (protected). Use dummy when not available. */
+/** GET /api/dashboard/stats – returns real-time counts from DB (protected). */
 export async function getDashboardStats(): Promise<DashboardStats> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');

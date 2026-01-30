@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   const postKeywords = meta?.keywords ?? [];
   return buildMetadata({
     title: meta ? meta.title : `Her Musings Verse: ${fallbackTitle}`,
-    description: meta?.description ?? 'Short stories, reflections, and musings by Anshika Mishra. Literary essays and thoughts from the heart.',
+    description: meta?.description ?? 'Short stories, reflections, and musings by Anshika Mishra, book blogger & content creator. Literary essays and thoughts from the heart. India & UAE.',
     path: `/musings/${slug}`,
     type: 'article',
     image: meta?.image,

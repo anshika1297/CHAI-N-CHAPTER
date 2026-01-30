@@ -1,6 +1,7 @@
 'use client';
 
 import { Users, Calendar, ExternalLink } from 'lucide-react';
+import { getImageUrl } from '@/lib/api';
 
 interface BookClubCardProps {
   name: string;
@@ -34,8 +35,8 @@ export default function BookClubCard({
       <div className="relative h-32 bg-gradient-to-br from-terracotta to-terracotta-dark rounded-t-2xl overflow-hidden">
         {logo ? (
           <img
-            src={logo}
-            alt={name}
+            src={getImageUrl(logo)}
+            alt={`${name} logo`}
             className="w-full h-full object-cover"
           />
         ) : (

@@ -1,7 +1,8 @@
 /**
  * Central SEO configuration for Chapters.aur.Chai (brand: chapters.aur.chai)
  * Domain: chaptersaurchai.com | Author: Anshika Mishra
- * Global presence, major focus on India. Fiction, History, Mythology. Open to authors worldwide (English).
+ * Global reach with focus on India & UAE (Abu Dhabi). Book blogger, content creator, literary services.
+ * For readers, authors, publishers & lit fest committees in India & UAE.
  */
 
 export const siteConfig = {
@@ -10,10 +11,10 @@ export const siteConfig = {
   /** Legal/brand name */
   brand: 'chapters.aur.chai',
   /** Default meta title */
-  title: 'Chapters.aur.Chai | Book Blogger & Book Critic by Anshika Mishra',
+  title: 'Chapters.aur.Chai | Book Blogger, Content Creator & Literary Services | Anshika Mishra | India & UAE',
   /** Default meta description */
   description:
-    'Book reviews, recommendations & literary reflections by Anshika Mishra. Fiction, history & mythology from around the world. Indian book blogger with a global reach—open to authors everywhere who write in English.',
+    'Book blogger & content creator Anshika Mishra—honest reviews, literary services & book recommendations for readers worldwide. Based in Abu Dhabi. For authors, publishers & lit fest committees in India & UAE. Fiction, history & mythology.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://chaptersaurchai.com',
   defaultImage: '/og-image.jpg',
   author: 'Anshika Mishra',
@@ -31,40 +32,52 @@ export const siteConfig = {
   },
 } as const;
 
-/** Global + India SEO keywords (global presence, major focus India) */
+/** Core SEO keywords – book blogger, content creator, literary services, India & UAE */
 export const primaryKeywords = [
   'book blogger',
   'book critic',
-  'book reviews',
+  'content creator',
+  'literary services',
   'Anshika Mishra',
   'Chapters.aur.Chai',
+  'India book blogger',
+  'UAE book blogger',
+  'Abu Dhabi book blogger',
+  'book reviews',
+  'book recommendations',
+  'author services',
+  'beta reading',
+  'literary festival',
+  'publishers India',
+  'publishers UAE',
   'fiction book reviews',
   'literary blogger',
-  'reading blog',
-  'Indian book blogger',
-  'book blog India',
   'book reviewer',
-  'mythology book reviews',
-  'history book reviews',
-  'author interviews',
-  'beta reading',
 ] as const;
 
-/** Long-tail and genre/audience keywords */
+/** Long-tail & audience keywords – readers, authors, lit fests, publishers, India & UAE */
 export const extendedKeywords = [
   'honest book reviews',
   'curated book recommendations',
-  'literary fiction',
-  'Indian authors',
-  'global fiction',
-  'English fiction reviews',
-  'work with authors',
-  'book recommendations',
+  'Abu Dhabi book blogger',
+  'Dubai book blogger',
+  'UAE literary scene',
+  'Indian book blogger',
+  'South Asian literature',
+  'book reviewer for authors',
+  'work with publishers',
+  'literary services for authors',
+  'lit fest India',
+  'lit fest UAE',
+  'book publicity',
+  'content creator for books',
+  'mythology book reviews',
+  'history book reviews',
+  'author interviews',
   'reading wrap ups',
   'monthly book recommendations',
-  'South Asian literature',
-  'mythology books',
-  'historical fiction reviews',
+  'global fiction',
+  'English fiction reviews',
 ] as const;
 
 export type MetadataParams = {

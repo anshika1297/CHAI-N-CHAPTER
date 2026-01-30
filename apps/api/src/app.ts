@@ -18,6 +18,7 @@ import subscriptionRoutes from './routes/subscriptions.js';
 import subscribersRoutes from './routes/subscribers.js';
 import messagesRoutes from './routes/messages.js';
 import categoriesRoutes from './routes/categories.js';
+import analyticsRoutes from './routes/analytics.js';
 import './models/Category.js'; // ensure Category model is registered so MongoDB creates "categories" collection
 import uploadRoutes from './routes/upload.js';
 import { UPLOADS_BASE, imgRouter } from './routes/upload.js';
@@ -118,8 +119,9 @@ app.get('/api', (_req: Request, res: Response) => {
   res.json({ message: 'chai.n.chapter API' });
 });
 
-// Settings, auth, users, dashboard, book-clubs, blog, recommendations, musings, upload routes
+// Settings, auth, users, dashboard, analytics, book-clubs, blog, recommendations, musings, upload routes
 app.use('/api/settings', settingsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/dashboard', dashboardRoutes);

@@ -7,9 +7,9 @@ import Contact from '@/components/Contact';
 import { buildMetadata } from '@/lib/metadata';
 
 export const metadata = buildMetadata({
-  title: 'Book Blogger & Book Critic by Anshika Mishra',
+  title: 'Book Blogger, Content Creator & Literary Services | Anshika Mishra | India & UAE',
   description:
-    'Book reviews, recommendations & literary reflections by Anshika Mishra. Fiction, history & mythology from around the world. Indian book blogger with a global reach—open to authors everywhere who write in English.',
+    'Book blogger & content creator Anshika Mishra—honest reviews, literary services & book recommendations for readers worldwide. Based in Abu Dhabi. For authors, publishers & lit fest committees in India & UAE.',
   path: '/',
 });
 
