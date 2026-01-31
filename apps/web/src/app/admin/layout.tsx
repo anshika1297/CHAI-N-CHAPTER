@@ -24,6 +24,7 @@ import {
   UserCircle,
   Mail,
   Inbox,
+  Send,
 } from 'lucide-react';
 import { getAdminToken, clearAdminToken } from '@/lib/api';
 
@@ -31,6 +32,7 @@ const adminNavLinks = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
   { name: 'Admin Users', href: '/admin/users', icon: Users },
   { name: 'Subscribers', href: '/admin/subscribers', icon: Mail },
+  { name: 'Subscriber emails', href: '/admin/email-settings', icon: Send },
   { name: 'Home (Hero)', href: '/admin/home', icon: Home },
   { name: 'Header', href: '/admin/header', icon: PanelTop },
   { name: 'Footer', href: '/admin/footer', icon: PanelBottom },

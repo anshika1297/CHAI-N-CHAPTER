@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Clock, Tag, User, BookOpen, Share2, Quote, Star } from 'lucide-react';
 import { getImageUrl, getBlogPostBySlug, getBlogPosts } from '@/lib/api';
+import ReadMoreSection from './ReadMoreSection';
 
 interface BlogDetailProps {
   slug: string;
@@ -471,6 +472,9 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
             </div>
           </section>
         )}
+
+        {/* Read next – random review cards */}
+        <ReadMoreSection variant="blog" excludeSlug={slug} />
 
         {/* Navigation to Next/Previous */}
         <div className="flex justify-between items-center pt-8 border-t border-chai-brown/10">

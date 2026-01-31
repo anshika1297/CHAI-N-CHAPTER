@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
-import { getPageSettings, putPageSettings } from '@/lib/api';
+import { Plus, Edit, Trash2, Mail } from 'lucide-react';
+import { getPageSettings, putPageSettings, announceBookClub } from '@/lib/api';
 import PageLoading from '@/components/PageLoading';
 import ImageUploadField from '@/components/ImageUploadField';
 
@@ -83,6 +83,7 @@ export default function AdminBookClubsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [announcingId, setAnnouncingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingClub, setEditingClub] = useState<BookClub | null>(null);
   const [formData, setFormData] = useState<Omit<BookClub, 'id'>>({
@@ -166,6 +167,27 @@ export default function AdminBookClubsPage() {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAnnounce = async (club: BookClub) => {
+    if (!confirm(`Send an email to all subscribers about "${club.name}"?`)) return;
+    setMessage(null);
+    setAnnouncingId(club.id);
+    setMessage({ type: 'success', text: 'Sending to subscribers…' });
+    try {
+      const { sent, total } = await announceBookClub(club.id);
+      if (total === 0) {
+        setMessage({ type: 'success', text: 'No subscribers to send to. Add subscribers first (Subscribe page).' });
+      } else if (sent === total) {
+        setMessage({ type: 'success', text: `Announcement sent successfully to ${sent} subscriber${sent === 1 ? '' : 's'}.` });
+      } else {
+        setMessage({ type: 'success', text: `Sent to ${sent} of ${total} subscribers. ${total - sent} failed (check server logs).` });
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to send announcement' });
+    } finally {
+      setAnnouncingId(null);
     }
   };
 
@@ -371,6 +393,14 @@ export default function AdminBookClubsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleAnnounce(club)}
+                        disabled={!!announcingId}
+                        title="Email all subscribers about this book club"
+                        className="p-2 text-sage hover:bg-sage/20 rounded transition-colors disabled:opacity-50"
+                      >
+                        <Mail size={18} />
+                      </button>
                       <button
                         onClick={() => handleEdit(club)}
                         className="p-2 text-terracotta hover:bg-terracotta/10 rounded transition-colors"

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Clock, Tag, User, Share2, Star, BookOpen } from 'lucide-react';
 import { getRecommendationBySlug, getImageUrl, getRecommendations } from '@/lib/api';
+import ReadMoreSection from '@/components/blog/ReadMoreSection';
 
 interface RecommendationDetailProps {
   slug: string;
@@ -479,6 +480,9 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
             </div>
           </section>
         )}
+
+        {/* Read next – random recommendation cards */}
+        <ReadMoreSection variant="recommendations" excludeSlug={slug} />
 
         {/* Navigation to Next/Previous */}
         <div className="flex justify-between items-center pt-8 border-t border-chai-brown/10">

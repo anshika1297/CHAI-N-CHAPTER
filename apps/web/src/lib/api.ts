@@ -3,7 +3,7 @@
  * Base URL: NEXT_PUBLIC_API_URL or http://localhost:5000
  */
 
-export type PageSlug = 'contact' | 'work-with-me' | 'about' | 'terms' | 'privacy' | 'header' | 'footer' | 'home' | 'book-clubs' | 'blog' | 'recommendations' | 'musings';
+export type PageSlug = 'contact' | 'work-with-me' | 'about' | 'terms' | 'privacy' | 'header' | 'footer' | 'home' | 'book-clubs' | 'blog' | 'recommendations' | 'musings' | 'email-settings';
 
 const getBaseUrl = (): string => {
   if (typeof window !== 'undefined') {
@@ -108,6 +108,23 @@ export async function putPageSettings(
   return res.json();
 }
 
+/** POST /api/test-email – requires admin token. Sends one test email to the given address (for SMTP testing). */
+export async function sendTestEmail(to: string): Promise<{ message: string }> {
+  const token = getAdminToken();
+  if (!token) throw new Error('Not logged in');
+  const res = await fetch(`${getBaseUrl()}/api/test-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ to: to.trim() }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as { error?: string }).error || `Failed to send test email: ${res.status}`);
+  return data as { message: string };
+}
+
 // ——— Book Clubs (dedicated API for admin and display) ———
 
 /** GET /api/book-clubs – returns { content } (public, deduplicated & cached) */
@@ -149,6 +166,23 @@ export async function putBookClubs(content: Record<string, unknown>): Promise<{ 
   }
   bookClubsCache = null;
   return res.json();
+}
+
+/** POST /api/book-clubs/announce – requires admin token. Sends book club announcement to all subscribers. */
+export async function announceBookClub(bookClubId: string): Promise<{ sent: number; total: number }> {
+  const token = getAdminToken();
+  if (!token) throw new Error('Not logged in');
+  const res = await fetch(`${getBaseUrl()}/api/book-clubs/announce`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ bookClubId: bookClubId.trim() }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error((data as { error?: string }).error || `Failed to send announcement: ${res.status}`);
+  return data as { sent: number; total: number };
 }
 
 // ——— Categories (public by type; admin CRUD) ———

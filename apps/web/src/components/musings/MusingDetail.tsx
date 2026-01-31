@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Clock, Tag, User, Share2 } from 'lucide-react';
 import { getMusingBySlug, getImageUrl, getMusings } from '@/lib/api';
+import ReadMoreSection from '@/components/blog/ReadMoreSection';
 
 interface MusingDetailProps {
   slug: string;
@@ -331,6 +332,9 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
             </div>
           </section>
         )}
+
+        {/* Read next – random musing cards */}
+        <ReadMoreSection variant="musings" excludeSlug={slug} />
 
         {/* Navigation to Next/Previous */}
         <div className="flex justify-between items-center pt-8 border-t border-chai-brown/10">

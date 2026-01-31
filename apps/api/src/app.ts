@@ -19,6 +19,7 @@ import subscribersRoutes from './routes/subscribers.js';
 import messagesRoutes from './routes/messages.js';
 import categoriesRoutes from './routes/categories.js';
 import analyticsRoutes from './routes/analytics.js';
+import testEmailRoutes from './routes/testEmail.js';
 import './models/Category.js'; // ensure Category model is registered so MongoDB creates "categories" collection
 import uploadRoutes from './routes/upload.js';
 import { UPLOADS_BASE, imgRouter } from './routes/upload.js';
@@ -131,6 +132,7 @@ app.use('/api/recommendations', recommendationsRoutes);
 app.use('/api/musings', musingsRoutes);
 app.use('/api/subscribe', subscriptionRoutes);
 app.use('/api/subscribers', subscribersRoutes);
+app.use('/api/test-email', testEmailRoutes);
 app.use('/api/messages', messagesRoutes);
 app.use('/api/categories', categoriesRoutes);
 app.use('/api/upload', uploadRoutes);
