@@ -51,7 +51,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <section className="pt-20 sm:pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8">
+    <section className="pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto w-full">
         <div className="grid md:grid-cols-2 gap-6 lg:gap-8 items-center">
           <div className="order-1 md:order-1 animate-fade-in w-full max-w-xs mx-auto md:max-w-md lg:max-w-lg">

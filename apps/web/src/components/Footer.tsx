@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Instagram, Facebook, Linkedin, Youtube, Mail, Heart, BookOpen, AtSign, LucideIcon } from 'lucide-react';
 import { siteConfig } from '@/lib/seo';
 import { getPageSettings, subscribe, getImageUrl } from '@/lib/api';
@@ -51,7 +50,9 @@ const quickLinks = [
   { name: 'Contact', href: '/contact' },
 ];
 
-const defaultFooterContent = {
+type FooterContent = { heading: string; tagline: string; logoUrl: string };
+
+const defaultFooterContent: FooterContent = {
   heading: siteConfig.name,
   tagline: 'A cozy corner of the internet where books meet chai, and every story finds a home.',
   logoUrl: '',
@@ -59,7 +60,7 @@ const defaultFooterContent = {
 
 export default function Footer() {
   const [socialLinks, setSocialLinks] = useState(defaultSocialLinks);
-  const [footerContent, setFooterContent] = useState(defaultFooterContent);
+  const [footerContent, setFooterContent] = useState<FooterContent>(defaultFooterContent);
   const [footerEmail, setFooterEmail] = useState('');
   const [footerStatus, setFooterStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [footerMessage, setFooterMessage] = useState('');
@@ -116,26 +117,23 @@ export default function Footer() {
       .catch(() => {});
   }, []);
 
+  /** Use backend logo when valid, otherwise fallback to static public/logo.png */
+  const resolvedLogo = footerContent.logoUrl ? getImageUrl(footerContent.logoUrl) : '';
+  const footerLogoUrl = resolvedLogo && resolvedLogo.trim() ? resolvedLogo : '/logo.png';
+
   return (
     <footer className="bg-chai-brown text-cream">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <div>
             <Link href="/" className="inline-block mb-4">
-              {footerContent.logoUrl ? (
-                <span className="relative block w-[160px] h-10">
-                  <Image
-                    src={getImageUrl(footerContent.logoUrl)}
-                    alt={footerContent.heading}
-                    fill
-                    className="object-contain object-left"
-                    sizes="160px"
-                    unoptimized={getImageUrl(footerContent.logoUrl).startsWith('/')}
-                  />
-                </span>
-              ) : (
-                <span className="font-serif text-2xl tracking-wide">{footerContent.heading}</span>
-              )}
+              <img
+                src={footerLogoUrl}
+                alt={footerContent.heading}
+                width={280}
+                height={96}
+                className="h-20 w-auto max-w-[280px] object-contain object-left sm:h-24"
+              />
             </Link>
             <p className="text-cream/70 text-sm leading-relaxed mb-4">
               {footerContent.tagline}

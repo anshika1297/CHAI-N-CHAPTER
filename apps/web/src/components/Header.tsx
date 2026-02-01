@@ -62,7 +62,8 @@ export default function Header() {
       .catch(() => {});
   }, []);
 
-  const logoSrc = logoUrl ? getImageUrl(logoUrl) : '';
+  /** Use backend logo when available, otherwise fallback to static public/logo.png */
+  const logoSrc = logoUrl && getImageUrl(logoUrl) ? getImageUrl(logoUrl) : '/logo.png';
 
   return (
     <header
@@ -70,35 +71,34 @@ export default function Header() {
         isScrolled || isMenuOpen ? 'bg-cream shadow-sm' : 'bg-transparent'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between py-4 gap-6">
-          <Link href="/" className="flex items-center group shrink-0">
-            {logoSrc ? (
-              <span className="relative block w-14 h-9 md:w-16 md:h-10 shrink-0 overflow-hidden flex-shrink-0">
-                <Image
-                  src={logoSrc}
-                  alt=""
-                  fill
-                  className="object-contain object-left"
-                  sizes="64px"
-                  unoptimized={logoSrc.startsWith('/')}
-                />
-              </span>
-            ) : null}
-            <span className="font-serif text-2xl md:text-3xl text-chai-brown tracking-wide group-hover:text-terracotta transition-colors whitespace-nowrap">
-              {siteName}
+      <div className="max-w-7xl mx-auto pl-1 pr-3 sm:pl-2 sm:pr-4">
+        <div
+          className={`flex items-center justify-between pt-2 gap-4 lg:gap-8 transition-[padding] duration-300 ${
+            isScrolled || isMenuOpen ? 'pb-1' : 'pb-5'
+          }`}
+        >
+          <Link href="/" className="flex items-center group shrink-0 min-w-3/4 w-3/4 sm:min-w-1/3 sm:w-1/3 -mt-[19px] -mb-0.5 sm:-mt-[15px] sm:mb-0 -ml-1 sm:-ml-2 lg:-ml-10">
+            <span className="relative block w-full min-h-[4rem] h-28 sm:h-28 md:h-32 lg:h-36 overflow-visible">
+              <Image
+                src={logoSrc}
+                alt={siteName}
+                fill
+                className="object-contain object-left"
+                sizes="(max-width: 640px) 75vw, 33vw"
+                unoptimized={logoSrc.startsWith('/')}
+              />
             </span>
           </Link>
 
-          <nav className="hidden lg:flex items-center gap-0 ml-auto min-w-0">
+          <nav className="hidden lg:flex items-center gap-0 ml-auto min-w-0 lg:-mt-[33px]">
             {navLinks.map((link, index) => (
               <div key={link.name} className="flex items-center">
                 {index > 0 && (
-                  <span className="h-4 w-px bg-chai-brown/20 mx-3 xl:mx-4" />
+                  <span className="h-4 w-px bg-chai-brown/20 mx-2 xl:mx-3" />
                 )}
                 <Link
                   href={link.href}
-                  className="nav-link text-xs xl:text-sm whitespace-nowrap"
+                  className="nav-link text-[13px] xl:text-[15px] whitespace-nowrap"
                 >
                   {link.name}
                 </Link>
@@ -107,7 +107,7 @@ export default function Header() {
           </nav>
 
           <button
-            className="lg:hidden text-chai-brown p-2"
+            className="lg:hidden text-chai-brown p-2 -mt-[29px]"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
           >

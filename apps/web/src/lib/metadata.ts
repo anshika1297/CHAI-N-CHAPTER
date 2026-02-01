@@ -39,6 +39,8 @@ export function buildMetadata(params: MetadataParams = {}): Metadata {
     creator: author,
     publisher: siteConfig.name,
     metadataBase: new URL(siteConfig.url),
+    /** Tab icon (replaces the globe): put favicon.png in apps/web/public/ (e.g. 32×32 or 48×48 px). */
+    icons: { icon: '/favicon.png' },
     alternates: {
       canonical,
     },

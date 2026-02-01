@@ -16,7 +16,8 @@ export const siteConfig = {
   description:
     'Book blogger & content creator Anshika Mishra—honest reviews, literary services & book recommendations for readers worldwide. Based in Abu Dhabi. For authors, publishers & lit fest committees in India & UAE. Fiction, history & mythology.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://chaptersaurchai.com',
-  defaultImage: '/og-image.jpg',
+  /** Default image for meta/social (tab preview, Open Graph, Twitter cards). Put your image at apps/web/public/og-image.jpg (recommended size 1200×630 px), or change this path. */
+  defaultImage: '/og-image.png',
   author: 'Anshika Mishra',
   locale: 'en_IN',
   threadsHandle: '@chaptersaurchai', // for Threads (used in share + meta when relevant)
