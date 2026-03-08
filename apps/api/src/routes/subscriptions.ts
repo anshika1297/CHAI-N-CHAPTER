@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express';
 import { Subscriber } from '../models/Subscriber.js';
-import { requireAuth } from '../middlewares/auth.js';
 import { sendWelcomeEmail } from '../services/welcomeEmail.js';
 
 const router = Router();

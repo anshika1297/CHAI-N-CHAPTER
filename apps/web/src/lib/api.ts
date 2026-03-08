@@ -1,15 +1,15 @@
 /**
  * API client for the backend. Used by admin pages and login.
- * Base URL: NEXT_PUBLIC_API_URL or http://localhost:5000
+ * Base URL: NEXT_PUBLIC_API_URL or http://localhost:5001
  */
 
 export type PageSlug = 'contact' | 'work-with-me' | 'about' | 'terms' | 'privacy' | 'header' | 'footer' | 'home' | 'book-clubs' | 'blog' | 'recommendations' | 'musings' | 'email-settings';
 
 const getBaseUrl = (): string => {
   if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 };
 
 /**

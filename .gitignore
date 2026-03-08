@@ -38,3 +38,8 @@ Thumbs.db
 *.swp
 *.swo# Uploads (user-generated)
 uploads
+
+# Logs
+*.log
+logs/*
+!logs/.gitkeep
