@@ -116,6 +116,18 @@ const MUSING_META: Record<string, ContentMeta> = {
   },
 };
 
+export function getBlogSlugs(): string[] {
+  return Object.keys(BLOG_META);
+}
+
+export function getRecommendationSlugs(): string[] {
+  return Object.keys(RECO_META);
+}
+
+export function getMusingSlugs(): string[] {
+  return Object.keys(MUSING_META);
+}
+
 export function getBlogMeta(slug: string): ContentMeta | null {
   return BLOG_META[slug] ?? null;
 }

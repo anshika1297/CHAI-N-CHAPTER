@@ -37,20 +37,38 @@ type ItemData = {
   books: BookItem[];
 };
 
-function normalizeItem(r: Record<string, unknown>): ItemData {
+function normalizeItem(r: Record<string, unknown> | null | undefined): ItemData {
+  if (!r || typeof r !== 'object') {
+    return {
+      title: '',
+      intro: '',
+      coverImage: '',
+      category: '',
+      slug: '',
+      readingTime: 5,
+      author: '',
+      publishedAt: new Date().toISOString().slice(0, 10),
+      categories: [],
+      tags: [],
+      conclusion: '',
+      books: [],
+    };
+  }
   const category = typeof r.category === 'string' ? r.category : '';
-  const books = Array.isArray(r.books)
-    ? (r.books as Record<string, unknown>[]).map((b) => ({
-        id: String(b?.id ?? ''),
-        title: String(b?.title ?? '').trim(),
-        author: String(b?.author ?? '').trim(),
-        image: typeof b?.image === 'string' ? b.image : '',
-        rating: typeof b?.rating === 'number' ? b.rating : Number(b?.rating) || 0,
-        description: String(b?.description ?? '').trim(),
-        bookLink: typeof b?.bookLink === 'string' && b.bookLink.trim() ? b.bookLink.trim() : undefined,
-        authorLink: typeof b?.authorLink === 'string' && b.authorLink.trim() ? b.authorLink.trim() : undefined,
-      }))
-    : [];
+  const rawBooks = Array.isArray(r.books) ? r.books : [];
+  const books = rawBooks.map((b: unknown) => {
+    const item = b && typeof b === 'object' ? (b as Record<string, unknown>) : {};
+    return {
+      id: String(item?.id ?? ''),
+      title: String(item?.title ?? '').trim(),
+      author: String(item?.author ?? '').trim(),
+      image: typeof item?.image === 'string' ? item.image : '',
+      rating: typeof item?.rating === 'number' ? item.rating : Number(item?.rating) || 0,
+      description: String(item?.description ?? '').trim(),
+      bookLink: typeof item?.bookLink === 'string' && item.bookLink.trim() ? item.bookLink.trim() : undefined,
+      authorLink: typeof item?.authorLink === 'string' && item.authorLink.trim() ? item.authorLink.trim() : undefined,
+    };
+  });
   return {
     title: String(r.title ?? '').trim(),
     intro: typeof r.intro === 'string' ? r.intro : '',
@@ -78,12 +96,24 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
   const shareMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!slug || typeof slug !== 'string' || !slug.trim()) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
     getRecommendationBySlug(slug)
-      .then(({ item: raw }) => setItem(normalizeItem(raw as Record<string, unknown>)))
-      .catch((e) => {
-        if (e instanceof Error && e.message === 'Recommendation not found') setNotFound(true);
-        else setItem(null);
+      .then(({ item: raw }) => {
+        if (raw == null || typeof raw !== 'object') {
+          setNotFound(true);
+          return;
+        }
+        try {
+          setItem(normalizeItem(raw as Record<string, unknown>));
+        } catch {
+          setNotFound(true);
+        }
       })
+      .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [slug]);
 

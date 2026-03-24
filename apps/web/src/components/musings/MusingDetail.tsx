@@ -24,7 +24,22 @@ type ItemData = {
   tags: string[];
 };
 
-function normalizeItem(m: Record<string, unknown>): ItemData {
+function normalizeItem(m: Record<string, unknown> | null | undefined): ItemData {
+  if (!m || typeof m !== 'object') {
+    return {
+      title: '',
+      content: '',
+      excerpt: '',
+      coverImage: '',
+      category: '',
+      slug: '',
+      readingTime: 3,
+      author: '',
+      publishedAt: new Date().toISOString().slice(0, 10),
+      categories: [],
+      tags: [],
+    };
+  }
   const category = typeof m.category === 'string' ? m.category : '';
   return {
     title: String(m.title ?? '').trim(),
@@ -52,12 +67,24 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
   const shareMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!slug || typeof slug !== 'string' || !slug.trim()) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
     getMusingBySlug(slug)
-      .then(({ item: raw }) => setItem(normalizeItem(raw as Record<string, unknown>)))
-      .catch((e) => {
-        if (e instanceof Error && e.message === 'Musing not found') setNotFound(true);
-        else setItem(null);
+      .then(({ item: raw }) => {
+        if (raw == null || typeof raw !== 'object') {
+          setNotFound(true);
+          return;
+        }
+        try {
+          setItem(normalizeItem(raw as Record<string, unknown>));
+        } catch {
+          setNotFound(true);
+        }
       })
+      .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [slug]);
 
