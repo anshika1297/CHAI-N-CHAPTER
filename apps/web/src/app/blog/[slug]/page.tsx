@@ -4,7 +4,7 @@ import { getBlogMeta, getBlogSlugs } from '@/lib/content';
 
 /** Pre-render all known blog slugs: from API at build time, with fallback to content.ts */
 export async function generateStaticParams() {
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const base = process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5001';
   try {
     const res = await fetch(`${base}/api/blog/posts?limit=9999`);
     if (res.ok) {

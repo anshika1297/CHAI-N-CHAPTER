@@ -18,7 +18,7 @@ const getBaseUrl = (): string => {
     return '';
   }
   // Server-side (SSR / getServerSideProps): call the API directly.
-  return process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
+  return process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5001';
 };
 
 /**
@@ -33,21 +33,44 @@ const getBaseUrl = (): string => {
 async function parseJsonResponse<T = unknown>(res: Response, label: string): Promise<T> {
   const ct = res.headers.get('content-type') || '';
   if (!ct.includes('application/json')) {
-    const preview = await res.text().then(t => t.slice(0, 120));
-    throw new Error(
-      `Expected JSON from ${label} but got ${ct || 'unknown content-type'}: ${preview}…`
-    );
+    const preview = await res.text().then(t => t.slice(0, 200));
+    const msg = `[API] ${label} — expected JSON but got ${ct || 'unknown content-type'} (status ${res.status}) from ${res.url}`;
+    console.error(msg);
+    console.error(`[API] ${label} — response preview:`, preview);
+    throw new Error(msg);
   }
   return res.json();
 }
 
+async function safeFetch(url: string, options?: RequestInit, label?: string): Promise<Response> {
+  const tag = label || url;
+  console.log(`[API] ${tag} → ${url}`);
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      console.warn(`[API] ${tag} — ${res.status} ${res.statusText}`);
+    }
+    return res;
+  } catch (err) {
+    console.error(`[API] ${tag} — network error:`, err);
+    throw err;
+  }
+}
+
 export function getImageUrl(url: string | undefined | null): string {
   if (!url || typeof url !== 'string' || !url.trim()) return '';
-  const trimmed = url.trim();
+  let trimmed = url.trim();
+
+  // Strip localhost origins stored in DB (e.g. http://localhost:5000/api/img/...)
+  // so they become relative URLs that go through the Next.js rewrite.
+  const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/;
+  if (localhostPattern.test(trimmed)) {
+    trimmed = trimmed.replace(localhostPattern, '');
+  }
+
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
-  // Relative paths work in the browser (same origin); just ensure leading slash.
   const path = trimmed.startsWith('/') ? trimmed : '/' + trimmed;
   return path;
 }
@@ -93,7 +116,7 @@ export function getPageSettings(slug: PageSlug): Promise<{ content: unknown }> {
   if (inFlight) return inFlight;
   const promise = (async () => {
     try {
-      const res = await fetch(`${getBaseUrl()}/api/settings/pages/${slug}`);
+      const res = await safeFetch(`${getBaseUrl()}/api/settings/pages/${slug}`, undefined, `GET settings/${slug}`);
       if (!res.ok) throw new Error(`Failed to load ${slug}: ${res.status}`);
       const data = await parseJsonResponse<{ content: unknown }>(res, `settings/${slug}`);
       setCachedPage(key, data);
@@ -113,7 +136,7 @@ export async function putPageSettings(
 ): Promise<{ content: unknown }> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/settings/pages/${slug}`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/settings/pages/${slug}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -133,7 +156,7 @@ export async function putPageSettings(
 export async function sendTestEmail(to: string): Promise<{ message: string }> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/test-email`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/test-email`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -156,7 +179,7 @@ export function getBookClubs(): Promise<{ content: unknown }> {
   if (bookClubsInFlight) return bookClubsInFlight;
   const promise = (async () => {
     try {
-      const res = await fetch(`${getBaseUrl()}/api/book-clubs`);
+      const res = await safeFetch(`${getBaseUrl()}/api/book-clubs`);
       if (!res.ok) throw new Error(`Failed to load book clubs: ${res.status}`);
       const data = await parseJsonResponse<{ content: unknown }>(res, 'book-clubs');
       bookClubsCache = { data, expires: Date.now() + CACHE_TTL_MS };
@@ -173,7 +196,7 @@ export function getBookClubs(): Promise<{ content: unknown }> {
 export async function putBookClubs(content: Record<string, unknown>): Promise<{ content: unknown }> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/book-clubs`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/book-clubs`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -193,7 +216,7 @@ export async function putBookClubs(content: Record<string, unknown>): Promise<{ 
 export async function announceBookClub(bookClubId: string): Promise<{ sent: number; total: number }> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/book-clubs/announce`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/book-clubs/announce`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -236,7 +259,7 @@ export function getCategories(type: CategoryType): Promise<{ categories: Categor
   if (inFlight) return inFlight;
   const promise = (async () => {
     try {
-      const res = await fetch(`${getBaseUrl()}/api/categories?type=${encodeURIComponent(type)}`);
+      const res = await safeFetch(`${getBaseUrl()}/api/categories?type=${encodeURIComponent(type)}`);
       if (!res.ok) throw new Error(`Failed to load categories: ${res.status}`);
       const data = await parseJsonResponse<{ categories: CategoryDto[] }>(res, 'categories');
       categoriesCache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
@@ -251,7 +274,7 @@ export function getCategories(type: CategoryType): Promise<{ categories: Categor
 
 /** GET /api/categories – returns all categories (no type filter). Public so list always loads; no auth required. */
 export async function getAdminCategories(): Promise<{ categories: CategoryDto[] }> {
-  const res = await fetch(`${getBaseUrl()}/api/categories`);
+  const res = await safeFetch(`${getBaseUrl()}/api/categories`);
   if (!res.ok) throw new Error(`Failed to load categories: ${res.status}`);
   return parseJsonResponse<{ categories: CategoryDto[] }>(res, 'admin categories');
 }
@@ -261,7 +284,7 @@ export async function createCategory(data: { name: string; slug?: string; descri
   const token = getAdminToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${getBaseUrl()}/api/categories`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/categories`, {
     method: 'POST',
     headers,
     body: JSON.stringify(data),
@@ -277,7 +300,7 @@ export async function updateCategory(id: string, data: Partial<{ name: string; s
   const token = getAdminToken();
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${getBaseUrl()}/api/categories/${encodeURIComponent(id)}`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/categories/${encodeURIComponent(id)}`, {
     method: 'PUT',
     headers,
     body: JSON.stringify(data),
@@ -293,7 +316,7 @@ export async function deleteCategory(id: string): Promise<void> {
   const token = getAdminToken();
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${getBaseUrl()}/api/categories/${encodeURIComponent(id)}`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/categories/${encodeURIComponent(id)}`, {
     method: 'DELETE',
     headers,
   });
@@ -338,7 +361,7 @@ export function getBlogPosts(params?: BlogListParams): Promise<{ posts: unknown[
   if (inFlight) return inFlight;
   const promise = (async () => {
     try {
-      const res = await fetch(`${getBaseUrl()}/api/blog/posts${qs ? `?${qs}` : ''}`);
+      const res = await safeFetch(`${getBaseUrl()}/api/blog/posts${qs ? `?${qs}` : ''}`);
       if (!res.ok) throw new Error(`Failed to load blog posts: ${res.status}`);
       return parseJsonResponse<{ posts: unknown[]; total: number; page: number; limit: number }>(res, 'blog/posts');
     } finally {
@@ -351,7 +374,7 @@ export function getBlogPosts(params?: BlogListParams): Promise<{ posts: unknown[
 
 /** GET /api/blog/posts/:slug – returns { post } or 404 (public). */
 export async function getBlogPostBySlug(slug: string): Promise<{ post: unknown }> {
-  const res = await fetch(`${getBaseUrl()}/api/blog/posts/${encodeURIComponent(slug)}`);
+  const res = await safeFetch(`${getBaseUrl()}/api/blog/posts/${encodeURIComponent(slug)}`);
   if (!res.ok) {
     if (res.status === 404) throw new Error('Post not found');
     throw new Error(`Failed to load post: ${res.status}`);
@@ -387,7 +410,7 @@ export function getRecommendations(params?: RecListParams): Promise<{ items: unk
   if (inFlight) return inFlight;
   const promise = (async () => {
     try {
-      const res = await fetch(`${getBaseUrl()}/api/recommendations${qs ? `?${qs}` : ''}`);
+      const res = await safeFetch(`${getBaseUrl()}/api/recommendations${qs ? `?${qs}` : ''}`);
       if (!res.ok) throw new Error(`Failed to load recommendations: ${res.status}`);
       return parseJsonResponse<{ items: unknown[]; total: number; page: number; limit: number }>(res, 'recommendations');
     } finally {
@@ -400,7 +423,7 @@ export function getRecommendations(params?: RecListParams): Promise<{ items: unk
 
 /** GET /api/recommendations/:slug – returns { item } or 404 (public). */
 export async function getRecommendationBySlug(slug: string): Promise<{ item: unknown }> {
-  const res = await fetch(`${getBaseUrl()}/api/recommendations/${encodeURIComponent(slug)}`);
+  const res = await safeFetch(`${getBaseUrl()}/api/recommendations/${encodeURIComponent(slug)}`);
   if (!res.ok) {
     if (res.status === 404) throw new Error('Recommendation not found');
     throw new Error(`Failed to load recommendation: ${res.status}`);
@@ -432,7 +455,7 @@ export function getMusings(params?: MusingsListParams): Promise<{ items: unknown
   if (inFlight) return inFlight;
   const promise = (async () => {
     try {
-      const res = await fetch(`${getBaseUrl()}/api/musings${qs ? `?${qs}` : ''}`);
+      const res = await safeFetch(`${getBaseUrl()}/api/musings${qs ? `?${qs}` : ''}`);
       if (!res.ok) throw new Error(`Failed to load musings: ${res.status}`);
       return parseJsonResponse<{ items: unknown[]; total: number; page: number; limit: number }>(res, 'musings');
     } finally {
@@ -445,7 +468,7 @@ export function getMusings(params?: MusingsListParams): Promise<{ items: unknown
 
 /** GET /api/musings/:slug – returns { item } or 404 (public). */
 export async function getMusingBySlug(slug: string): Promise<{ item: unknown }> {
-  const res = await fetch(`${getBaseUrl()}/api/musings/${encodeURIComponent(slug)}`);
+  const res = await safeFetch(`${getBaseUrl()}/api/musings/${encodeURIComponent(slug)}`);
   if (!res.ok) {
     if (res.status === 404) throw new Error('Musing not found');
     throw new Error(`Failed to load musing: ${res.status}`);
@@ -457,7 +480,7 @@ export async function getMusingBySlug(slug: string): Promise<{ item: unknown }> 
 
 /** POST /api/subscribe – public. Subscribe with email (optional name, source). */
 export async function subscribe(email: string, options?: { name?: string; source?: string }): Promise<{ message: string; subscribed: boolean }> {
-  const res = await fetch(`${getBaseUrl()}/api/subscribe`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: email.trim(), name: options?.name?.trim(), source: options?.source }),
@@ -469,7 +492,7 @@ export async function subscribe(email: string, options?: { name?: string; source
 
 /** POST /api/subscribe/unsubscribe – public. Unsubscribe by email. */
 export async function unsubscribe(email: string): Promise<{ message: string; subscribed: boolean }> {
-  const res = await fetch(`${getBaseUrl()}/api/subscribe/unsubscribe`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/subscribe/unsubscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: email.trim() }),
@@ -488,7 +511,7 @@ export async function submitContactMessage(data: {
   subject: string;
   message: string;
 }): Promise<{ message: string }> {
-  const res = await fetch(`${getBaseUrl()}/api/messages`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/messages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...data, source: 'contact' }),
@@ -505,7 +528,7 @@ export async function submitWorkWithMeMessage(data: {
   service: string;
   message: string;
 }): Promise<{ message: string }> {
-  const res = await fetch(`${getBaseUrl()}/api/messages`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/messages`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...data, source: 'work-with-me' }),
@@ -541,7 +564,7 @@ export async function getMessages(params?: { page?: number; limit?: number; sour
   if (params?.limit != null) search.set('limit', String(params.limit));
   if (params?.source) search.set('source', params.source);
   const qs = search.toString();
-  const res = await fetch(`${getBaseUrl()}/api/messages${qs ? `?${qs}` : ''}`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/messages${qs ? `?${qs}` : ''}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
@@ -555,7 +578,7 @@ export async function getMessages(params?: { page?: number; limit?: number; sour
 export async function markMessageRead(id: string): Promise<void> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/messages/${id}/read`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/messages/${id}/read`, {
     method: 'PATCH',
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -588,7 +611,7 @@ export async function getSubscribers(params?: { page?: number; limit?: number; s
   if (params?.limit != null) search.set('limit', String(params.limit));
   if (params?.status) search.set('status', params.status);
   const qs = search.toString();
-  const res = await fetch(`${getBaseUrl()}/api/subscribers${qs ? `?${qs}` : ''}`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/subscribers${qs ? `?${qs}` : ''}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
@@ -610,7 +633,7 @@ export async function uploadImage(file: File, module: UploadModule = 'home'): Pr
   form.append('file', file);
   form.append('module', module);
   const base = getBaseUrl();
-  const res = await fetch(`${base}/api/upload`, {
+  const res = await safeFetch(`${base}/api/upload`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: form,
@@ -626,7 +649,7 @@ export async function uploadImage(file: File, module: UploadModule = 'home'): Pr
 
 /** POST /api/auth/login – returns { token } */
 export async function login(email: string, password: string): Promise<{ token: string }> {
-  const res = await fetch(`${getBaseUrl()}/api/auth/login`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
@@ -652,7 +675,7 @@ export interface AdminUserDto {
 export async function getUsers(): Promise<{ users: AdminUserDto[] }> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/users`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/users`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
@@ -671,7 +694,7 @@ export async function createUser(body: {
 }): Promise<{ user: AdminUserDto }> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/users`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/users`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -691,7 +714,7 @@ export async function updateUser(
 ): Promise<{ user: AdminUserDto }> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/users/${id}`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/users/${id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -708,7 +731,7 @@ export async function updateUser(
 export async function deleteUser(id: string): Promise<void> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/users/${id}`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/users/${id}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -737,7 +760,7 @@ export interface DashboardStats {
 export async function getDashboardStats(): Promise<DashboardStats> {
   const token = getAdminToken();
   if (!token) throw new Error('Not logged in');
-  const res = await fetch(`${getBaseUrl()}/api/dashboard/stats`, {
+  const res = await safeFetch(`${getBaseUrl()}/api/dashboard/stats`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Failed to load stats');

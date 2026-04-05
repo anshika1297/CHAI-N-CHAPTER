@@ -50,8 +50,8 @@ export function validateEnv(): void {
  */
 export function getEnvConfig(): Required<Pick<EnvConfig, 'NEXT_PUBLIC_API_URL' | 'NEXT_PUBLIC_SITE_URL'>> & Pick<EnvConfig, 'NODE_ENV'> {
   return {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000',
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:5000',
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001',
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
     NODE_ENV: process.env.NODE_ENV || 'development',
   };
 }

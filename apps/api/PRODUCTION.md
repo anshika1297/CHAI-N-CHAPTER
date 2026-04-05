@@ -234,7 +234,7 @@ pm2 describe chai-n-chapter-api
 1. Check environment variables are set correctly
 2. Verify MongoDB connection string
 3. Check logs: `pm2 logs chai-n-chapter-api`
-4. Verify port 3000 is available
+4. Verify port 5001 is available
 
 ### Database connection errors
 
