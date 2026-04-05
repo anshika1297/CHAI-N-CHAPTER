@@ -3,7 +3,7 @@
 ## Root Cause
 
 The frontend calls `https://chaptersaurchai.com/api/settings/pages/home`, but Apache
-needs to forward `/api/*` requests to the Node.js backend (port 3000).
+needs to forward `/api/*` requests to the Node.js backend (port 5001).
 Without proper proxying, the server returns the HTML page instead of JSON.
 
 ## Fix (3 steps on your server)
@@ -14,19 +14,15 @@ On your server, edit the API `.env` file and set:
 
 ```env
 NODE_ENV=production
-PORT=3000
+PORT=5001
 FRONTEND_URL=https://chaptersaurchai.com,https://www.chaptersaurchai.com
 PUBLIC_SITE_URL=https://chaptersaurchai.com
 ```
-
-`FRONTEND_URL` controls CORS. Without the production domain, the API will
-reject browser requests with a CORS error.
 
 Then restart the API:
 
 ```bash
 pm2 restart chai-n-chapter-api
-# or however you run it
 ```
 
 ### Step 2 — Ensure `.htaccess` is correct
@@ -36,13 +32,13 @@ Your `.htaccess` should proxy requests correctly:
 ```apache
 RewriteEngine On
 
-# Forward API requests to Node.js backend running on port 3000
+# Forward API requests to Node.js backend running on port 5001
 RewriteCond %{REQUEST_URI} ^/api
-RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+RewriteRule ^(.*)$ http://127.0.0.1:5001/$1 [P,L]
 
-# Forward all other requests to Node.js frontend running on port 5000
+# Forward all other requests to Node.js frontend running on port 3000
 RewriteCond %{REQUEST_URI} !^/api
-RewriteRule ^(.*)$ http://127.0.0.1:5000/$1 [P,L]
+RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
 
 # Optional: prevent folder indexing
 Options -Indexes
@@ -72,15 +68,15 @@ If you see JSON, it's fixed. Refresh the website.
 ```
 Browser  ──►  Apache (.htaccess)
                 │
-                ├── /api/*    ──►  Node.js API (port 3000)  ──►  MongoDB
+                ├── /api/*    ──►  Node.js API (port 5001)  ──►  MongoDB
                 │
-                └── /*        ──►  Next.js frontend (port 5000)
+                └── /*        ──►  Next.js frontend (port 3000)
 ```
 
 ## Port Summary
 
 | Service       | Port | Description                  |
 |---------------|------|------------------------------|
-| API (Express) | 3000 | Backend API server           |
-| Web (Next.js) | 5000 | Frontend Next.js server      |
+| API (Express) | 5001 | Backend API server           |
+| Web (Next.js) | 3000 | Frontend Next.js server      |
 | Apache        | 443  | Reverse proxy (SSL termination) |

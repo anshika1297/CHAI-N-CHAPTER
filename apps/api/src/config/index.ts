@@ -7,10 +7,10 @@ import dotenv from 'dotenv';
 const apiEnvPath = path.resolve(process.cwd(), '.env');
 dotenv.config({ path: apiEnvPath });
 
-const frontendUrl = process.env.FRONTEND_URL || process.env.SITE_URL || 'http://localhost:5000';
+const frontendUrl = process.env.FRONTEND_URL || process.env.SITE_URL || 'http://localhost:3000';
 export const config = {
   nodeEnv: process.env.NODE_ENV || 'development',
-  port: parseInt(process.env.PORT || '3000', 10),
+  port: parseInt(process.env.PORT || '5001', 10),
   frontendUrl,
   /** Public URL for links in emails (images, unsubscribe). Must be reachable by recipients. Set to your live site (e.g. https://yoursite.com) so email images load. */
   publicSiteUrl: process.env.PUBLIC_SITE_URL || process.env.SITE_URL || frontendUrl,
