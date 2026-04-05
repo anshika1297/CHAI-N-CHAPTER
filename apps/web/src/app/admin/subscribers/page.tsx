@@ -70,7 +70,7 @@ export default function AdminSubscribersPage() {
       }
       const headers = ['email', 'name', 'status', 'subscribedAt', 'unsubscribedAt', 'source'];
       const rows = all.map((s) =>
-        headers.map((h) => escapeCsvCell(String((s as Record<string, unknown>)[h] ?? ''))).join(',')
+        headers.map((h) => escapeCsvCell(String((s as unknown as Record<string, unknown>)[h] ?? ''))).join(',')
       );
       const csv = [headers.join(','), ...rows].join('\n');
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

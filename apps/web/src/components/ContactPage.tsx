@@ -18,7 +18,7 @@ import {
 import { siteConfig } from '@/lib/seo';
 import { getPageSettings, submitContactMessage } from '@/lib/api';
 
-const iconByLabel: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+const iconByLabel: Record<string, React.ComponentType<{ size?: number | string; className?: string }>> = {
   Email: Mail,
   Instagram,
   Facebook,
@@ -51,7 +51,7 @@ const defaultSidebar = {
 
 export default function ContactPage() {
   const [header, setHeader] = useState(defaultHeader);
-  const [socialLinks, setSocialLinks] = useState<{ name: string; icon: React.ComponentType<{ size?: number; className?: string }>; href: string; color: string }[]>(defaultSocialLinks);
+  const [socialLinks, setSocialLinks] = useState<{ name: string; icon: React.ComponentType<{ size?: number | string; className?: string }>; href: string; color: string }[]>(defaultSocialLinks);
   const [sidebar, setSidebar] = useState(defaultSidebar);
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function ContactPage() {
       });
       setIsSubmitted(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
-      setTimeout(() => setIsSubmitted(false), 5000);
+      setTimeout(() => setIsSubmitted(false), 5001);
     } catch (err) {
       setFormData((prev) => ({ ...prev }));
       alert(err instanceof Error ? err.message : 'Failed to send message. Please try again.');

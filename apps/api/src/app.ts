@@ -1,11 +1,14 @@
-import path from 'path';
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import mongoose from 'mongoose';
+import compression from 'compression';
 
 import { config } from './config/index.js';
+import logger from './utils/logger.js';
+import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
+import { apiLimiter, authLimiter, subscriptionLimiter, messageLimiter } from './middlewares/rateLimiter.js';
 import settingsRoutes from './routes/settings.js';
 import authRoutes from './routes/auth.js';
 import usersRoutes from './routes/users.js';
@@ -26,19 +29,67 @@ import { UPLOADS_BASE, imgRouter } from './routes/upload.js';
 
 const app: Application = express();
 
+// Trust proxy (important for rate limiting and IP detection behind reverse proxy)
+app.set('trust proxy', 1);
+
+// Compression middleware (gzip responses)
+app.use(compression());
+
 // Security middleware
-app.use(helmet());
+if (config.nodeEnv === 'production') {
+  // Production: Full security headers
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+      },
+    },
+  }));
+} else {
+  // Development: Less restrictive Helmet settings
+  app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: false,
+  }));
+}
 
 // CORS configuration
-app.use(cors({
-  origin: config.frontendUrl,
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = config.frontendUrl.split(',').map(url => url.trim());
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-}));
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 
 // Request logging
-if (config.nodeEnv === 'development') {
+if (config.nodeEnv === 'production') {
+  // Production: Use Winston logger via morgan
+  app.use(morgan('combined', {
+    stream: {
+      write: (message: string) => logger.info(message.trim()),
+    },
+  }));
+} else {
   app.use(morgan('dev'));
 }
+
+// Rate limiting - apply to all routes
+app.use('/api', apiLimiter);
 
 // Body parsing (higher limit for blog/recommendations/musings with many posts/items)
 app.use(express.json({ limit: '2mb' }));
@@ -46,10 +97,18 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Health check endpoint (includes DB name so you can verify the API is using chai-n-chapter)
 app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'healthy',
+  const dbState = mongoose.connection.readyState;
+  const isHealthy = dbState === 1; // 1 = connected
+  
+  res.status(isHealthy ? 200 : 503).json({
+    status: isHealthy ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
-    database: mongoose.connection.db?.databaseName ?? null,
+    database: {
+      name: mongoose.connection.db?.databaseName ?? null,
+      state: dbState === 0 ? 'disconnected' : dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnecting',
+    },
+    uptime: process.uptime(),
+    environment: config.nodeEnv,
   });
 });
 
@@ -76,7 +135,7 @@ app.get('/api/debug/collections', async (_req: Request, res: Response) => {
     }
     res.json({ database: db.databaseName, collections });
   } catch (e) {
-    console.error('GET /api/debug/collections', e);
+    logger.error('GET /api/debug/collections', e);
     res.status(500).json({ error: String(e) });
   }
 });
@@ -110,15 +169,20 @@ app.get('/api/debug/users-sample', async (_req: Request, res: Response) => {
     }
     res.json({ database: db.databaseName, count, firstUserKeys: keys, firstUserSample: sample });
   } catch (e) {
-    console.error('GET /api/debug/users-sample', e);
+    logger.error('GET /api/debug/users-sample', e);
     res.status(500).json({ error: String(e) });
   }
 });
 
 // API root
 app.get('/api', (_req: Request, res: Response) => {
-  res.json({ message: 'chai.n.chapter API' });
+  res.json({ message: 'chai.n.chapter API', version: '1.0.0' });
 });
+
+// Apply specific rate limiters to sensitive routes
+app.use('/api/auth', authLimiter);
+app.use('/api/subscribe', subscriptionLimiter);
+app.use('/api/messages', messageLimiter);
 
 // Settings, auth, users, dashboard, analytics, book-clubs, blog, recommendations, musings, upload routes
 app.use('/api/settings', settingsRoutes);
@@ -142,8 +206,9 @@ app.use('/api', imgRouter);
 app.use('/api/uploads', express.static(UPLOADS_BASE));
 
 // 404 handler
-app.use((_req: Request, res: Response) => {
-  res.status(404).json({ error: 'Not found' });
-});
+app.use(notFoundHandler);
+
+// Global error handler (must be last)
+app.use(errorHandler);
 
 export default app;

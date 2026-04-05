@@ -2,7 +2,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export const VISITOR_STATS_SINGLETON_ID = 'site';
 
-export interface IVisitorStats extends Document {
+export interface IVisitorStats extends Omit<Document, '_id'> {
   _id: string;
   totalVisitors: number;
   monthlyVisitors: number;

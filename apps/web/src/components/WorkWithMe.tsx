@@ -20,7 +20,7 @@ import {
 import { siteConfig } from '@/lib/seo';
 import { getPageSettings, submitWorkWithMeMessage } from '@/lib/api';
 
-type IconComp = React.ComponentType<{ size?: number; className?: string }>;
+type IconComp = React.ComponentType<{ size?: number | string; className?: string }>;
 const iconByKey: Record<string, IconComp> = {
   'beta-reading': BookOpen, '1': BookOpen, 'Beta Reading': BookOpen,
   'book-reviews': PenTool, '2': PenTool, 'Book Reviews': PenTool,
@@ -65,7 +65,7 @@ const defaultConnect = {
 export default function WorkWithMe() {
   const [header, setHeader] = useState(defaultHeader);
   const [services, setServices] = useState(defaultServices);
-  const [socialLinks, setSocialLinks] = useState(defaultSocialLinks);
+  const [socialLinks, setSocialLinks] = useState<{ name: string; icon: IconComp; href: string; color: string }[]>(defaultSocialLinks);
   const [connectSection, setConnectSection] = useState(defaultConnect);
 
   useEffect(() => {
@@ -142,7 +142,7 @@ export default function WorkWithMe() {
       });
       setIsSubmitted(true);
       setFormData({ name: '', email: '', service: '', message: '' });
-      setTimeout(() => setIsSubmitted(false), 5000);
+      setTimeout(() => setIsSubmitted(false), 5001);
     } catch (err) {
       setFormData((prev) => ({ ...prev }));
       alert(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
