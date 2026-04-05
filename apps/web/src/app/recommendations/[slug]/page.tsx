@@ -1,9 +1,27 @@
 import RecommendationDetail from '@/components/recommendations/RecommendationDetail';
 import { buildMetadata } from '@/lib/metadata';
-import { getRecommendationMeta } from '@/lib/content';
+import { getRecommendationMeta, getRecommendationSlugs } from '@/lib/content';
+
+/** Pre-render all known recommendation slugs: from API at build time, with fallback to content.ts */
+export async function generateStaticParams() {
+  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  try {
+    const res = await fetch(`${base}/api/recommendations?limit=9999`);
+    if (res.ok) {
+      const data = (await res.json()) as { items?: { slug?: string }[] };
+      const slugs = (data.items ?? [])
+        .map((p) => (typeof p?.slug === 'string' ? p.slug.trim() : ''))
+        .filter(Boolean);
+      if (slugs.length > 0) return slugs.map((slug) => ({ slug }));
+    }
+  } catch {
+    // API unreachable at build time; use static list
+  }
+  return getRecommendationSlugs().map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const slug = params.slug;
+  const slug = params?.slug ?? '';
   const meta = getRecommendationMeta(slug);
   const fallbackTitle = slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   const baseKeywords = ['book recommendations', 'Anshika Mishra', meta?.title ?? fallbackTitle];
@@ -21,5 +39,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default function RecommendationPostPage({ params }: { params: { slug: string } }) {
-  return <RecommendationDetail slug={params.slug} />;
+  const slug = params?.slug ?? '';
+  return <RecommendationDetail slug={slug} />;
 }
