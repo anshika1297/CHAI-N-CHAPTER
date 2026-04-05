@@ -1,15 +1,24 @@
 /**
  * API client for the backend. Used by admin pages and login.
- * Base URL: NEXT_PUBLIC_API_URL or http://localhost:5001
+ *
+ * Client-side (browser): uses relative URLs so requests go through the same
+ * origin → Apache proxies /api to port 3000, OR if the request reaches
+ * the Next.js server, its rewrites proxy to port 3000. Either way the
+ * request reaches the Express API.
+ *
+ * Server-side (SSR): calls the API directly via internal URL.
  */
 
 export type PageSlug = 'contact' | 'work-with-me' | 'about' | 'terms' | 'privacy' | 'header' | 'footer' | 'home' | 'book-clubs' | 'blog' | 'recommendations' | 'musings' | 'email-settings';
 
 const getBaseUrl = (): string => {
+  // Browser: use relative URLs (empty string) so /api/... goes through the
+  // current origin. The server (Apache or Next.js rewrite) proxies to the API.
   if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+    return '';
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
+  // Server-side (SSR / getServerSideProps): call the API directly.
+  return process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:3000';
 };
 
 /**
@@ -17,16 +26,29 @@ const getBaseUrl = (): string => {
  * In static export there are no Next.js rewrites, so API assets must be absolute URLs
  * (based on NEXT_PUBLIC_API_URL).
  */
+/**
+ * Parse a fetch Response as JSON with safety checks.
+ * Throws a descriptive error if the response is HTML or non-JSON.
+ */
+async function parseJsonResponse<T = unknown>(res: Response, label: string): Promise<T> {
+  const ct = res.headers.get('content-type') || '';
+  if (!ct.includes('application/json')) {
+    const preview = await res.text().then(t => t.slice(0, 120));
+    throw new Error(
+      `Expected JSON from ${label} but got ${ct || 'unknown content-type'}: ${preview}…`
+    );
+  }
+  return res.json();
+}
+
 export function getImageUrl(url: string | undefined | null): string {
   if (!url || typeof url !== 'string' || !url.trim()) return '';
   const trimmed = url.trim();
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return trimmed;
   }
+  // Relative paths work in the browser (same origin); just ensure leading slash.
   const path = trimmed.startsWith('/') ? trimmed : '/' + trimmed;
-  if (path.startsWith('/api/uploads/') || path.startsWith('/api/img/')) {
-    return `${getBaseUrl()}${path}`;
-  }
   return path;
 }
 
@@ -73,7 +95,7 @@ export function getPageSettings(slug: PageSlug): Promise<{ content: unknown }> {
     try {
       const res = await fetch(`${getBaseUrl()}/api/settings/pages/${slug}`);
       if (!res.ok) throw new Error(`Failed to load ${slug}: ${res.status}`);
-      const data = await res.json();
+      const data = await parseJsonResponse<{ content: unknown }>(res, `settings/${slug}`);
       setCachedPage(key, data);
       return data;
     } finally {
@@ -100,11 +122,11 @@ export async function putPageSettings(
     body: JSON.stringify({ content }),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = await parseJsonResponse(res, `save ${slug}`).catch(() => ({}));
     throw new Error((err as { error?: string }).error || `Failed to save ${slug}: ${res.status}`);
   }
   pageCache.delete(slug);
-  return res.json();
+  return parseJsonResponse<{ content: unknown }>(res, `save ${slug}`);
 }
 
 /** POST /api/test-email – requires admin token. Sends one test email to the given address (for SMTP testing). */
@@ -119,7 +141,7 @@ export async function sendTestEmail(to: string): Promise<{ message: string }> {
     },
     body: JSON.stringify({ to: to.trim() }),
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await parseJsonResponse(res, 'test-email').catch(() => ({}));
   if (!res.ok) throw new Error((data as { error?: string }).error || `Failed to send test email: ${res.status}`);
   return data as { message: string };
 }
@@ -136,7 +158,7 @@ export function getBookClubs(): Promise<{ content: unknown }> {
     try {
       const res = await fetch(`${getBaseUrl()}/api/book-clubs`);
       if (!res.ok) throw new Error(`Failed to load book clubs: ${res.status}`);
-      const data = await res.json();
+      const data = await parseJsonResponse<{ content: unknown }>(res, 'book-clubs');
       bookClubsCache = { data, expires: Date.now() + CACHE_TTL_MS };
       return data;
     } finally {
@@ -160,11 +182,11 @@ export async function putBookClubs(content: Record<string, unknown>): Promise<{ 
     body: JSON.stringify(content),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = await parseJsonResponse(res, 'save book-clubs').catch(() => ({}));
     throw new Error((err as { error?: string }).error || `Failed to save book clubs: ${res.status}`);
   }
   bookClubsCache = null;
-  return res.json();
+  return parseJsonResponse<{ content: unknown }>(res, 'save book-clubs');
 }
 
 /** POST /api/book-clubs/announce – requires admin token. Sends book club announcement to all subscribers. */
@@ -179,7 +201,7 @@ export async function announceBookClub(bookClubId: string): Promise<{ sent: numb
     },
     body: JSON.stringify({ bookClubId: bookClubId.trim() }),
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await parseJsonResponse(res, 'book-clubs/announce').catch(() => ({}));
   if (!res.ok) throw new Error((data as { error?: string }).error || `Failed to send announcement: ${res.status}`);
   return data as { sent: number; total: number };
 }
@@ -216,7 +238,7 @@ export function getCategories(type: CategoryType): Promise<{ categories: Categor
     try {
       const res = await fetch(`${getBaseUrl()}/api/categories?type=${encodeURIComponent(type)}`);
       if (!res.ok) throw new Error(`Failed to load categories: ${res.status}`);
-      const data = await res.json();
+      const data = await parseJsonResponse<{ categories: CategoryDto[] }>(res, 'categories');
       categoriesCache.set(key, { data, expires: Date.now() + CACHE_TTL_MS });
       return data;
     } finally {
@@ -231,7 +253,7 @@ export function getCategories(type: CategoryType): Promise<{ categories: Categor
 export async function getAdminCategories(): Promise<{ categories: CategoryDto[] }> {
   const res = await fetch(`${getBaseUrl()}/api/categories`);
   if (!res.ok) throw new Error(`Failed to load categories: ${res.status}`);
-  return res.json();
+  return parseJsonResponse<{ categories: CategoryDto[] }>(res, 'admin categories');
 }
 
 /** POST /api/categories – admin: create category. Always sends request; server returns 401 if not logged in. */
@@ -244,7 +266,7 @@ export async function createCategory(data: { name: string; slug?: string; descri
     headers,
     body: JSON.stringify(data),
   });
-  const body = await res.json().catch(() => ({}));
+  const body = await parseJsonResponse(res, 'create category').catch(() => ({}));
   if (!res.ok) throw new Error((body as { error?: string }).error || `Failed to create category: ${res.status}`);
   invalidateCategoriesCache();
   return body as { category: CategoryDto };
@@ -260,7 +282,7 @@ export async function updateCategory(id: string, data: Partial<{ name: string; s
     headers,
     body: JSON.stringify(data),
   });
-  const body = await res.json().catch(() => ({}));
+  const body = await parseJsonResponse(res, 'update category').catch(() => ({}));
   if (!res.ok) throw new Error((body as { error?: string }).error || `Failed to update category: ${res.status}`);
   invalidateCategoriesCache();
   return body as { category: CategoryDto };
@@ -276,7 +298,7 @@ export async function deleteCategory(id: string): Promise<void> {
     headers,
   });
   if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
+    const body = await parseJsonResponse(res, 'delete category').catch(() => ({}));
     throw new Error((body as { error?: string }).error || `Failed to delete category: ${res.status}`);
   }
   invalidateCategoriesCache();
@@ -318,7 +340,7 @@ export function getBlogPosts(params?: BlogListParams): Promise<{ posts: unknown[
     try {
       const res = await fetch(`${getBaseUrl()}/api/blog/posts${qs ? `?${qs}` : ''}`);
       if (!res.ok) throw new Error(`Failed to load blog posts: ${res.status}`);
-      return res.json();
+      return parseJsonResponse<{ posts: unknown[]; total: number; page: number; limit: number }>(res, 'blog/posts');
     } finally {
       blogListInFlight.delete(key);
     }
@@ -334,7 +356,7 @@ export async function getBlogPostBySlug(slug: string): Promise<{ post: unknown }
     if (res.status === 404) throw new Error('Post not found');
     throw new Error(`Failed to load post: ${res.status}`);
   }
-  return res.json();
+  return parseJsonResponse<{ post: unknown }>(res, `blog/posts/${slug}`);
 }
 
 // ——— Recommendations – public list & single ———
@@ -367,7 +389,7 @@ export function getRecommendations(params?: RecListParams): Promise<{ items: unk
     try {
       const res = await fetch(`${getBaseUrl()}/api/recommendations${qs ? `?${qs}` : ''}`);
       if (!res.ok) throw new Error(`Failed to load recommendations: ${res.status}`);
-      return res.json();
+      return parseJsonResponse<{ items: unknown[]; total: number; page: number; limit: number }>(res, 'recommendations');
     } finally {
       recListInFlight.delete(key);
     }
@@ -383,7 +405,7 @@ export async function getRecommendationBySlug(slug: string): Promise<{ item: unk
     if (res.status === 404) throw new Error('Recommendation not found');
     throw new Error(`Failed to load recommendation: ${res.status}`);
   }
-  return res.json();
+  return parseJsonResponse<{ item: unknown }>(res, `recommendations/${slug}`);
 }
 
 // ——— Musings (Her Musings Verse) – public list & single ———
@@ -412,7 +434,7 @@ export function getMusings(params?: MusingsListParams): Promise<{ items: unknown
     try {
       const res = await fetch(`${getBaseUrl()}/api/musings${qs ? `?${qs}` : ''}`);
       if (!res.ok) throw new Error(`Failed to load musings: ${res.status}`);
-      return res.json();
+      return parseJsonResponse<{ items: unknown[]; total: number; page: number; limit: number }>(res, 'musings');
     } finally {
       musingsListInFlight.delete(key);
     }
@@ -428,7 +450,7 @@ export async function getMusingBySlug(slug: string): Promise<{ item: unknown }> 
     if (res.status === 404) throw new Error('Musing not found');
     throw new Error(`Failed to load musing: ${res.status}`);
   }
-  return res.json();
+  return parseJsonResponse<{ item: unknown }>(res, `musings/${slug}`);
 }
 
 // ——— Subscriptions (public subscribe; admin list) ———
@@ -440,7 +462,7 @@ export async function subscribe(email: string, options?: { name?: string; source
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: email.trim(), name: options?.name?.trim(), source: options?.source }),
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await parseJsonResponse(res, 'subscribe').catch(() => ({}));
   if (!res.ok) throw new Error((data as { error?: string }).error || 'Failed to subscribe');
   return data as { message: string; subscribed: boolean };
 }
@@ -452,7 +474,7 @@ export async function unsubscribe(email: string): Promise<{ message: string; sub
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: email.trim() }),
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await parseJsonResponse(res, 'unsubscribe').catch(() => ({}));
   if (!res.ok) throw new Error((data as { error?: string }).error || 'Failed to unsubscribe');
   return data as { message: string; subscribed: boolean };
 }
@@ -471,7 +493,7 @@ export async function submitContactMessage(data: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...data, source: 'contact' }),
   });
-  const body = await res.json().catch(() => ({}));
+  const body = await parseJsonResponse(res, 'contact message').catch(() => ({}));
   if (!res.ok) throw new Error((body as { error?: string }).error || 'Failed to send message');
   return body as { message: string };
 }
@@ -488,7 +510,7 @@ export async function submitWorkWithMeMessage(data: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ ...data, source: 'work-with-me' }),
   });
-  const body = await res.json().catch(() => ({}));
+  const body = await parseJsonResponse(res, 'work-with-me message').catch(() => ({}));
   if (!res.ok) throw new Error((body as { error?: string }).error || 'Failed to send message');
   return body as { message: string };
 }
@@ -523,10 +545,10 @@ export async function getMessages(params?: { page?: number; limit?: number; sour
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = await parseJsonResponse(res, 'messages').catch(() => ({}));
     throw new Error((err as { error?: string }).error || `Failed to load messages: ${res.status}`);
   }
-  return res.json();
+  return parseJsonResponse(res, 'messages');
 }
 
 /** PATCH /api/messages/:id/read – admin only. Mark message as read. */
@@ -538,7 +560,7 @@ export async function markMessageRead(id: string): Promise<void> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = await parseJsonResponse(res, 'mark-read').catch(() => ({}));
     throw new Error((err as { error?: string }).error || 'Failed to update');
   }
 }
@@ -570,10 +592,10 @@ export async function getSubscribers(params?: { page?: number; limit?: number; s
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = await parseJsonResponse(res, 'subscribers').catch(() => ({}));
     throw new Error((err as { error?: string }).error || `Failed to load subscribers: ${res.status}`);
   }
-  return res.json();
+  return parseJsonResponse(res, 'subscribers');
 }
 
 // ——— Image upload (admin only) ———
@@ -593,7 +615,7 @@ export async function uploadImage(file: File, module: UploadModule = 'home'): Pr
     headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await parseJsonResponse(res, 'upload').catch(() => ({}));
   if (!res.ok) {
     throw new Error((data as { error?: string }).error || `Upload failed: ${res.status}`);
   }
@@ -609,7 +631,7 @@ export async function login(email: string, password: string): Promise<{ token: s
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await parseJsonResponse(res, 'login').catch(() => ({}));
   if (!res.ok) {
     throw new Error((data as { error?: string }).error || 'Login failed');
   }
@@ -634,10 +656,10 @@ export async function getUsers(): Promise<{ users: AdminUserDto[] }> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
+    const err = await parseJsonResponse(res, 'users').catch(() => ({}));
     throw new Error((err as { error?: string }).error || `Failed to load users: ${res.status}`);
   }
-  return res.json();
+  return parseJsonResponse<{ users: AdminUserDto[] }>(res, 'users');
 }
 
 /** POST /api/users – create user (protected). */
@@ -657,7 +679,7 @@ export async function createUser(body: {
     },
     body: JSON.stringify(body),
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await parseJsonResponse(res, 'create user').catch(() => ({}));
   if (!res.ok) throw new Error((data as { error?: string }).error || 'Failed to create user');
   return data as { user: AdminUserDto };
 }
@@ -677,7 +699,7 @@ export async function updateUser(
     },
     body: JSON.stringify(body),
   });
-  const data = await res.json().catch(() => ({}));
+  const data = await parseJsonResponse(res, 'update user').catch(() => ({}));
   if (!res.ok) throw new Error((data as { error?: string }).error || 'Failed to update user');
   return data as { user: AdminUserDto };
 }
@@ -691,7 +713,7 @@ export async function deleteUser(id: string): Promise<void> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
+    const data = await parseJsonResponse(res, 'delete user').catch(() => ({}));
     throw new Error((data as { error?: string }).error || 'Failed to delete user');
   }
 }
@@ -719,5 +741,5 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Failed to load stats');
-  return res.json();
+  return parseJsonResponse<DashboardStats>(res, 'dashboard/stats');
 }
