@@ -35,16 +35,37 @@ type PostData = {
   highlights: Highlight[];
 };
 
-function normalizePost(p: Record<string, unknown>): PostData {
+function normalizePost(p: Record<string, unknown> | null | undefined): PostData {
+  if (!p || typeof p !== 'object') {
+    return {
+      title: '',
+      content: '',
+      excerpt: '',
+      image: '',
+      bookCover: '',
+      categories: [],
+      slug: '',
+      readingTime: 5,
+      author: '',
+      bookTitle: '',
+      bookAuthor: '',
+      publishedAt: new Date().toISOString().slice(0, 10),
+      tags: [],
+      bookImages: [],
+      highlights: [],
+    };
+  }
   const category = typeof p.category === 'string' ? p.category : '';
-  const highlights = Array.isArray(p.highlights)
-    ? (p.highlights as Record<string, unknown>[]).map((h) => ({
-        id: String(h?.id ?? ''),
-        quote: String(h?.quote ?? '').trim(),
-        page: typeof h?.page === 'number' ? h.page : undefined,
-        image: typeof h?.image === 'string' ? h.image : '',
-      }))
-    : [];
+  const rawHighlights = Array.isArray(p.highlights) ? p.highlights : [];
+  const highlights = rawHighlights.map((h: unknown) => {
+    const item = h && typeof h === 'object' ? (h as Record<string, unknown>) : {};
+    return {
+      id: String(item?.id ?? ''),
+      quote: String(item?.quote ?? '').trim(),
+      page: typeof item?.page === 'number' ? item.page : undefined,
+      image: typeof item?.image === 'string' ? item.image : '',
+    };
+  });
   return {
     title: String(p.title ?? '').trim(),
     content: typeof p.content === 'string' ? p.content : '',
@@ -77,13 +98,26 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
   const [nextSlug, setNextSlug] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!slug || typeof slug !== 'string' || !slug.trim()) {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
     getBlogPostBySlug(slug)
       .then(({ post: raw }) => {
-        setPost(normalizePost(raw as Record<string, unknown>));
+        if (raw == null || typeof raw !== 'object') {
+          setNotFound(true);
+          return;
+        }
+        try {
+          setPost(normalizePost(raw as Record<string, unknown>));
+        } catch {
+          setNotFound(true);
+        }
       })
       .catch((e) => {
         if (e instanceof Error && e.message === 'Post not found') setNotFound(true);
-        else setPost(null);
+        else setNotFound(true);
       })
       .finally(() => setLoading(false));
   }, [slug]);

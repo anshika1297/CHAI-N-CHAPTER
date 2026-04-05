@@ -13,22 +13,21 @@ const getBaseUrl = (): string => {
 };
 
 /**
- * Resolve image URL for display. /api/img/... and /api/uploads/... are proxied by Next.js
- * to the API, so we return the path only for same-origin requests. External URLs returned as-is.
+ * Resolve image URL for display.
+ * In static export there are no Next.js rewrites, so API assets must be absolute URLs
+ * (based on NEXT_PUBLIC_API_URL).
  */
 export function getImageUrl(url: string | undefined | null): string {
   if (!url || typeof url !== 'string' || !url.trim()) return '';
   const trimmed = url.trim();
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-    try {
-      const u = new URL(trimmed);
-      if (u.pathname.startsWith('/api/uploads/') || u.pathname.startsWith('/api/img/')) return u.pathname;
-    } catch {
-      /* ignore */
-    }
     return trimmed;
   }
-  return trimmed.startsWith('/') ? trimmed : '/' + trimmed;
+  const path = trimmed.startsWith('/') ? trimmed : '/' + trimmed;
+  if (path.startsWith('/api/uploads/') || path.startsWith('/api/img/')) {
+    return `${getBaseUrl()}${path}`;
+  }
+  return path;
 }
 
 export function getAdminToken(): string | null {
