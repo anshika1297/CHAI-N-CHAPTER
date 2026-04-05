@@ -21,6 +21,7 @@ secrets.json
 *.credentials
 config/local.*
 config/secrets.*
+.htaccess
 
 # Build outputs
 dist
