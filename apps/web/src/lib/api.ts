@@ -2,8 +2,8 @@
  * API client for the backend. Used by admin pages and login.
  *
  * Client-side (browser): uses relative URLs so requests go through the same
- * origin → Apache proxies /api to port 3000, OR if the request reaches
- * the Next.js server, its rewrites proxy to port 3000. Either way the
+ * origin → Apache proxies /api to port 5001, OR if the request reaches
+ * the Next.js server, its rewrites proxy to port 5001. Either way the
  * request reaches the Express API.
  *
  * Server-side (SSR): calls the API directly via internal URL.
