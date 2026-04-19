@@ -1,4 +1,6 @@
+import { Suspense } from 'react';
 import BlogListing from '@/components/blog/BlogListing';
+import PageLoading from '@/components/PageLoading';
 import { buildMetadata } from '@/lib/metadata';
 
 export const metadata = buildMetadata({
@@ -10,5 +12,9 @@ export const metadata = buildMetadata({
 });
 
 export default function BlogPage() {
-  return <BlogListing />;
+  return (
+    <Suspense fallback={<PageLoading message="Loading book reviews..." />}>
+      <BlogListing />
+    </Suspense>
+  );
 }

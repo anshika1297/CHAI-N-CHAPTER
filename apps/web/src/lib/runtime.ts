@@ -1,5 +1,7 @@
+import { getFetchBaseUrl } from '@/lib/apiBase';
+
+/** Same rules as API fetches: public origin when NEXT_PUBLIC_API_URL is set, else same-origin (empty) in the browser. */
 export function getApiBaseUrlForClient(): string {
-  if (typeof window !== 'undefined') return '';
-  return process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5001';
+  return getFetchBaseUrl();
 }
 

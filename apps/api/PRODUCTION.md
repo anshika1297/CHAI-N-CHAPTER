@@ -25,10 +25,10 @@ MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/chai-n-chapter
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 
 # Frontend URL (comma-separated for multiple origins)
-FRONTEND_URL=https://yourdomain.com,https://www.yourdomain.com
+FRONTEND_URL=https://chaptersaurchai.com,https://www.chaptersaurchai.com
 
 # Public Site URL (for email links)
-PUBLIC_SITE_URL=https://yourdomain.com
+PUBLIC_SITE_URL=https://chaptersaurchai.com
 
 # SMTP Configuration (optional but recommended)
 SMTP_HOST=smtp.gmail.com
@@ -36,7 +36,7 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-app-password
-SMTP_FROM=Chapters.aur.Chai <noreply@yourdomain.com>
+SMTP_FROM=Chapters.aur.Chai <hello@chaptersaurchai.com>
 
 # Logging (optional)
 LOG_LEVEL=info
@@ -126,31 +126,40 @@ docker-compose logs -f api
 
 ## Reverse Proxy Setup (Nginx)
 
-Example Nginx configuration:
+Production uses **https://chaptersaurchai.com** with `/api/*` routed to the API (same pattern as [DEPLOY-FIX.md](../../DEPLOY-FIX.md) for Apache). Example Nginx:
 
 ```nginx
 server {
-    listen 80;
-    server_name api.yourdomain.com;
-    
-    # Redirect HTTP to HTTPS
-    return 301 https://$server_name$request_uri;
-}
-
-server {
     listen 443 ssl http2;
-    server_name api.yourdomain.com;
-    
+    server_name chaptersaurchai.com www.chaptersaurchai.com;
+
     ssl_certificate /path/to/certificate.crt;
     ssl_certificate_key /path/to/private.key;
-    
-    # Security headers
+
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    
+
+    # API (Express on port 5001) — public URL https://chaptersaurchai.com/api/...
+    location /api/ {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+
+    location /health {
+        proxy_pass http://127.0.0.1:5001/health;
+        access_log off;
+    }
+
+    # Next.js frontend (port 3000)
     location / {
-        proxy_pass http://localhost:5001;
+        proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -159,17 +168,6 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_cache_bypass $http_upgrade;
-        
-        # Timeouts
-        proxy_connect_timeout 60s;
-        proxy_send_timeout 60s;
-        proxy_read_timeout 60s;
-    }
-    
-    # Health check endpoint
-    location /health {
-        proxy_pass http://localhost:5001/health;
-        access_log off;
     }
 }
 ```
@@ -194,7 +192,7 @@ server {
 The API provides a health check endpoint:
 
 ```bash
-curl https://api.yourdomain.com/health
+curl https://chaptersaurchai.com/health
 ```
 
 Response:
