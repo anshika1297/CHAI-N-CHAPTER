@@ -30,7 +30,7 @@ Or from `apps/api`:
 npm run dev
 ```
 
-The API listens on `http://localhost:5000` (or your `PORT`). Health check: `GET http://localhost:5000/health` — the response includes `database` so you can confirm the API is using the `chai-n-chapter` DB.
+The API listens on `http://localhost:5001` (or your `PORT`). Health check: `GET http://localhost:5001/health` — the response includes `database` so you can confirm the API is using the `chai-n-chapter` DB.
 
 ## 3. Create the first admin user
 
@@ -54,8 +54,8 @@ This creates a single admin user. If that email already exists, the script exits
 
 In `apps/web`, set the API base URL so admin login and settings work:
 
-- **Local:** `NEXT_PUBLIC_API_URL=http://localhost:5000` in `apps/web/.env.local` (or in `.env`).
-- If unset, the web app uses `http://localhost:5000`.
+- **Local:** `NEXT_PUBLIC_API_URL=http://localhost:5001` in `apps/web/.env.local` (or in `.env`).
+- If unset, the web app uses `http://localhost:5001`.
 
 Then run the web app:
 
@@ -87,8 +87,8 @@ Protected routes expect: `Authorization: Bearer <token>`.
 If the admin panel or the public Contact page doesn’t show data from the backend:
 
 1. **API running** – Start the API with `npm run dev:api` (or `npm run dev` from `apps/api`). It must reach “MongoDB connected to database: chai-n-chapter” and “Server running on …”.
-2. **Database name** – If login fails with “Invalid email or password” but your users live in the **chai-n-chapter** DB, set `MONGODB_URI` so it ends with `/chai-n-chapter` (e.g. `...mongodb.net/chai-n-chapter`). Hit `GET http://localhost:5000/health` and confirm the response has `"database": "chai-n-chapter"`. Then run the seed again from `apps/api` so the admin user is in that DB.
-3. **Web → API URL** – In `apps/web`, set `NEXT_PUBLIC_API_URL=http://localhost:5000` in `.env.local` (or `.env`) so the app calls the right API. Restart the Next dev server after changing env.
+2. **Database name** – If login fails with “Invalid email or password” but your users live in the **chai-n-chapter** DB, set `MONGODB_URI` so it ends with `/chai-n-chapter` (e.g. `...mongodb.net/chai-n-chapter`). Hit `GET http://localhost:5001/health` and confirm the response has `"database": "chai-n-chapter"`. Then run the seed again from `apps/api` so the admin user is in that DB.
+3. **Web → API URL** – In `apps/web`, set `NEXT_PUBLIC_API_URL=http://localhost:5001` in `.env.local` (or `.env`) so the app calls the right API. Restart the Next dev server after changing env.
 4. **CORS** – In `apps/api/.env`, set `FRONTEND_URL=http://localhost:3000` (or the URL where the web app runs) so the API allows requests from the frontend.
 5. **Save first** – Admin → Contact / Work With Me / About etc. load from the DB only after you’ve saved at least once. Until then, GET returns `{ content: null }` and the UI uses default content.
 6. **Public Contact** – The public `/contact` page now loads header, social links, and sidebar from the API when available; if the API is down or returns null, it falls back to default text.

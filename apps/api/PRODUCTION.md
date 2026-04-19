@@ -150,7 +150,7 @@ server {
     add_header X-XSS-Protection "1; mode=block" always;
     
     location / {
-        proxy_pass http://localhost:5000;
+        proxy_pass http://localhost:5001;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -168,7 +168,7 @@ server {
     
     # Health check endpoint
     location /health {
-        proxy_pass http://localhost:5000/health;
+        proxy_pass http://localhost:5001/health;
         access_log off;
     }
 }
