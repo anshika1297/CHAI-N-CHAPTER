@@ -1,25 +1,16 @@
 /**
- * API client for the backend. Used by admin pages and login.
+ * API client for the backend. Used by admin pages and public pages.
  *
- * Client-side (browser): uses relative URLs so requests go through the same
- * origin → Apache proxies /api to port 5001, OR if the request reaches
- * the Next.js server, its rewrites proxy to port 5001. Either way the
- * request reaches the Express API.
- *
- * Server-side (SSR): calls the API directly via internal URL.
+ * Base URL comes from `getFetchBaseUrl()` (@/lib/apiBase):
+ * - Production: set NEXT_PUBLIC_API_URL to https://chaptersaurchai.com/api (or origin only) so all calls use the public API.
+ * - Local dev: omit NEXT_PUBLIC_API_URL to use same-origin /api (Next rewrites) or set http://127.0.0.1:5001.
  */
+
+import { getFetchBaseUrl, normalizeApiOrigin } from '@/lib/apiBase';
 
 export type PageSlug = 'contact' | 'work-with-me' | 'about' | 'terms' | 'privacy' | 'header' | 'footer' | 'home' | 'book-clubs' | 'blog' | 'recommendations' | 'musings' | 'email-settings';
 
-const getBaseUrl = (): string => {
-  // Browser: use relative URLs (empty string) so /api/... goes through the
-  // current origin. The server (Apache or Next.js rewrite) proxies to the API.
-  if (typeof window !== 'undefined') {
-    return '';
-  }
-  // Server-side (SSR / getServerSideProps): call the API directly.
-  return process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5001';
-};
+const getBaseUrl = (): string => getFetchBaseUrl();
 
 /**
  * Resolve image URL for display.
@@ -44,7 +35,9 @@ async function parseJsonResponse<T = unknown>(res: Response, label: string): Pro
 
 async function safeFetch(url: string, options?: RequestInit, label?: string): Promise<Response> {
   const tag = label || url;
-  console.log(`[API] ${tag} → ${url}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[API] ${tag} → ${url}`);
+  }
   try {
     const res = await fetch(url, options);
     if (!res.ok) {
@@ -72,6 +65,10 @@ export function getImageUrl(url: string | undefined | null): string {
     return trimmed;
   }
   const path = trimmed.startsWith('/') ? trimmed : '/' + trimmed;
+  const siteOrigin = normalizeApiOrigin(process.env.NEXT_PUBLIC_API_URL);
+  if (siteOrigin && path.startsWith('/api')) {
+    return `${siteOrigin}${path}`;
+  }
   return path;
 }
 

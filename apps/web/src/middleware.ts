@@ -49,17 +49,12 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// Configure which routes the middleware runs on
+// Configure which routes the middleware runs on.
+// Include `'/'` explicitly — patterns like `/((?!…).*)` often do not match the empty segment
+// for the homepage, which can surface as a 404 for `/` in some Next.js versions.
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - api routes
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (public folder)
-     */
+    '/',
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)).*)',
   ],
 };

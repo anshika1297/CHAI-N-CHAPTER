@@ -261,7 +261,7 @@ export default function AdminEmailSettingsPage() {
                 type="text"
                 value={form.fromEmail}
                 onChange={(e) => setForm({ ...form, fromEmail: e.target.value })}
-                placeholder='e.g. Chai & Chapter <hello@yourdomain.com>'
+                placeholder='e.g. Chapters.aur.Chai <hello@chaptersaurchai.com>'
                 className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
               />
               <p className="mt-1 text-xs text-chai-brown-light font-body">

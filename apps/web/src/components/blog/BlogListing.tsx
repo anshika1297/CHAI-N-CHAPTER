@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import BlogCard from './BlogCard';
 import Filters from './Filters';
 import Pagination from './Pagination';
@@ -43,6 +44,8 @@ const POSTS_PER_PAGE = 6;
 const KEYWORD_DEBOUNCE_MS = 400;
 
 export default function BlogListing() {
+  const searchParams = useSearchParams();
+  const categoryFromUrl = searchParams.get('category')?.trim() ?? '';
   const [posts, setPosts] = useState<BlogPostItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -61,6 +64,9 @@ export default function BlogListing() {
   const debouncedBook = useDebounce(filters.book, KEYWORD_DEBOUNCE_MS);
   const debouncedTitle = useDebounce(filters.title, KEYWORD_DEBOUNCE_MS);
 
+  /** Query string wins until user sets category in the UI (filters.category). */
+  const effectiveCategory = filters.category || categoryFromUrl;
+
   const fetchCategories = useCallback(() => {
     getCategories('blog')
       .then(({ categories: list }) => {
@@ -75,7 +81,7 @@ export default function BlogListing() {
     getBlogPosts({
       page: currentPage,
       limit: POSTS_PER_PAGE,
-      category: filters.category || undefined,
+      category: effectiveCategory || undefined,
       author: debouncedAuthor || undefined,
       book: debouncedBook || undefined,
       title: debouncedTitle || undefined,
@@ -97,7 +103,7 @@ export default function BlogListing() {
           setLoading(false);
         }
       });
-  }, [currentPage, filters.category, debouncedAuthor, debouncedBook, debouncedTitle, sortBy]);
+  }, [currentPage, effectiveCategory, debouncedAuthor, debouncedBook, debouncedTitle, sortBy]);
 
   const setFiltersAndResetPage = useCallback((arg: React.SetStateAction<typeof filters>) => {
     setFilters(arg);
@@ -146,7 +152,7 @@ export default function BlogListing() {
         <div className="grid lg:grid-cols-4 gap-6 lg:gap-8">
           <aside className="lg:col-span-1">
             <Filters
-              filters={filters}
+              filters={{ ...filters, category: effectiveCategory }}
               setFilters={setFiltersAndResetPage}
               sortBy={sortBy}
               setSortBy={setSortByAndResetPage}

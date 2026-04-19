@@ -15,10 +15,10 @@ Create a `.env.production` file in `apps/web/` with the following variables:
 
 ```env
 # Production Site URL (required for SEO, social sharing, sitemap)
-NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+NEXT_PUBLIC_SITE_URL=https://chaptersaurchai.com
 
-# Backend API URL (required)
-NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+# Backend API base URL (same host, path /api — see DEPLOY-FIX.md for Apache proxy)
+NEXT_PUBLIC_API_URL=https://chaptersaurchai.com/api
 
 # Node Environment
 NODE_ENV=production
@@ -105,7 +105,7 @@ Example Nginx configuration:
 ```nginx
 server {
     listen 80;
-    server_name yourdomain.com www.yourdomain.com;
+    server_name chaptersaurchai.com www.chaptersaurchai.com;
     
     # Redirect HTTP to HTTPS
     return 301 https://$server_name$request_uri;
@@ -113,7 +113,7 @@ server {
 
 server {
     listen 443 ssl http2;
-    server_name yourdomain.com www.yourdomain.com;
+    server_name chaptersaurchai.com www.chaptersaurchai.com;
     
     ssl_certificate /path/to/certificate.crt;
     ssl_certificate_key /path/to/private.key;
@@ -208,7 +208,7 @@ server {
 The app provides a health check endpoint (if you add it):
 
 ```bash
-curl https://yourdomain.com/api/health
+curl https://chaptersaurchai.com/health
 ```
 
 ### PM2 Monitoring
