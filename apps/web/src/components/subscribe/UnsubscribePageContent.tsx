@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { unsubscribe } from '@/lib/api';
+import { clearSubscriberSession } from '@/lib/subscriberSession';
 
 function UnsubscribeForm() {
   const searchParams = useSearchParams();
@@ -30,6 +31,7 @@ function UnsubscribeForm() {
     setMessage('');
     try {
       await unsubscribe(trimmed);
+      clearSubscriberSession();
       setStatus('success');
       setMessage('You have been unsubscribed. You will no longer receive newsletters.');
       setEmail('');
@@ -40,7 +42,7 @@ function UnsubscribeForm() {
   };
 
   return (
-    <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+    <section className="pt-24 pb-12 sm:pb-16 min-h-screen">
       <div className="max-w-xl mx-auto text-center">
         <h1 className="font-serif text-3xl sm:text-4xl text-chai-brown mb-3">
           Unsubscribe

@@ -53,6 +53,9 @@ export async function validateEnv(): Promise<void> {
     if (!process.env.PUBLIC_SITE_URL) {
       warnings.push('PUBLIC_SITE_URL is not set. Email links may not work correctly.');
     }
+    if (process.env.ANNOUNCE_TEST_ONLY?.trim()) {
+      warnings.push('ANNOUNCE_TEST_ONLY is set — remove it on production or announces will go to all subscribers only when NODE_ENV=production.');
+    }
   }
 
   // Report errors

@@ -11,11 +11,7 @@ const defaultSection = {
   sectionIntro: "Find your tribe! Join one of our book clubs and connect with fellow readers who share your love for stories.",
   sectionCtaText: 'Explore All Book Clubs',
   sectionCtaHref: '/book-clubs',
-  clubs: [
-    { name: 'The Chai Circle', description: 'A cozy community for slow readers who love to discuss books over virtual chai sessions.', platform: 'instagram', members: '500+', focus: 'Fiction & Literary' },
-    { name: 'Desi Readers Club', description: 'Celebrating South Asian literature and authors. Monthly reads featuring diverse voices.', platform: 'whatsapp', members: '300+', focus: 'Indian Literature' },
-    { name: 'Romance Readers United', description: 'For those who believe in happily-ever-afters. We read and swoon together!', platform: 'instagram', members: '400+', focus: 'Romance' },
-  ] as { name: string; description: string; platform: string; members: string; focus: string }[],
+  clubs: [] as { name: string; description: string; platform: string; members: string; focus: string }[],
 };
 
 const platformIcons: Record<string, typeof Instagram> = {
@@ -25,6 +21,7 @@ const platformIcons: Record<string, typeof Instagram> = {
 
 export default function BookClubs() {
   const [section, setSection] = useState(defaultSection);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     getPageSettings('book-clubs')
@@ -64,12 +61,15 @@ export default function BookClubs() {
           setSection(next);
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setReady(true));
   }, []);
 
+  if (!ready || section.clubs.length === 0) return null;
+
   return (
-    <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-chai-brown text-cream">
-      <div className="max-w-6xl mx-auto">
+    <section className="py-8 sm:py-12 md:py-16 bg-chai-brown text-cream">
+      <div className="site-container">
         <div className="text-center mb-8 sm:mb-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif mb-2">{section.sectionTitle}</h2>
           <p className="text-terracotta-light font-body italic text-lg mb-4">{section.sectionSubtitle}</p>

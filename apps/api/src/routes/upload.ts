@@ -6,11 +6,12 @@ import multer from 'multer';
 import { requireAuth } from '../middlewares/auth.js';
 import { config } from '../config/index.js';
 
-const ALLOWED_MODULES = ['home', 'about', 'book-clubs', 'blog', 'recommendations', 'musings', 'contact', 'work-with-me', 'footer', 'header'] as const;
+const ALLOWED_MODULES = ['home', 'about', 'book-clubs', 'blog', 'recommendations', 'musings', 'contact', 'work-with-me', 'footer', 'header', 'author-spotlight'] as const;
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
-const UPLOADS_BASE = path.join(process.cwd(), 'uploads');
+/** Always `apps/api/uploads` (works from `src/routes` in dev and `dist/routes` in production). */
+const UPLOADS_BASE = path.join(__dirname, '..', '..', 'uploads');
 
 /** Create an opaque signed token for a file path (module/filename). Hides folder structure from clients. */
 function signFileToken(relativePath: string): string {

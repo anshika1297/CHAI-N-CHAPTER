@@ -2,9 +2,10 @@ import './globals.css';
 import ConditionalSiteShell from '@/components/ConditionalSiteShell';
 import NavigationLoader from '@/components/NavigationLoader';
 import AnalyticsTracker from '@/components/AnalyticsTracker';
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { buildMetadata } from '@/lib/metadata';
-import { PersonSchema, WebSiteSchema } from '@/components/JsonLd';
+import SiteJsonLd from '@/components/schema/SiteJsonLd';
 import { setupGlobalErrorHandlers } from '@/utils/errorHandler';
 
 export const metadata = buildMetadata({
@@ -28,10 +29,10 @@ export default function RootLayout({
     <html lang="en-IN">
       <body className="min-h-screen flex flex-col">
         <ErrorBoundary>
+          <GoogleAnalytics />
           <AnalyticsTracker />
           <NavigationLoader />
-          <PersonSchema />
-          <WebSiteSchema />
+          <SiteJsonLd />
           <ConditionalSiteShell>{children}</ConditionalSiteShell>
         </ErrorBoundary>
       </body>

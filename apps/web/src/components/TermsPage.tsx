@@ -21,8 +21,8 @@ export default function TermsPage() {
 
   if (apiContent) {
     return (
-      <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-4xl mx-auto">
+      <section className="pt-24 pb-12 sm:pb-16 min-h-screen">
+        <div className="site-container max-w-5xl">
           <header className="text-center mb-12">
             <div className="flex justify-center mb-4">
               <FileText size={48} className="text-terracotta" />
@@ -47,8 +47,8 @@ export default function TermsPage() {
   }
 
   return (
-    <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-      <div className="max-w-4xl mx-auto">
+    <section className="pt-24 pb-12 sm:pb-16 min-h-screen">
+      <div className="site-container max-w-5xl">
         {/* Header */}
         <header className="text-center mb-12">
           <div className="flex justify-center mb-4">

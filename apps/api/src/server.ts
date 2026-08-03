@@ -1,37 +1,39 @@
-import path from 'path';
-import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-
-// Load apps/api/.env and force it to override any existing env vars (so API always uses same DB as seed)
-const apiEnvPath = path.join(process.cwd(), 'apps/api', '.env');
-const cwdEnvPath = path.join(process.cwd(), '.env');
-dotenv.config({ path: cwdEnvPath });
-dotenv.config({ path: apiEnvPath, override: true });
 
 import app from './app.js';
 import { config } from './config/index.js';
 import { connectDatabase } from './config/database.js';
+import { rebuildBookCatalog } from './services/bookCatalogSync.js';
 import logger from './utils/logger.js';
 import { validateEnv } from './config/validateEnv.js';
-
-// Validate environment variables in production
-if (config.nodeEnv === 'production') {
-  validateEnv();
-}
+import { configuredProviders } from './services/aiClient.js';
 
 let server: ReturnType<typeof app.listen> | null = null;
 
 const startServer = async (): Promise<void> => {
+  if (config.nodeEnv === 'production') {
+    await validateEnv();
+  }
   try {
     // Connect to database
     await connectDatabase();
     logger.info('Database connected successfully');
+
+    rebuildBookCatalog()
+      .then((r) => logger.info(`Book catalog rebuilt: ${r.upserted} upserted, ${r.removed} removed`))
+      .catch((err) => logger.error('Book catalog rebuild on startup failed', err));
 
     // Start server
     server = app.listen(config.port, () => {
       logger.info(`Server running on port ${config.port} in ${config.nodeEnv} mode`);
       logger.info(`Environment: ${config.nodeEnv}`);
       logger.info(`Frontend URL: ${config.frontendUrl}`);
+      const providers = configuredProviders();
+      logger.info(
+        providers.length
+          ? `AI providers ready: ${providers.join(', ')}`
+          : 'AI providers: none configured (Library hooks/enrichment disabled)'
+      );
     });
 
     // Graceful shutdown handlers
@@ -82,4 +84,4 @@ const startServer = async (): Promise<void> => {
   }
 };
 
-startServer();
+void startServer();

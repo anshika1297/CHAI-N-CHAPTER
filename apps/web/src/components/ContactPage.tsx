@@ -127,8 +127,8 @@ export default function ContactPage() {
   };
 
   return (
-    <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-      <div className="max-w-4xl mx-auto">
+    <section className="pt-24 pb-12 sm:pb-16 min-h-screen">
+      <div className="site-container max-w-5xl">
         {/* Header */}
         <header className="text-center mb-12 sm:mb-16">
           {/* Decorative elements */}

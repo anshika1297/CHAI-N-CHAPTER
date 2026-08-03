@@ -1,18 +1,18 @@
+import { notFound } from 'next/navigation';
 import BlogDetail from '@/components/blog/BlogDetail';
+import PageJsonLd from '@/components/schema/PageJsonLd';
 import { buildMetadata } from '@/lib/metadata';
-import { getBlogMeta, getBlogSlugs, type ContentMeta } from '@/lib/content';
+import { resolveContentItemMetadata, resolveContentNotFoundMetadata } from '@/lib/metadata/content';
+import { schemasForReviewPage } from '@/lib/schema';
 import { getFetchBaseUrl } from '@/lib/apiBase';
+import { fetchReadNext } from '@/lib/readNext';
+import { fetchBlogPostForPage } from '@/lib/editorial/fetchForPage';
 
-/**
- * ISR/on-demand rendering for slugs created after deploy.
- * - `dynamicParams = true` lets Next.js render unknown slugs on demand at request time.
- * - `revalidate = 60` re-renders + re-caches each slug at most once every 60s, so admin edits
- *   to metadata / new posts show up without a rebuild.
- */
 export const dynamicParams = true;
-export const revalidate = 60;
+/** Always render from live API so drafts published after deploy don't 500. */
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-/** Pre-render all known blog slugs: from API at build time, with fallback to content.ts */
 export async function generateStaticParams() {
   const base = getFetchBaseUrl();
   try {
@@ -25,63 +25,53 @@ export async function generateStaticParams() {
       if (slugs.length > 0) return slugs.map((slug) => ({ slug }));
     }
   } catch {
-    // API unreachable at build time; use static list
+    // API unreachable at build time — no static fallback slugs
   }
-  return getBlogSlugs().map((slug) => ({ slug }));
-}
-
-/** Fetch a single post's SEO-relevant fields from the API. Returns null on any failure. */
-async function fetchBlogMetaFromApi(slug: string): Promise<ContentMeta | null> {
-  try {
-    const base = getFetchBaseUrl();
-    const res = await fetch(`${base}/api/blog/posts/${encodeURIComponent(slug)}`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { post?: Record<string, unknown> };
-    const p = data?.post;
-    if (!p || typeof p !== 'object') return null;
-    const title = String((p as Record<string, unknown>).seoTitle || (p as Record<string, unknown>).title || '').trim();
-    if (!title) return null;
-    const description = String(
-      (p as Record<string, unknown>).seoDescription || (p as Record<string, unknown>).excerpt || ''
-    ).trim();
-    const image = typeof p.image === 'string' ? p.image : undefined;
-    const publishedTime = typeof p.publishedAt === 'string' ? p.publishedAt : undefined;
-    const author = typeof p.author === 'string' ? p.author : undefined;
-    const keywords = Array.isArray(p.seoKeywords)
-      ? (p.seoKeywords as unknown[]).filter((s): s is string => typeof s === 'string')
-      : [];
-    return { title, description, image, publishedTime, author, keywords };
-  } catch {
-    return null;
-  }
+  return [];
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const slug = params?.slug ?? '';
-  // Fast path: static metadata bundled at build
-  let meta = getBlogMeta(slug);
-  // Fallback: fetch from API so post-deploy slugs still get proper SEO
-  if (!meta) meta = await fetchBlogMetaFromApi(slug);
-
-  const fallbackTitle = slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-  // Per-post keywords are merged with site-wide primaryKeywords + extendedKeywords in buildMetadata
-  const baseKeywords = ['book review', 'book critic', 'Anshika Mishra', meta?.title ?? fallbackTitle];
-  const postKeywords = meta?.keywords ?? [];
-  return buildMetadata({
-    title: meta ? meta.title : `Book Review: ${fallbackTitle}`,
-    description: meta?.description ?? `Book review by Anshika Mishra, book blogger & content creator. Honest analysis, highlights, and whether it's worth your time. India & UAE.`,
-    path: `/blog/${slug}`,
-    type: 'article',
-    image: meta?.image,
-    publishedTime: meta?.publishedTime,
-    author: meta?.author,
-    keywords: [...baseKeywords, ...postKeywords],
-  });
+  try {
+    const raw = await fetchBlogPostForPage(slug);
+    if (!raw) {
+      return buildMetadata(resolveContentNotFoundMetadata('review', slug));
+    }
+    return buildMetadata(
+      resolveContentItemMetadata({
+        kind: 'review',
+        slug,
+        raw,
+      })
+    );
+  } catch {
+    return buildMetadata(resolveContentNotFoundMetadata('review', slug));
+  }
 }
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
   const slug = params?.slug ?? '';
-  return <BlogDetail slug={slug} />;
+  let raw: Record<string, unknown> | null = null;
+  try {
+    raw = await fetchBlogPostForPage(slug);
+  } catch {
+    notFound();
+  }
+  if (!raw) notFound();
+
+  const readNextItems = await fetchReadNext('blog', slug);
+
+  let schemas: ReturnType<typeof schemasForReviewPage> = [];
+  try {
+    schemas = schemasForReviewPage(raw, slug);
+  } catch {
+    schemas = [];
+  }
+
+  return (
+    <>
+      <PageJsonLd schemas={schemas} />
+      <BlogDetail slug={slug} readNextItems={readNextItems} />
+    </>
+  );
 }

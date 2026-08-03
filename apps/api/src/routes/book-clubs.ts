@@ -3,6 +3,8 @@ import { Page } from '../models/Page.js';
 import { requireAuth } from '../middlewares/auth.js';
 import { rewriteImageUrlsInObject } from './upload.js';
 import { sendBookClubAnnouncementEmail, type BookClubPayload } from '../services/bookClubAnnouncementEmail.js';
+import { assertNotYetEmailed, markBookClubSubscribersEmailed } from '../utils/markSubscribersEmailed.js';
+import { announceResultMessage } from '../utils/announceRoute.js';
 
 const BOOK_CLUBS_SLUG = 'book-clubs' as const;
 
@@ -67,6 +69,7 @@ router.post('/announce', requireAuth, async (req: Request, res: Response): Promi
       return;
     }
     const joinLink = typeof club.joinLink === 'string' && club.joinLink.trim() ? club.joinLink.trim() : '';
+    assertNotYetEmailed(club);
     const payload: BookClubPayload = {
       id: String(club.id),
       name: String(club.name).trim(),
@@ -75,7 +78,10 @@ router.post('/announce', requireAuth, async (req: Request, res: Response): Promi
       logo: typeof club.logo === 'string' ? club.logo.trim() : undefined,
     };
     const result = await sendBookClubAnnouncementEmail(payload);
-    res.status(200).json(result);
+    if (result.sent > 0 || (result.testMode && result.sent === 1)) {
+      await markBookClubSubscribersEmailed(bookClubId);
+    }
+    res.status(200).json({ ...result, message: announceResultMessage(result) });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Failed to send announcement';
     console.error('POST /api/book-clubs/announce', err);

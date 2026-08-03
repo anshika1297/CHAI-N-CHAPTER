@@ -2,44 +2,68 @@ import type { Metadata } from 'next';
 import {
   siteConfig,
   canonicalUrl,
+  ogImageDimensions,
   ogImageUrl,
-  mergeKeywords,
   type MetadataParams,
 } from './seo';
+import { toResolvedPageMetadata } from './metadata/resolve';
+import type { MetadataBuildInput } from './metadata/types';
+
+export type { ResolvedPageMetadata } from './metadata/types';
+export { toResolvedPageMetadata } from './metadata/resolve';
+export {
+  resolveContentItemMetadata,
+  resolveContentNotFoundMetadata,
+  resolveShopMetadata,
+  resolveShopHubMetadata,
+  resolveTagMetadata,
+  resolveTopicHubMetadata,
+  resolveTagsIndexMetadata,
+  resolveTopicsIndexMetadata,
+  resolveAuthorDirectoryMetadata,
+  resolveStartHereMetadata,
+  resolveSocialImageUrl,
+  buildDynamicOgImageUrl,
+} from './metadata/index';
 
 /**
- * Build Next.js Metadata for a page (SEO + Open Graph + Twitter)
+ * Build Next.js Metadata for a page (SEO + Open Graph + Twitter).
+ * All social fields are generated explicitly from title/description/image
+ * unless ogTitle / twitterTitle overrides are supplied.
  */
-export function buildMetadata(params: MetadataParams = {}): Metadata {
-  const {
-    title,
-    description,
-    keywords = [],
-    image,
-    path = '',
-    type = 'website',
-    publishedTime,
-    modifiedTime,
-    author = siteConfig.author,
-    noIndex = false,
-  } = params;
+export function buildMetadata(params: MetadataParams | MetadataBuildInput = {}): Metadata {
+  const resolved = toResolvedPageMetadata(params as MetadataBuildInput);
 
-  const fullTitle = title
-    ? `${title} | ${siteConfig.name}`
+  const fullTitle = resolved.title
+    ? `${resolved.title} | ${siteConfig.name}`
     : siteConfig.title;
-  const fullDescription = description || siteConfig.description;
-  const canonical = canonicalUrl(path);
-  const allKeywords = mergeKeywords(keywords);
+  const fullDescription = resolved.description || siteConfig.description;
+  const canonical = resolved.canonical;
+  const ogImage = resolved.openGraphImage;
+  const twitterImage = resolved.twitterImage;
+  const ogDims = ogImageDimensions(ogImage);
+
+  const ogFullTitle = resolved.openGraphTitle
+    ? `${resolved.openGraphTitle} | ${siteConfig.name}`
+    : fullTitle;
+  const ogFullDescription = resolved.openGraphDescription || fullDescription;
+
+  const twitterFullTitle = resolved.twitterTitle
+    ? `${resolved.twitterTitle} | ${siteConfig.name}`
+    : ogFullTitle;
+  const twitterFullDescription = resolved.twitterDescription || ogFullDescription;
+
+  const type = params.type ?? 'website';
+  const author = params.author ?? siteConfig.author;
 
   const metadata: Metadata = {
     title: fullTitle,
     description: fullDescription,
-    keywords: allKeywords,
+    keywords: resolved.keywords.length ? resolved.keywords : undefined,
     authors: [{ name: author, url: canonicalUrl('/about') }],
     creator: author,
     publisher: siteConfig.name,
     metadataBase: new URL(siteConfig.url),
-    /** Tab icon (replaces the globe): put favicon.png in apps/web/public/ (e.g. 32×32 or 48×48 px). */
     icons: { icon: '/favicon.png' },
     alternates: {
       canonical,
@@ -49,30 +73,33 @@ export function buildMetadata(params: MetadataParams = {}): Metadata {
       locale: siteConfig.locale,
       url: canonical,
       siteName: siteConfig.name,
-      title: fullTitle,
-      description: fullDescription,
+      title: ogFullTitle,
+      description: ogFullDescription,
       images: [
         {
-          url: ogImageUrl(image),
-          width: 1200,
-          height: 630,
-          alt: fullTitle,
+          url: ogImage,
+          width: ogDims.width,
+          height: ogDims.height,
+          alt: ogFullTitle,
         },
       ],
       ...(type === 'article' && {
-        publishedTime,
-        modifiedTime,
+        publishedTime: params.publishedTime,
+        modifiedTime: params.modifiedTime,
         authors: [author],
+      }),
+      ...(type === 'profile' && {
+        firstName: author?.split(/\s+/)[0],
       }),
     },
     twitter: {
       card: 'summary_large_image',
-      title: fullTitle,
-      description: fullDescription,
+      title: twitterFullTitle,
+      description: twitterFullDescription,
       creator: (siteConfig as { threadsHandle?: string }).threadsHandle ?? undefined,
-      images: [ogImageUrl(image)],
+      images: [twitterImage],
     },
-    robots: noIndex
+    robots: params.noIndex
       ? { index: false, follow: false }
       : { index: true, follow: true, googleBot: 'index, follow' },
   };

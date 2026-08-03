@@ -1,8 +1,23 @@
 import { Router, Request, Response } from 'express';
 import { Subscriber } from '../models/Subscriber.js';
 import { sendWelcomeEmail } from '../services/welcomeEmail.js';
+import { issueSubscriberCommentToken } from '../services/subscriberComment.js';
+import { signSubscriberToken, subscriberDisplayName } from '../utils/subscriberToken.js';
+import { subscriptionLimiter } from '../middlewares/rateLimiter.js';
 
 const router = Router();
+
+async function subscriberCommentPayload(
+  email: string,
+  name?: string
+): Promise<{ commentToken: string; subscriberName: string }> {
+  const normalized = email.trim().toLowerCase();
+  const displayName = subscriberDisplayName({ name, email: normalized });
+  return {
+    commentToken: signSubscriberToken(normalized, displayName),
+    subscriberName: displayName,
+  };
+}
 
 /** POST /api/subscribe – public, subscribe with email (optional name/source). Idempotent: re-subscribes if previously unsubscribed. */
 router.post('/', async (req: Request, res: Response): Promise<void> => {
@@ -28,7 +43,13 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       if (name !== undefined) existing.name = name || undefined;
       if (source !== undefined) existing.source = source || undefined;
       await existing.save();
-      res.status(200).json({ message: 'You are subscribed!', subscribed: true });
+      const session = await subscriberCommentPayload(normalized, existing.name ?? name);
+      res.status(200).json({
+        message: 'You are subscribed!',
+        subscribed: true,
+        commentToken: session.commentToken,
+        subscriberName: session.subscriberName,
+      });
       sendWelcomeEmail(normalized, existing.name ?? name).catch((err) => console.error('Welcome email', err));
       return;
     }
@@ -39,7 +60,13 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       status: 'subscribed',
       subscribedAt: new Date(),
     });
-    res.status(201).json({ message: 'You are subscribed!', subscribed: true });
+    const session = await subscriberCommentPayload(normalized, name);
+    res.status(201).json({
+      message: 'You are subscribed!',
+      subscribed: true,
+      commentToken: session.commentToken,
+      subscriberName: session.subscriberName,
+    });
     sendWelcomeEmail(normalized, name).catch((err) => console.error('Welcome email', err));
   } catch (err) {
     console.error('POST /api/subscribe', err);
@@ -73,6 +100,30 @@ router.post('/unsubscribe', async (req: Request, res: Response): Promise<void> =
   } catch (err) {
     console.error('POST /api/subscribe/unsubscribe', err);
     res.status(500).json({ error: 'Failed to unsubscribe' });
+  }
+});
+
+/** POST /api/subscribe/comment-token – existing subscribers: email only → comment session */
+router.post('/comment-token', subscriptionLimiter, async (req: Request, res: Response): Promise<void> => {
+  const email = req.body?.email;
+  if (!email || typeof email !== 'string') {
+    res.status(400).json({ error: 'Email is required' });
+    return;
+  }
+  try {
+    const session = await issueSubscriberCommentToken(email);
+    if (!session) {
+      res.status(404).json({ error: 'No active subscription found for this email' });
+      return;
+    }
+    res.status(200).json({
+      commentToken: session.commentToken,
+      subscriberName: session.name,
+      email: session.email,
+    });
+  } catch (err) {
+    console.error('POST /api/subscribe/comment-token', err);
+    res.status(500).json({ error: 'Failed to verify subscription' });
   }
 });
 

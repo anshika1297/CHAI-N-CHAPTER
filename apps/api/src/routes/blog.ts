@@ -1,6 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { Page } from '../models/Page.js';
+import { filterPublishedPageItems, isPageContentPublished } from '../utils/pageContentPublish.js';
+import { createPageItemAnnounceHandler } from '../utils/announceRoute.js';
+import { sendBlogAnnouncementEmail } from '../services/contentAnnouncementEmail.js';
+import { requireAuth } from '../middlewares/auth.js';
 import { rewriteImageUrlsInObject } from './upload.js';
+import { resolveReadNext } from '../services/readNext.js';
 
 const BLOG_SLUG = 'blog' as const;
 const SORT_OPTIONS = ['newest', 'oldest', 'reading-time'] as const;
@@ -35,7 +40,7 @@ router.get('/posts', async (req: Request, res: Response): Promise<void> => {
     const raw = pageDoc?.content && typeof pageDoc.content === 'object' && Array.isArray((pageDoc.content as { posts?: unknown }).posts)
       ? (pageDoc.content as { posts: unknown[] }).posts
       : [];
-    const all = rewriteImageUrlsInObject(raw) as BlogItem[];
+    const all = filterPublishedPageItems(rewriteImageUrlsInObject(raw) as BlogItem[]);
 
     const page = Math.max(1, parseInt(String(req.query.page), 10) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit), 10) || 6));
@@ -75,6 +80,23 @@ router.get('/posts', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+/** GET /api/blog/posts/:slug/read-next – related published reviews (tags → author → category → newest). */
+router.get('/posts/:slug/read-next', async (req: Request, res: Response): Promise<void> => {
+  const slug = req.params.slug;
+  if (!slug) {
+    res.status(400).json({ error: 'Missing slug' });
+    return;
+  }
+  try {
+    const limit = Math.min(8, Math.max(1, parseInt(String(req.query.limit), 10) || 4));
+    const items = await resolveReadNext('blog', slug, limit);
+    res.status(200).json({ items });
+  } catch (err) {
+    console.error('GET /api/blog/posts/:slug/read-next', err);
+    res.status(500).json({ error: 'Failed to load related posts' });
+  }
+});
+
 /** GET /api/blog/posts/:slug – public, returns a single blog post by slug */
 router.get('/posts/:slug', async (req: Request, res: Response): Promise<void> => {
   const slug = req.params.slug;
@@ -88,7 +110,7 @@ router.get('/posts/:slug', async (req: Request, res: Response): Promise<void> =>
       ? (page.content as { posts: Record<string, unknown>[] }).posts
       : [];
     const post = posts.find((p) => String(p?.slug ?? '').toLowerCase() === slug.toLowerCase());
-    if (!post) {
+    if (!post || !isPageContentPublished(post)) {
       res.status(404).json({ error: 'Post not found' });
       return;
     }
@@ -99,5 +121,8 @@ router.get('/posts/:slug', async (req: Request, res: Response): Promise<void> =>
     res.status(500).json({ error: 'Failed to load post' });
   }
 });
+
+/** POST /api/blog/announce – protected, email subscribers about a live post (by slug). */
+router.post('/announce', requireAuth, createPageItemAnnounceHandler('blog', sendBlogAnnouncementEmail));
 
 export default router;

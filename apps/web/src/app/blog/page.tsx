@@ -1,7 +1,20 @@
 import { Suspense } from 'react';
 import BlogListing from '@/components/blog/BlogListing';
 import PageLoading from '@/components/PageLoading';
+import PageJsonLd from '@/components/schema/PageJsonLd';
 import { buildMetadata } from '@/lib/metadata';
+import { buildListingHubSchema } from '@/lib/schema';
+
+const schemas = buildListingHubSchema({
+  path: '/blog',
+  name: 'Book Reviews — Chapters.aur.Chai',
+  description:
+    'Honest book reviews by Anshika Mishra — fiction, history, mythology, and literary fiction for readers in India, UAE, and worldwide.',
+  breadcrumbs: [
+    { name: 'Home', path: '/' },
+    { name: 'Book Reviews', path: '/blog' },
+  ],
+});
 
 export const metadata = buildMetadata({
   title: 'Book Reviews – Fiction, History & Mythology | India & UAE',
@@ -13,8 +26,11 @@ export const metadata = buildMetadata({
 
 export default function BlogPage() {
   return (
-    <Suspense fallback={<PageLoading message="Loading book reviews..." />}>
-      <BlogListing />
-    </Suspense>
+    <>
+      <PageJsonLd schemas={schemas} />
+      <Suspense fallback={<PageLoading message="Loading book reviews..." />}>
+        <BlogListing />
+      </Suspense>
+    </>
   );
 }

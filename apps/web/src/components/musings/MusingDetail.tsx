@@ -2,12 +2,26 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Clock, Tag, User, Share2 } from 'lucide-react';
+import { Clock, User, Share2 } from 'lucide-react';
 import { getMusingBySlug, getImageUrl, getMusings } from '@/lib/api';
+import type { ReadNextItem } from '@/lib/readNext';
+import { musingFieldsFromRaw, readTags } from '@/lib/contentFields';
+import ContentTagList from '@/components/tags/ContentTagList';
+import ReadNextNudgeAfter from '@/components/content/ReadNextNudgeAfter';
 import ReadMoreSection from '@/components/blog/ReadMoreSection';
+import ReadingPathTeaser from '@/components/reading-paths/ReadingPathTeaser';
+import ContentBreadcrumbs from '@/components/content/ContentBreadcrumbs';
+import CategoryLink from '@/components/content/CategoryLink';
+import EditorialCrossLinks from '@/components/content/EditorialCrossLinks';
+import { resolveGenreHubForCategory } from '@/lib/genres/resolveCategoryHref';
+import CommentsSection from '@/components/comments/CommentsSection';
+import ReaderReactions from '@/components/reactions/ReaderReactions';
+import NewsletterInlineCta from '@/components/newsletter/NewsletterInlineCta';
+import ContentFreshnessDates from '@/components/content/ContentFreshnessDates';
 
 interface MusingDetailProps {
   slug: string;
+  readNextItems?: ReadNextItem[];
 }
 
 type ItemData = {
@@ -20,8 +34,12 @@ type ItemData = {
   readingTime: number;
   author: string;
   publishedAt: string;
+  updatedAt?: string;
+  updateHistory?: { at: string; reason: 'content' | 'publish' }[];
   categories: string[];
   tags: string[];
+  keyTakeaway?: string;
+  themes?: string[];
 };
 
 function normalizeItem(m: Record<string, unknown> | null | undefined): ItemData {
@@ -41,6 +59,7 @@ function normalizeItem(m: Record<string, unknown> | null | undefined): ItemData 
     };
   }
   const category = typeof m.category === 'string' ? m.category : '';
+  const editorial = musingFieldsFromRaw(m);
   return {
     title: String(m.title ?? '').trim(),
     content: typeof m.content === 'string' ? m.content : '',
@@ -51,12 +70,15 @@ function normalizeItem(m: Record<string, unknown> | null | undefined): ItemData 
     readingTime: typeof m.readingTime === 'number' ? m.readingTime : Number(m.readingTime) || 3,
     author: typeof m.author === 'string' ? m.author : '',
     publishedAt: typeof m.publishedAt === 'string' ? m.publishedAt : new Date().toISOString().slice(0, 10),
+    updatedAt: typeof m.updatedAt === 'string' ? m.updatedAt : undefined,
+    updateHistory: Array.isArray(m.updateHistory) ? (m.updateHistory as ItemData['updateHistory']) : undefined,
     categories: category ? [category] : [],
-    tags: Array.isArray(m.seoKeywords) ? (m.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+    tags: readTags(m),
+    ...editorial,
   };
 }
 
-export default function MusingDetail({ slug }: MusingDetailProps) {
+export default function MusingDetail({ slug, readNextItems = [] }: MusingDetailProps) {
   const [item, setItem] = useState<ItemData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -158,8 +180,8 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
 
   if (loading) {
     return (
-      <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-4xl mx-auto text-center py-16">
+      <article className="pt-24 pb-12 sm:pb-16 min-h-screen">
+        <div className="site-container max-w-5xl text-center py-16">
           <p className="font-body text-chai-brown-light">Loading…</p>
         </div>
       </article>
@@ -168,8 +190,8 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
 
   if (notFound || !item) {
     return (
-      <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-4xl mx-auto text-center py-16">
+      <article className="pt-24 pb-12 sm:pb-16 min-h-screen">
+        <div className="site-container max-w-5xl text-center py-16">
           <p className="font-body text-chai-brown-light">Musing not found.</p>
         </div>
       </article>
@@ -177,7 +199,7 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
   }
 
   return (
-    <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+    <article className="pt-24 pb-12 sm:pb-16 min-h-screen">
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-cream/50 z-[60]">
         <div
@@ -186,20 +208,27 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
         />
       </div>
 
-      <div className="max-w-4xl mx-auto">
+      <div className="site-container max-w-5xl">
+        <ContentBreadcrumbs
+          sectionLabel="Her Musings Verse"
+          sectionHref="/musings"
+          genreHub={
+            item.categories[0]
+              ? (() => {
+                  const hub = resolveGenreHubForCategory(item.categories[0]);
+                  return hub ? { label: hub.title, href: hub.href } : undefined;
+                })()
+              : undefined
+          }
+          title={item.title}
+        />
         {/* Header Section */}
         <header className="mb-8 overflow-visible">
           {/* Category Badges */}
           {item.categories && item.categories.length > 0 && (
             <div className="mb-4 flex flex-wrap items-center gap-2">
               {item.categories.map((category) => (
-                <span
-                  key={category}
-                  className="bg-chai-brown-light text-cream text-xs font-sans px-3 py-1 rounded-full inline-flex items-center gap-1"
-                >
-                  <Tag size={12} />
-                  {category}
-                </span>
+                <CategoryLink key={category} category={category} contentType="musings" style="pill" />
               ))}
             </div>
           )}
@@ -219,13 +248,13 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
               <User size={14} />
               <span>{item.author}</span>
             </div>
-            <div className="text-xs">
-              {new Date(item.publishedAt).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </div>
+            <ContentFreshnessDates
+              raw={{
+                publishedAt: item.publishedAt,
+                updatedAt: item.updatedAt,
+                updateHistory: item.updateHistory,
+              }}
+            />
           </div>
 
           {/* Share Button */}
@@ -326,42 +355,37 @@ export default function MusingDetail({ slug }: MusingDetailProps) {
           dangerouslySetInnerHTML={{ __html: item.content }}
         />
 
-        {/* Categories Section */}
+        <ReadNextNudgeAfter items={readNextItems} variant="musings" slotIndex={0} />
+
         {item.categories && item.categories.length > 0 && (
           <section className="mb-6 pt-8 border-t border-chai-brown/10">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-sans font-medium text-chai-brown mr-2">Categories:</span>
               {item.categories.map((category) => (
-                <span
-                  key={category}
-                  className="bg-chai-brown-light/10 text-chai-brown-light text-xs font-sans px-3 py-1 rounded-full border border-chai-brown-light/30 hover:bg-chai-brown-light/20 transition-colors cursor-pointer"
-                >
-                  {category}
-                </span>
+                <CategoryLink key={category} category={category} contentType="musings" style="footer" />
               ))}
             </div>
           </section>
         )}
 
-        {/* Tags Section */}
-        {item.tags && item.tags.length > 0 && (
-          <section className="mb-8 pt-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-sans font-medium text-chai-brown mr-2">Tags:</span>
-              {item.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-cream-light text-chai-brown text-xs font-sans px-3 py-1 rounded-full border border-chai-brown/20 hover:border-chai-brown-light transition-colors cursor-pointer"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
+        <ContentTagList tags={item.tags} />
 
-        {/* Read next – random musing cards */}
-        <ReadMoreSection variant="musings" excludeSlug={slug} />
+        <ReadNextNudgeAfter items={readNextItems} variant="musings" slotIndex={1} />
+        <ReadNextNudgeAfter items={readNextItems} variant="musings" slotIndex={2} />
+
+        <ReadingPathTeaser category={item.categories[0] ?? item.category} tags={item.tags} />
+        <EditorialCrossLinks
+          contentType="musings"
+          category={item.categories[0] ?? item.category}
+          tags={item.tags}
+        />
+
+        <NewsletterInlineCta variant="musing" placement="content-musing" contentSlug={slug} />
+        <ReaderReactions contentType="musings" slug={slug} />
+        <CommentsSection contentType="musings" slug={slug} />
+
+        <ReadNextNudgeAfter items={readNextItems} variant="musings" slotIndex={3} />
+        <ReadMoreSection variant="musings" items={readNextItems} />
 
         {/* Navigation to Next/Previous */}
         <div className="flex justify-between items-center pt-8 border-t border-chai-brown/10">

@@ -1,13 +1,37 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Clock, Tag, User, BookOpen, Share2, Quote, Star } from 'lucide-react';
+import { Clock, User, BookOpen, Share2, Quote, Star } from 'lucide-react';
 import { getImageUrl, getBlogPostBySlug, getBlogPosts } from '@/lib/api';
+import { hasShopLinks, resolveReviewShopLinks, reviewGoodreadsLink, shopPath } from '@/lib/shopLinks';
+import ShopWhereToBuyCta from '@/components/shop/ShopWhereToBuyCta';
 import ReadMoreSection from './ReadMoreSection';
+import type { ReadNextItem } from '@/lib/readNext';
+import ContentAeoSummary from '@/components/content/ContentAeoSummary';
+import ContentTagList from '@/components/tags/ContentTagList';
+import BookNudgeAfter from '@/components/books/BookNudgeAfter';
+import { useBookNudgeSuggestions } from '@/lib/books/useBookNudgeSuggestions';
+import CommentsSection from '@/components/comments/CommentsSection';
+import ReaderReactions from '@/components/reactions/ReaderReactions';
+import NewsletterInlineCta from '@/components/newsletter/NewsletterInlineCta';
+import ReadingPathTeaser from '@/components/reading-paths/ReadingPathTeaser';
+import ContentFreshnessDates from '@/components/content/ContentFreshnessDates';
+import ContentBreadcrumbs from '@/components/content/ContentBreadcrumbs';
+import CategoryLink from '@/components/content/CategoryLink';
+import EditorialCrossLinks from '@/components/content/EditorialCrossLinks';
+import { resolveGenreHubForCategory } from '@/lib/genres/resolveCategoryHref';
+import { parseShopReviewFromPost } from '@/lib/shopCatalog';
+import {
+  buildReviewAeoPairs,
+  readTags,
+  reviewFieldsFromRaw,
+  type SimilarBookRef,
+} from '@/lib/contentFields';
 
 interface BlogDetailProps {
   slug: string;
+  readNextItems?: ReadNextItem[];
 }
 
 type Highlight = { id: string; quote: string; page?: number; image?: string };
@@ -30,9 +54,17 @@ type PostData = {
   /** URL for the author profile; author name links here when set. */
   authorLink?: string;
   publishedAt: string;
+  updatedAt?: string;
+  updateHistory?: { at: string; reason: 'content' | 'publish' }[];
   tags: string[];
   bookImages: string[];
   highlights: Highlight[];
+  shopLinks: import('@/lib/shopLinks').ShopLink[];
+  recommendedFor?: string;
+  notRecommendedFor?: string;
+  verdict?: string;
+  similarBooks: SimilarBookRef[];
+  bookSlug?: string;
 };
 
 function normalizePost(p: Record<string, unknown> | null | undefined): PostData {
@@ -53,8 +85,13 @@ function normalizePost(p: Record<string, unknown> | null | undefined): PostData 
       tags: [],
       bookImages: [],
       highlights: [],
+      shopLinks: [],
+      similarBooks: [],
     };
   }
+  const editorial = reviewFieldsFromRaw(p);
+  const slugStr = String(p.slug ?? '').trim();
+  const shop = slugStr ? parseShopReviewFromPost(p, slugStr) : null;
   const category = typeof p.category === 'string' ? p.category : '';
   const rawHighlights = Array.isArray(p.highlights) ? p.highlights : [];
   const highlights = rawHighlights.map((h: unknown) => {
@@ -79,16 +116,22 @@ function normalizePost(p: Record<string, unknown> | null | undefined): PostData 
     bookTitle: typeof p.bookTitle === 'string' ? p.bookTitle : '',
     bookAuthor: typeof p.bookAuthor === 'string' ? p.bookAuthor : '',
     rating: typeof p.rating === 'number' && p.rating >= 1 && p.rating <= 5 ? p.rating : undefined,
-    bookLink: typeof p.bookLink === 'string' && p.bookLink.trim() ? p.bookLink.trim() : undefined,
+    bookLink: reviewGoodreadsLink(p),
     authorLink: typeof p.authorLink === 'string' && p.authorLink.trim() ? p.authorLink.trim() : undefined,
+    shopLinks: resolveReviewShopLinks(p),
     publishedAt: typeof p.publishedAt === 'string' ? p.publishedAt : new Date().toISOString().slice(0, 10),
-    tags: Array.isArray(p.seoKeywords) ? (p.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+    updatedAt: typeof p.updatedAt === 'string' ? p.updatedAt : undefined,
+    updateHistory: Array.isArray(p.updateHistory) ? (p.updateHistory as PostData['updateHistory']) : undefined,
+    tags: readTags(p),
     bookImages: [],
     highlights,
+    ...editorial,
+    similarBooks: editorial.similarBooks ?? [],
+    bookSlug: shop?.bookSlug,
   };
 }
 
-export default function BlogDetail({ slug }: BlogDetailProps) {
+export default function BlogDetail({ slug, readNextItems = [] }: BlogDetailProps) {
   const [post, setPost] = useState<PostData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -96,6 +139,22 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [prevSlug, setPrevSlug] = useState<string | null>(null);
   const [nextSlug, setNextSlug] = useState<string | null>(null);
+
+  const nudgeSeed = useMemo(
+    () =>
+      post
+        ? {
+            bookSlug: post.bookSlug,
+            author: post.bookAuthor,
+            genre: post.categories[0],
+            tags: post.tags,
+            excludeSlugs: post.bookSlug ? [post.bookSlug] : undefined,
+            limit: 6,
+          }
+        : null,
+    [post]
+  );
+  const nudgeSuggestions = useBookNudgeSuggestions(nudgeSeed, post?.similarBooks ?? []);
 
   useEffect(() => {
     if (!slug || typeof slug !== 'string' || !slug.trim()) {
@@ -186,8 +245,8 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
 
   if (loading) {
     return (
-      <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-4xl mx-auto text-center py-16">
+      <article className="pt-24 pb-12 sm:pb-16 min-h-screen">
+        <div className="site-container max-w-5xl text-center py-16">
           <p className="font-body text-chai-brown-light">Loading…</p>
         </div>
       </article>
@@ -196,16 +255,22 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
 
   if (notFound || !post) {
     return (
-      <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-4xl mx-auto text-center py-16">
+      <article className="pt-24 pb-12 sm:pb-16 min-h-screen">
+        <div className="site-container max-w-5xl text-center py-16">
           <p className="font-body text-chai-brown-light">Post not found.</p>
         </div>
       </article>
     );
   }
 
+  const aeoPairs = buildReviewAeoPairs({
+    bookTitle: post.bookTitle,
+    verdict: post.verdict,
+    recommendedFor: post.recommendedFor,
+    notRecommendedFor: post.notRecommendedFor,
+  });
   return (
-    <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+    <article className="pt-24 pb-12 sm:pb-16 min-h-screen">
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-cream/50 z-[60]">
         <div
@@ -214,20 +279,27 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
         />
       </div>
 
-      <div className="max-w-4xl mx-auto">
+      <div className="site-container max-w-5xl">
+        <ContentBreadcrumbs
+          sectionLabel="Book Reviews"
+          sectionHref="/blog"
+          genreHub={
+            post.categories[0]
+              ? (() => {
+                  const hub = resolveGenreHubForCategory(post.categories[0]);
+                  return hub ? { label: hub.title, href: hub.href } : undefined;
+                })()
+              : undefined
+          }
+          title={post.title}
+        />
         {/* Header Section */}
         <header className="mb-8">
           {/* Category Badges */}
           {post.categories && post.categories.length > 0 && (
             <div className="mb-4 flex flex-wrap items-center gap-2">
               {post.categories.map((category) => (
-                <span
-                  key={category}
-                  className="bg-terracotta text-cream text-xs font-sans px-3 py-1 rounded-full inline-flex items-center gap-1"
-                >
-                  <Tag size={12} />
-                  {category}
-                </span>
+                <CategoryLink key={category} category={category} contentType="blog" style="pill" />
               ))}
             </div>
           )}
@@ -287,14 +359,16 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
                 </>
               )}
             </div>
-            <div className="text-xs">
-              {new Date(post.publishedAt).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </div>
+            <ContentFreshnessDates raw={{ publishedAt: post.publishedAt, updatedAt: post.updatedAt, updateHistory: post.updateHistory }} />
           </div>
+
+          {post.slug && hasShopLinks(post.shopLinks) ? (
+            <div className="mb-6">
+              <ShopWhereToBuyCta href={shopPath('review', post.slug)} />
+            </div>
+          ) : null}
+
+          <ContentAeoSummary pairs={aeoPairs} />
 
           {/* Share Button */}
           <div className="relative share-menu-container">
@@ -397,6 +471,8 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
+        <BookNudgeAfter suggestions={nudgeSuggestions} slotIndex={0} />
+
         {/* Highlights Section */}
         {post.highlights && post.highlights.length > 0 && (
           <section className="mb-12">
@@ -432,6 +508,8 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
             </div>
           </section>
         )}
+
+        <BookNudgeAfter suggestions={nudgeSuggestions} slotIndex={1} />
 
         {/* Book Images Gallery - Highlights and Related Images */}
         {post.bookImages && post.bookImages.some((img) => img) && (
@@ -473,42 +551,28 @@ export default function BlogDetail({ slug }: BlogDetailProps) {
           </section>
         )}
 
+        <BookNudgeAfter suggestions={nudgeSuggestions} slotIndex={2} />
+
         {/* Categories Section */}
         {post.categories && post.categories.length > 0 && (
           <section className="mb-6 pt-8 border-t border-chai-brown/10">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-sans font-medium text-chai-brown mr-2">Categories:</span>
               {post.categories.map((category) => (
-                <span
-                  key={category}
-                  className="bg-terracotta/10 text-terracotta text-xs font-sans px-3 py-1 rounded-full border border-terracotta/30 hover:bg-terracotta/20 transition-colors cursor-pointer"
-                >
-                  {category}
-                </span>
+                <CategoryLink key={category} category={category} contentType="blog" style="footer" />
               ))}
             </div>
           </section>
         )}
 
-        {/* Tags Section */}
-        {post.tags && post.tags.length > 0 && (
-          <section className="mb-8 pt-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-sans font-medium text-chai-brown mr-2">Tags:</span>
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-cream-light text-chai-brown text-xs font-sans px-3 py-1 rounded-full border border-chai-brown/20 hover:border-terracotta transition-colors cursor-pointer"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
+        <ContentTagList tags={post.tags} />
 
-        {/* Read next – random review cards */}
-        <ReadMoreSection variant="blog" excludeSlug={slug} />
+        <ReadingPathTeaser category={post.categories[0]} tags={post.tags} />
+        <EditorialCrossLinks contentType="blog" category={post.categories[0]} tags={post.tags} />
+        <NewsletterInlineCta variant="review" placement="content-review" contentSlug={slug} />
+        <ReaderReactions contentType="blog" slug={slug} />
+        <CommentsSection contentType="blog" slug={slug} />
+        <ReadMoreSection variant="blog" items={readNextItems} />
 
         {/* Navigation to Next/Previous */}
         <div className="flex justify-between items-center pt-8 border-t border-chai-brown/10">

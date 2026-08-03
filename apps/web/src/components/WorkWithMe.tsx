@@ -1,339 +1,206 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { 
-  BookOpen, 
-  PenTool, 
-  FileText, 
-  MessageSquare, 
-  Briefcase, 
-  DollarSign,
-  Instagram,
-  Facebook,
-  Linkedin,
-  Youtube,
-  Mail,
-  Send,
-  CheckCircle,
-  AtSign
+import Link from 'next/link';
+import type { LucideIcon } from 'lucide-react';
+import {
+  BookOpen,
+  PenTool,
+  Sparkles,
+  FileText,
+  MessageSquare,
+  Users,
+  Check,
+  ChevronDown,
 } from 'lucide-react';
-import { siteConfig } from '@/lib/seo';
-import { getPageSettings, submitWorkWithMeMessage } from '@/lib/api';
+import {
+  workWithMeHero,
+  workWithMeSummary,
+  workWithMeServices,
+  type WorkWithMeFaqItem,
+  type WorkWithMeTestimonial,
+} from '@/lib/workWithMeContent';
+import WorkWithMeInquiryForm from '@/components/work-with-me/WorkWithMeInquiryForm';
+import WorkWithMeSocial from '@/components/work-with-me/WorkWithMeSocial';
+import WorkWithMeTestimonialsCarousel from '@/components/work-with-me/WorkWithMeTestimonialsCarousel';
 
-type IconComp = React.ComponentType<{ size?: number | string; className?: string }>;
-const iconByKey: Record<string, IconComp> = {
-  'beta-reading': BookOpen, '1': BookOpen, 'Beta Reading': BookOpen,
-  'book-reviews': PenTool, '2': PenTool, 'Book Reviews': PenTool,
-  'proofreading': FileText, '3': FileText, 'Proofreading': FileText,
-  'author-interviews': MessageSquare, '4': MessageSquare, 'Author Interviews': MessageSquare,
-  'literary-agent': Briefcase, '5': Briefcase, 'Literary Agent Services': Briefcase,
-  'paid-content': DollarSign, '6': DollarSign, 'Paid Content & Collaborations': DollarSign,
-};
-const socialIconByName: Record<string, IconComp> = {
-  Email: Mail, Instagram, Facebook, Goodreads: BookOpen, LinkedIn: Linkedin, Threads: AtSign, YouTube: Youtube,
-};
-
-const defaultHeader = {
-  title: 'Work With Me',
-  description: "I'm passionate about supporting authors and publishers in their literary journey. Whether you need a beta reader, book reviewer, or a collaborator for your next project, I'd love to help bring your stories to life.",
-};
-
-const defaultServices: { id: string; title: string; description: string; icon: IconComp }[] = [
-  { id: 'beta-reading', title: 'Beta Reading', icon: BookOpen, description: 'Get detailed feedback on your manuscript before publication. I provide comprehensive analysis on plot, character development, pacing, and overall story structure.' },
-  { id: 'book-reviews', title: 'Book Reviews', icon: PenTool, description: 'Honest and detailed book reviews for your published works. Reviews will be featured on the blog and shared across social media platforms.' },
-  { id: 'proofreading', title: 'Proofreading', icon: FileText, description: 'Thorough proofreading services to catch grammar, spelling, punctuation, and formatting errors. Ensure your manuscript is polished and professional.' },
-  { id: 'author-interviews', title: 'Author Interviews', icon: MessageSquare, description: 'Engaging author interviews to help promote your book and share your writing journey with my reading community.' },
-  { id: 'literary-agent', title: 'Literary Agent Services', icon: Briefcase, description: 'Assistance with manuscript submissions, query letter reviews, and guidance on navigating the publishing industry.' },
-  { id: 'paid-content', title: 'Paid Content & Collaborations', icon: DollarSign, description: 'Sponsored blog posts, social media promotions, book tours, and other collaborative content opportunities for authors and publishers.' },
-];
-
-const defaultSocialLinks = [
-  { name: 'Email', icon: Mail, href: `mailto:${siteConfig.email}`, color: 'text-chai-brown' },
-  { name: 'Instagram', icon: Instagram, href: siteConfig.social.instagram, color: 'text-pink-500' },
-  { name: 'Facebook', icon: Facebook, href: siteConfig.social.facebook, color: 'text-blue-600' },
-  { name: 'Goodreads', icon: BookOpen, href: siteConfig.social.goodreads, color: 'text-amber-700' },
-  { name: 'LinkedIn', icon: Linkedin, href: siteConfig.social.linkedin, color: 'text-blue-700' },
-  { name: 'Threads', icon: AtSign, href: siteConfig.social.threads, color: 'text-neutral-700' },
-  { name: 'YouTube', icon: Youtube, href: siteConfig.social.youtube, color: 'text-red-500' },
-];
-
-const defaultConnect = {
-  title: 'Connect With Me',
-  description: 'Follow me on social media to stay updated with my latest reviews, recommendations, and bookish content.',
+const serviceIcons: Record<string, LucideIcon> = {
+  'beta-reading': BookOpen,
+  'book-review': PenTool,
+  'author-spotlight': Sparkles,
+  'manuscript-feedback': MessageSquare,
+  proofreading: FileText,
+  collaboration: Users,
 };
 
-export default function WorkWithMe() {
-  const [header, setHeader] = useState(defaultHeader);
-  const [services, setServices] = useState(defaultServices);
-  const [socialLinks, setSocialLinks] = useState<{ name: string; icon: IconComp; href: string; color: string }[]>(defaultSocialLinks);
-  const [connectSection, setConnectSection] = useState(defaultConnect);
+type Props = {
+  testimonials: WorkWithMeTestimonial[];
+  faq: WorkWithMeFaqItem[];
+};
 
-  useEffect(() => {
-    getPageSettings('work-with-me')
-      .then(({ content }) => {
-        if (content && typeof content === 'object' && !Array.isArray(content)) {
-          const c = content as Record<string, unknown>;
-          if (c.header && typeof c.header === 'object') {
-            const h = c.header as Record<string, unknown>;
-            setHeader({ title: (h.title as string) || defaultHeader.title, description: (h.description as string) || defaultHeader.description });
-          }
-          if (Array.isArray(c.services) && c.services.length) {
-            setServices(
-              (c.services as { id: string; title: string; description: string }[]).map((s) => ({
-                id: s.id || '',
-                title: s.title || '',
-                description: s.description || '',
-                icon: iconByKey[s.id] || iconByKey[s.title] || BookOpen,
-              }))
-            );
-          }
-          if (Array.isArray(c.socialLinks) && c.socialLinks.length) {
-            setSocialLinks(
-              (c.socialLinks as { name: string; url: string; color?: string }[]).map((l) => ({
-                name: l.name || '',
-                icon: socialIconByName[l.name] || AtSign,
-                href: l.url || '#',
-                color: (l.color as string) || 'text-chai-brown',
-              }))
-            );
-          }
-          if (c.connectSection && typeof c.connectSection === 'object') {
-            const cs = c.connectSection as Record<string, unknown>;
-            setConnectSection({
-              title: (cs.title as string) || defaultConnect.title,
-              description: (cs.description as string) || defaultConnect.description,
-            });
-          }
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    service: '',
-    message: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    const selectedId = formData.service.trim();
-    const serviceName =
-      selectedId === 'other'
-        ? 'Other / General Inquiry'
-        : services.find((s) => s.id === selectedId)?.title ?? selectedId;
-    try {
-      await submitWorkWithMeMessage({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        service: serviceName,
-        message: formData.message.trim(),
-      });
-      setIsSubmitted(true);
-      setFormData({ name: '', email: '', service: '', message: '' });
-      setTimeout(() => setIsSubmitted(false), 5001);
-    } catch (err) {
-      setFormData((prev) => ({ ...prev }));
-      alert(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
+export default function WorkWithMe({ testimonials, faq }: Props) {
   return (
-    <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <header className="text-center mb-12 sm:mb-16">
-          <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-chai-brown mb-4">
-            {header.title}
+    <article className="pt-24 pb-16 px-3 sm:px-5 lg:px-6 min-h-screen">
+      <div className="w-full max-w-[96rem] mx-auto">
+        {/* Hero — stacked: one line per block on laptop (full width, no narrow max-w) */}
+        <header className="text-center mb-10 sm:mb-14 w-full">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-[2.15rem] xl:text-5xl text-chai-brown mb-4 leading-tight w-full xl:whitespace-nowrap">
+            {workWithMeHero.h1}
           </h1>
-          <p className="font-body text-lg text-chai-brown-light max-w-2xl mx-auto leading-relaxed">
-            {header.description}
+          <p className="font-body text-base sm:text-lg lg:text-[1.05rem] xl:text-xl text-chai-brown-light mb-3 leading-snug w-full xl:whitespace-nowrap">
+            {workWithMeHero.subheading}
+          </p>
+          <p className="font-body text-base sm:text-lg lg:text-[1rem] xl:text-lg text-chai-brown-light mb-8 leading-snug w-full xl:whitespace-nowrap">
+            {workWithMeHero.supporting}
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-5">
+            <a
+              href="#inquiry"
+              className="w-full sm:w-auto px-8 py-3 bg-terracotta text-cream font-sans font-medium rounded-full hover:bg-terracotta/90 transition-colors text-center"
+            >
+              Work With Me
+            </a>
+            <Link
+              href="/contact"
+              className="w-full sm:w-auto px-8 py-3 border border-chai-brown/25 text-chai-brown font-sans font-medium rounded-full hover:border-terracotta hover:text-terracotta transition-colors text-center"
+            >
+              Contact Me
+            </Link>
+          </div>
+          <p className="font-body text-sm text-chai-brown-light/80 xl:whitespace-nowrap">
+            {workWithMeHero.trustLine}
           </p>
         </header>
 
-        {/* Services Section */}
-        <section className="mb-16">
-          <h2 className="font-serif text-2xl sm:text-3xl text-chai-brown mb-8 text-center">
-            Services I Offer
+        {/* AI / GEO summary */}
+        <section
+          className="mb-10 sm:mb-14 bg-cream-light rounded-2xl border border-chai-brown/10 p-5 sm:p-6 lg:p-8"
+          aria-labelledby="wwm-summary-heading"
+        >
+          <h2 id="wwm-summary-heading" className="sr-only">
+            Work With Me overview
           </h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service) => {
-              const Icon = service.icon;
+          <dl className="grid gap-6 md:grid-cols-3 md:gap-5 lg:gap-8">
+            {workWithMeSummary.map((item, i) => (
+              <div
+                key={item.question}
+                className={`min-w-0 text-center md:text-left ${i > 0 ? 'md:border-l md:border-chai-brown/10 md:pl-5 lg:pl-8' : ''}`}
+              >
+                <dt className="font-sans text-base sm:text-lg font-semibold text-chai-brown mb-2 leading-snug md:whitespace-nowrap">
+                  {item.question}
+                </dt>
+                <dd className="font-body text-sm sm:text-base lg:text-base text-chai-brown-light leading-relaxed">
+                  {item.answer}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        {/* Services — 3 per row on large screens */}
+        <section className="mb-12 sm:mb-16" aria-labelledby="wwm-services-heading">
+          <h2
+            id="wwm-services-heading"
+            className="font-serif text-2xl sm:text-3xl text-chai-brown mb-8 text-center"
+          >
+            Services
+          </h2>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+            {workWithMeServices.map((service) => {
+              const Icon = serviceIcons[service.id] ?? BookOpen;
               return (
                 <div
                   key={service.id}
-                  className="bg-cream-light rounded-xl p-6 border border-chai-brown/10 hover:border-terracotta transition-all duration-300 hover:shadow-lg"
+                  className={`rounded-xl p-6 border bg-cream-light flex flex-col h-full ${
+                    service.featured
+                      ? 'border-terracotta/40 ring-1 ring-terracotta/20'
+                      : 'border-chai-brown/10'
+                  }`}
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-full bg-terracotta/10 flex items-center justify-center">
-                      <Icon size={24} className="text-terracotta" />
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-terracotta/10 flex items-center justify-center shrink-0">
+                      <Icon size={20} className="text-terracotta" aria-hidden />
                     </div>
-                    <h3 className="font-serif text-xl text-chai-brown">{service.title}</h3>
+                    <div className="min-w-0">
+                      <h3 className="font-serif text-lg sm:text-xl text-chai-brown leading-snug">
+                        {service.title}
+                        {service.featured && (
+                          <span className="ml-2 text-xs font-sans font-medium text-terracotta align-middle">
+                            Featured
+                          </span>
+                        )}
+                      </h3>
+                      <p className="font-body text-sm text-chai-brown-light mt-1.5 leading-relaxed">
+                        {service.definition}
+                      </p>
+                    </div>
                   </div>
-                  <p className="font-body text-sm text-chai-brown-light leading-relaxed">
-                    {service.description}
-                  </p>
+                  <ul className="space-y-1.5 pl-1">
+                    {service.deliverables.map((d) => (
+                      <li key={d} className="flex items-start gap-2 font-body text-sm text-chai-brown-light">
+                        <Check size={14} className="text-terracotta shrink-0 mt-0.5" aria-hidden />
+                        {d}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="flex-1 min-h-3" aria-hidden />
                 </div>
               );
             })}
           </div>
         </section>
 
-        {/* Social Media Section */}
-        <section className="mb-16">
-          <div className="bg-cream-light rounded-2xl p-8 sm:p-12 border border-chai-brown/10">
-            <h2 className="font-serif text-2xl sm:text-3xl text-chai-brown mb-6 text-center">
-              {connectSection.title}
-            </h2>
-            <p className="font-body text-base text-chai-brown-light text-center mb-8 max-w-2xl mx-auto">
-              {connectSection.description}
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-              {socialLinks.map((social) => {
-                const Icon = social.icon;
-                return (
-                  <a
-                    key={social.name}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl bg-cream border border-chai-brown/20 hover:border-terracotta transition-all duration-300 hover:shadow-md group"
-                  >
-                    <div className="w-12 h-12 rounded-full bg-terracotta/10 flex items-center justify-center group-hover:bg-terracotta/20 transition-colors">
-                      <Icon size={24} className={`${social.color} group-hover:scale-110 transition-transform`} />
-                    </div>
-                    <span className="font-sans text-sm text-chai-brown font-medium">{social.name}</span>
-                  </a>
-                );
-              })}
-            </div>
-          </div>
+        {/* Testimonials carousel — 3 cards on laptop, swipe pages for more */}
+        <section className="mb-12 sm:mb-16 px-2 sm:px-6" aria-labelledby="wwm-testimonials-heading">
+          <h2
+            id="wwm-testimonials-heading"
+            className="font-serif text-2xl sm:text-3xl text-chai-brown mb-8 text-center"
+          >
+            What Authors Say
+          </h2>
+          <WorkWithMeTestimonialsCarousel testimonials={testimonials} />
         </section>
 
-        {/* Contact Form Section */}
-        <section className="mb-12">
-          <div className="bg-cream-light rounded-2xl p-8 sm:p-12 border border-chai-brown/10 max-w-3xl mx-auto">
-            <h2 className="font-serif text-2xl sm:text-3xl text-chai-brown mb-4 text-center">
-              Let's Work Together
+        {/* Connect / social */}
+        <WorkWithMeSocial />
+
+        {/* FAQ + inquiry form — side by side on large screens */}
+        <section
+          id="inquiry"
+          className="scroll-mt-28 grid lg:grid-cols-2 gap-8 lg:gap-10 items-start"
+          aria-labelledby="wwm-faq-heading"
+        >
+          <div>
+            <h2
+              id="wwm-faq-heading"
+              className="font-serif text-2xl sm:text-3xl text-chai-brown mb-6"
+            >
+              Frequently Asked Questions
             </h2>
-            <p className="font-body text-base text-chai-brown-light text-center mb-8">
-              Have a project in mind? Fill out the form below and I'll get back to you as soon as possible.
-            </p>
-
-            {isSubmitted && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-3">
-                <CheckCircle size={20} className="text-green-600" />
-                <p className="text-green-800 font-sans text-sm">
-                  Thank you! Your message has been sent. I'll get back to you soon.
-                </p>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-sans font-medium text-chai-brown mb-2">
-                  Your Name *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-chai-brown/20 bg-cream focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 outline-none transition-all font-body text-chai-brown"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-sm font-sans font-medium text-chai-brown mb-2">
-                  Email Address *
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-chai-brown/20 bg-cream focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 outline-none transition-all font-body text-chai-brown"
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="service" className="block text-sm font-sans font-medium text-chai-brown mb-2">
-                  Service Interested In *
-                </label>
-                <select
-                  id="service"
-                  name="service"
-                  required
-                  value={formData.service}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-chai-brown/20 bg-cream focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 outline-none transition-all font-body text-chai-brown"
+            <div className="space-y-3">
+              {faq.map((item, i) => (
+                <details
+                  key={`${item.question}-${i}`}
+                  className="group bg-cream-light rounded-xl border border-chai-brown/10 overflow-hidden"
                 >
-                  <option value="">Select a service...</option>
-                  {services.map((service) => (
-                    <option key={service.id} value={service.id}>
-                      {service.title}
-                    </option>
-                  ))}
-                  <option value="other">Other / General Inquiry</option>
-                </select>
-              </div>
+                  <summary className="flex items-center justify-between gap-4 cursor-pointer list-none px-5 py-4 font-sans text-sm sm:text-base font-medium text-chai-brown hover:text-terracotta transition-colors [&::-webkit-details-marker]:hidden">
+                    {item.question}
+                    <ChevronDown
+                      size={18}
+                      className="shrink-0 text-chai-brown-light transition-transform group-open:rotate-180"
+                      aria-hidden
+                    />
+                  </summary>
+                  <p className="px-5 pb-4 font-body text-sm sm:text-base text-chai-brown-light leading-relaxed border-t border-chai-brown/5 pt-3">
+                    {item.answer}
+                  </p>
+                </details>
+              ))}
+            </div>
+          </div>
 
-              <div>
-                <label htmlFor="message" className="block text-sm font-sans font-medium text-chai-brown mb-2">
-                  Your Message *
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  required
-                  rows={6}
-                  value={formData.message}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg border border-chai-brown/20 bg-cream focus:border-terracotta focus:ring-2 focus:ring-terracotta/20 outline-none transition-all font-body text-chai-brown resize-none"
-                  placeholder="Tell me about your project, timeline, and any specific requirements..."
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-auto px-8 py-3 bg-terracotta text-cream font-sans font-medium rounded-full hover:bg-terracotta-dark transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="animate-spin">⏳</span>
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send size={18} />
-                    Send Message
-                  </>
-                )}
-              </button>
-            </form>
+          <div>
+            <WorkWithMeInquiryForm embedded />
           </div>
         </section>
       </div>
-    </section>
+    </article>
   );
 }

@@ -3,9 +3,31 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save } from 'lucide-react';
 import Link from 'next/link';
-import { getPageSettings, putPageSettings } from '@/lib/api';
+import { announceBlogPost, getPageSettings, putPageSettings } from '@/lib/api';
+import { tryAutoAnnounceOnFirstPublish } from '@/lib/announceSubscribers';
+import { isContentPublished, readIsPublished, withToggledPublish } from '@/lib/contentPublish';
+import { readSubscribersEmailedAt, subscribersEmailedSaveField } from '@/lib/subscribersEmailed';
 import PageLoading from '@/components/PageLoading';
 import ImageUploadField from '@/components/ImageUploadField';
+import AdminPublishToggle from '@/components/admin/AdminPublishToggle';
+import AdminSubscribersEmailedBadge from '@/components/admin/AdminSubscribersEmailedBadge';
+import AdminShopLinksSection from '@/components/admin/AdminShopLinksSection';
+import CatalogShopAutofill from '@/components/admin/CatalogShopAutofill';
+import type { ShopBookMeta, ShopLink } from '@/lib/shopLinks';
+import { hasShopLinks, resolveReviewShopLinks, sanitizeShopLinksForSave, shopPath } from '@/lib/shopLinks';
+import { parseShopBookMeta, parseShopLinksFromRaw, sanitizeShopBookMeta } from '@/lib/shop/sanitize';
+import {
+  readGenres,
+  readTags,
+  reviewFieldsForSave,
+  reviewFieldsFromRaw,
+  seoFieldsForSave,
+  seoFieldsFromRaw,
+  type ReviewContentFields,
+} from '@/lib/contentFields';
+import AdminUniversalSeoFields from '@/components/admin/AdminUniversalSeoFields';
+import AdminReviewEditorialFields from '@/components/admin/AdminReviewEditorialFields';
+import AdminGenresField from '@/components/admin/AdminGenresField';
 
 export interface BlogHighlight {
   id: string;
@@ -14,7 +36,7 @@ export interface BlogHighlight {
   image?: string;
 }
 
-export interface BlogPost {
+export interface BlogPost extends ReviewContentFields {
   id: string;
   title: string;
   slug: string;
@@ -28,14 +50,16 @@ export interface BlogPost {
   bookAuthor: string;
   /** Book rating 1–5 (optional). */
   rating?: number;
-  /** URL for the book (e.g. Goodreads, Amazon). Shown as hyperlink on book title. */
+  /** Goodreads URL — book title links here on the review. */
   bookLink?: string;
+  shopLinks?: ShopLink[];
+  shopBook?: ShopBookMeta;
   /** URL for the author profile. Shown as hyperlink on author name. */
   authorLink?: string;
   publishedAt: string;
+  isPublished: boolean;
+  subscribersEmailedAt?: string;
   highlights?: BlogHighlight[];
-  /** SEO keywords for this post; merged with site-wide keywords in meta. */
-  seoKeywords?: string[];
 }
 
 const DEFAULT_CATEGORIES = [
@@ -51,76 +75,7 @@ const DEFAULT_CATEGORIES = [
   'Literary Fiction',
 ];
 
-const defaultPosts: BlogPost[] = [
-  {
-    id: '1',
-    title: 'The Art of Slow Living: Finding Peace in Pages',
-    slug: 'art-of-slow-living',
-    excerpt:
-      'A beautiful meditation on slowing down and finding joy in the simple act of reading. This book changed how I approach my daily routine and taught me the value of mindful reading...',
-    content: '<p>In a world that moves at breakneck speed...</p>',
-    image: '',
-    category: 'Book Review',
-    readingTime: 5,
-    author: 'Anshika Mishra',
-    bookTitle: 'The Art of Slow Living',
-    bookAuthor: 'Marie Kondo',
-    rating: 5,
-    bookLink: '',
-    authorLink: '',
-    publishedAt: '2024-01-15',
-    highlights: [
-      { id: '1', quote: "Reading isn't just about consuming words, but about creating space for reflection and connection.", page: 45, image: '' },
-      { id: '2', quote: "Slow living isn't about doing less, but about doing things with intention and presence.", page: 120, image: '' },
-    ],
-    seoKeywords: ['slow living', 'mindfulness', 'Marie Kondo', 'self-help', 'mindful reading', 'The Art of Slow Living'],
-  },
-  {
-    id: '2',
-    title: 'Finding Hygge in Hardcover: Winter Reads',
-    slug: 'finding-hygge-winter-reads',
-    excerpt:
-      "As the winter settles in, there's nothing quite like curling up with a warm cup of chai and these cozy reads that feel like a warm hug...",
-    content: '<p>As the winter settles in...</p>',
-    image: '',
-    category: 'Book Review',
-    readingTime: 7,
-    author: 'Anshika Mishra',
-    bookTitle: 'The Little Book of Hygge',
-    bookAuthor: '',
-    publishedAt: '2024-01-10',
-  },
-  {
-    id: '3',
-    title: 'Stories That Stayed: My All-Time Favorites',
-    slug: 'stories-that-stayed',
-    excerpt:
-      'Some books leave an imprint on your soul. Here are the stories that I carry with me, the ones that shaped my reading journey...',
-    content: '<p>Some books leave an imprint...</p>',
-    image: '',
-    category: 'Reflection',
-    readingTime: 6,
-    author: 'Anshika Mishra',
-    bookTitle: 'Various',
-    bookAuthor: '',
-    publishedAt: '2024-01-05',
-  },
-  {
-    id: '4',
-    title: 'A Journey Through Indian Literature',
-    slug: 'journey-indian-literature',
-    excerpt:
-      'Exploring the rich tapestry of Indian storytelling, from ancient epics to contemporary voices that speak to our modern hearts...',
-    content: '<p>Exploring the rich tapestry...</p>',
-    image: '',
-    category: 'Book Review',
-    readingTime: 8,
-    author: 'Anshika Mishra',
-    bookTitle: 'The God of Small Things',
-    bookAuthor: 'Arundhati Roy',
-    publishedAt: '2023-12-28',
-  },
-];
+const defaultPosts: BlogPost[] = [];
 
 function generateSlug(title: string): string {
   return title
@@ -143,22 +98,14 @@ const emptyForm: Omit<BlogPost, 'id'> = {
     rating: undefined,
     bookLink: '',
     authorLink: '',
+    shopLinks: [],
+    shopBook: undefined,
     publishedAt: new Date().toISOString().slice(0, 10),
+  isPublished: false,
   highlights: [],
-  seoKeywords: [],
+  tags: [],
+  genres: [],
 };
-
-/** Parse "one per line or comma-separated" into trimmed string array. */
-function parseKeywordsInput(value: string): string[] {
-  return value
-    .split(/[\n,]+/)
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function formatKeywordsForInput(keywords: string[]): string {
-  return (keywords ?? []).join('\n');
-}
 
 function toPost(x: Record<string, unknown>): BlogPost | null {
   if (typeof x?.title !== 'string' || typeof x?.slug !== 'string') return null;
@@ -177,9 +124,16 @@ function toPost(x: Record<string, unknown>): BlogPost | null {
     rating: typeof x.rating === 'number' && x.rating >= 1 && x.rating <= 5 ? x.rating : undefined,
     bookLink: typeof x.bookLink === 'string' ? x.bookLink : '',
     authorLink: typeof x.authorLink === 'string' ? x.authorLink : '',
+    shopLinks: parseShopLinksFromRaw(x.shopLinks),
+    shopBook: parseShopBookMeta(x.shopBook),
     publishedAt: typeof x.publishedAt === 'string' ? x.publishedAt : new Date().toISOString().slice(0, 10),
+    isPublished: readIsPublished(x),
+    subscribersEmailedAt: readSubscribersEmailedAt(x),
     highlights: Array.isArray(x.highlights) ? (x.highlights as Record<string, unknown>[]).map((h) => ({ id: String(h?.id ?? ''), quote: String(h?.quote ?? '').trim(), page: typeof h?.page === 'number' ? h.page : undefined, image: typeof h?.image === 'string' ? h.image : '' })).filter((h) => h.quote) : [],
-    seoKeywords: Array.isArray(x.seoKeywords) ? (x.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+    ...seoFieldsFromRaw(x),
+    tags: readTags(x),
+    genres: readGenres(x),
+    ...reviewFieldsFromRaw(x),
   };
 }
 
@@ -191,15 +145,20 @@ export default function AdminBlogPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [formData, setFormData] = useState<Omit<BlogPost, 'id'>>(emptyForm);
+  const loadPosts = async (): Promise<BlogPost[]> => {
+    const { content } = await getPageSettings('blog');
+    if (content && typeof content === 'object' && !Array.isArray(content) && Array.isArray((content as { posts?: unknown }).posts)) {
+      const list = ((content as { posts: Record<string, unknown>[] }).posts).map(toPost).filter((p): p is BlogPost => p != null);
+      if (list.length) {
+        setPosts(list);
+        return list;
+      }
+    }
+    return posts;
+  };
 
   useEffect(() => {
-    getPageSettings('blog')
-      .then(({ content }) => {
-        if (content && typeof content === 'object' && !Array.isArray(content) && Array.isArray((content as { posts?: unknown }).posts)) {
-          const list = ((content as { posts: Record<string, unknown>[] }).posts).map(toPost).filter((p): p is BlogPost => p != null);
-          if (list.length) setPosts(list);
-        }
-      })
+    loadPosts()
       .catch(() => setMessage({ type: 'error', text: 'Failed to load posts' }))
       .finally(() => setLoading(false));
   }, []);
@@ -221,9 +180,14 @@ export default function AdminBlogPage() {
       rating: p.rating != null && p.rating >= 1 && p.rating <= 5 ? p.rating : undefined,
       bookLink: p.bookLink ?? '',
       authorLink: p.authorLink ?? '',
+      shopLinks: sanitizeShopLinksForSave(p.shopLinks),
+      shopBook: sanitizeShopBookMeta(p.shopBook),
       publishedAt: p.publishedAt ?? new Date().toISOString().slice(0, 10),
+      isPublished: p.isPublished === true,
+      ...subscribersEmailedSaveField(p.subscribersEmailedAt),
       highlights: Array.isArray(p.highlights) ? p.highlights.map((h) => ({ id: h.id, quote: h.quote ?? '', page: h.page, image: h.image ?? '' })) : [],
-      seoKeywords: Array.isArray(p.seoKeywords) ? p.seoKeywords : [],
+      ...seoFieldsForSave(p),
+      ...reviewFieldsForSave(p),
     }));
     await putPageSettings('blog', { posts: postsPayload });
   };
@@ -251,17 +215,15 @@ export default function AdminBlogPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const before = editingPost ?? { ...emptyForm, id: 'new', isPublished: false, subscribersEmailedAt: undefined };
+    let after: BlogPost;
     let nextPosts: BlogPost[];
     if (editingPost) {
-      nextPosts = posts.map((p) =>
-        p.id === editingPost.id ? { ...formData, id: editingPost.id } : p
-      );
+      after = { ...formData, id: editingPost.id, subscribersEmailedAt: editingPost.subscribersEmailedAt };
+      nextPosts = posts.map((p) => (p.id === editingPost.id ? after : p));
     } else {
-      const newPost: BlogPost = {
-        ...formData,
-        id: Date.now().toString(),
-      };
-      nextPosts = [...posts, newPost];
+      after = { ...formData, id: Date.now().toString() };
+      nextPosts = [...posts, after];
     }
     setPosts(nextPosts);
     setFormData(emptyForm);
@@ -271,7 +233,13 @@ export default function AdminBlogPage() {
     setMessage(null);
     try {
       await savePostsToApi(nextPosts);
-      setMessage({ type: 'success', text: 'Post saved to site!' });
+      let msg = 'Post saved to site!';
+      const annex = await tryAutoAnnounceOnFirstPublish(before, after, () => announceBlogPost(after.slug));
+      if (annex) {
+        await loadPosts();
+        msg += ` ${annex}`;
+      }
+      setMessage({ type: 'success', text: msg });
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
     } finally {
@@ -295,11 +263,46 @@ export default function AdminBlogPage() {
       rating: post.rating,
       bookLink: post.bookLink ?? '',
       authorLink: post.authorLink ?? '',
+      shopLinks: post.shopLinks ?? [],
+      shopBook: post.shopBook,
       publishedAt: post.publishedAt,
+      isPublished: post.isPublished,
       highlights: post.highlights ?? [],
-      seoKeywords: post.seoKeywords ?? [],
+      tags: post.tags ?? [],
+      seoTitle: post.seoTitle,
+      seoDescription: post.seoDescription,
+      ogImage: post.ogImage,
+      canonicalUrl: post.canonicalUrl,
+      recommendedFor: post.recommendedFor,
+      notRecommendedFor: post.notRecommendedFor,
+      verdict: post.verdict,
+      similarBooks: post.similarBooks ?? [],
+      genres: post.genres ?? [],
     });
     setShowForm(true);
+  };
+
+  const togglePublish = async (post: BlogPost) => {
+    const before = post;
+    const updated = withToggledPublish(post);
+    const nextPosts = posts.map((p) => (p.id === post.id ? updated : p));
+    setPosts(nextPosts);
+    setSaving(true);
+    setMessage(null);
+    try {
+      await savePostsToApi(nextPosts);
+      let msg = isContentPublished(post) ? 'Post is now a draft.' : 'Post is live on the site!';
+      const annex = await tryAutoAnnounceOnFirstPublish(before, updated, () => announceBlogPost(updated.slug));
+      if (annex) {
+        await loadPosts();
+        msg += ` ${annex}`;
+      }
+      setMessage({ type: 'success', text: msg });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -346,7 +349,8 @@ export default function AdminBlogPage() {
             Manage Book Reviews
           </h1>
           <p className="font-body text-chai-brown-light">
-            Create, edit, and publish blog posts. Home page shows newest 3.
+            Create, edit, and publish blog posts. <strong>Shop buy links</strong> are inside each post — click{' '}
+            <strong>Edit</strong>, scroll to the green <strong>&quot;Where to buy — Shop page&quot;</strong> section, then Save to site.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -462,6 +466,10 @@ export default function AdminBlogPage() {
                   </select>
                 </div>
               </div>
+              <AdminGenresField
+                value={formData.genres}
+                onChange={(genres) => setFormData({ ...formData, genres })}
+              />
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block font-body text-sm font-medium text-chai-brown mb-2">
@@ -526,6 +534,23 @@ export default function AdminBlogPage() {
                   />
                 </div>
               </div>
+              <CatalogShopAutofill
+                title={formData.bookTitle}
+                author={formData.bookAuthor}
+                shopLinks={formData.shopLinks}
+                shopBook={formData.shopBook}
+                bookLink={formData.bookLink}
+                coverImage={formData.image}
+                onApply={(patch) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    shopLinks: patch.shopLinks.length ? patch.shopLinks : prev.shopLinks,
+                    shopBook: patch.shopBook ?? prev.shopBook,
+                    bookLink: patch.bookLink && !prev.bookLink?.trim() ? patch.bookLink : prev.bookLink,
+                    image: patch.coverImage && !prev.image?.trim() ? patch.coverImage : prev.image,
+                  }))
+                }
+              />
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block font-body text-sm font-medium text-chai-brown mb-2">
@@ -550,17 +575,14 @@ export default function AdminBlogPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block font-body text-sm font-medium text-chai-brown mb-2">
-                    Book link (URL)
-                  </label>
+                  <label className="block font-body text-sm font-medium text-chai-brown mb-2">Goodreads link</label>
                   <input
                     type="url"
                     value={formData.bookLink ?? ''}
                     onChange={(e) => setFormData({ ...formData, bookLink: e.target.value })}
-                    placeholder="https://… (Goodreads, Amazon, etc.)"
+                    placeholder="https://www.goodreads.com/book/…"
                     className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
                   />
-                  <p className="text-xs text-chai-brown-light mt-0.5">Book title becomes a clickable link.</p>
                 </div>
                 <div>
                   <label className="block font-body text-sm font-medium text-chai-brown mb-2">
@@ -577,24 +599,30 @@ export default function AdminBlogPage() {
                 </div>
               </div>
 
-              {/* SEO / Meta keywords */}
-              <div>
-                <label className="block font-body text-sm font-medium text-chai-brown mb-2">
-                  SEO / Meta keywords
-                </label>
-                <p className="text-xs text-chai-brown-light mb-2">
-                  One per line or comma-separated. Merged with site-wide keywords (book blogger, book critic, etc.) on the blog page meta. When you have an API, these will drive the live meta automatically; until then, add this slug and keywords to <code className="bg-cream px-1 rounded text-[11px]">lib/content.ts</code> so the published page uses them.
-                </p>
-                <textarea
-                  value={formatKeywordsForInput(formData.seoKeywords ?? [])}
-                  onChange={(e) =>
-                    setFormData({ ...formData, seoKeywords: parseKeywordsInput(e.target.value) })
-                  }
-                  rows={3}
-                  placeholder="e.g. slow living, mindfulness, Marie Kondo (one per line or comma-separated)"
-                  className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
-                />
-              </div>
+              <AdminShopLinksSection
+                value={formData.shopLinks ?? []}
+                onChange={(shopLinks) => setFormData({ ...formData, shopLinks })}
+                shopBook={formData.shopBook}
+                onShopBookChange={(shopBook) => setFormData({ ...formData, shopBook })}
+                inheritHint={{
+                  title: formData.bookTitle,
+                  author: formData.bookAuthor,
+                  genre: formData.genres?.[0] ?? formData.category,
+                  coverImage: formData.image,
+                }}
+                shopPageHref={formData.slug?.trim() ? shopPath('review', formData.slug) : undefined}
+              />
+
+              <AdminReviewEditorialFields
+                value={formData}
+                onChange={(editorial) => setFormData({ ...formData, ...editorial })}
+              />
+
+              <AdminUniversalSeoFields
+                imageModule="blog"
+                value={formData}
+                onChange={(seo) => setFormData({ ...formData, ...seo })}
+              />
 
               {/* Highlights / Quotes */}
               <div>
@@ -723,10 +751,16 @@ export default function AdminBlogPage() {
                   Rating
                 </th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">
-                  Published
+                  Status
+                </th>
+                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">
+                  Date
                 </th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">
                   Read
+                </th>
+                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown" title="Buy links on /shop">
+                  Shop
                 </th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown" title="Meta keywords count">
                   SEO
@@ -737,7 +771,9 @@ export default function AdminBlogPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-chai-brown/10">
-              {posts.map((post) => (
+              {posts.map((post) => {
+                const resolvedShopLinks = resolveReviewShopLinks(post as unknown as Record<string, unknown>);
+                return (
                 <tr key={post.id} className="hover:bg-cream/50">
                   <td className="px-4 py-3">
                     <div>
@@ -761,15 +797,38 @@ export default function AdminBlogPage() {
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">
                     {post.rating != null ? `${post.rating}/5` : '—'}
                   </td>
+                  <td className="px-4 py-3">
+                    <AdminPublishToggle
+                      isPublished={isContentPublished(post)}
+                      onToggle={() => togglePublish(post)}
+                      disabled={saving}
+                    />
+                    <AdminSubscribersEmailedBadge item={post} />
+                  </td>
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">
                     {formatDate(post.publishedAt)}
                   </td>
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">
                     {post.readingTime} min
                   </td>
-                  <td className="px-4 py-3 font-body text-sm text-chai-brown-light" title={(post.seoKeywords ?? []).join(', ') || 'No custom keywords'}>
-                    {(post.seoKeywords ?? []).length ? (
-                      <span className="text-terracotta">{(post.seoKeywords ?? []).length}</span>
+                  <td className="px-4 py-3 font-body text-sm">
+                    {hasShopLinks(resolvedShopLinks) ? (
+                      <Link
+                        href={shopPath('review', post.slug)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sage font-medium hover:underline"
+                        title="View on /shop"
+                      >
+                        {resolvedShopLinks.length} link{resolvedShopLinks.length === 1 ? '' : 's'}
+                      </Link>
+                    ) : (
+                      <span className="text-chai-brown-light" title="Edit post → Where to buy section">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 font-body text-sm text-chai-brown-light" title={(post.tags ?? []).join(', ') || 'No tags'}>
+                    {(post.tags ?? []).length ? (
+                      <span className="text-terracotta">{(post.tags ?? []).length}</span>
                     ) : (
                       '—'
                     )}
@@ -803,7 +862,8 @@ export default function AdminBlogPage() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>

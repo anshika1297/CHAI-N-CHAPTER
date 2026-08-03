@@ -32,8 +32,8 @@ export default function Contact() {
   }, []);
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-cream to-cream-dark">
-      <div className="max-w-4xl mx-auto text-center">
+    <section className="py-8 sm:py-12 md:py-16 bg-gradient-to-b from-cream to-cream-dark">
+      <div className="site-container max-w-5xl text-center">
         <div className="flex justify-center gap-4 mb-6">
           <Coffee className="text-chai-brown-light animate-float" size={24} />
           <Heart className="text-terracotta animate-float" size={24} style={{ animationDelay: '0.5s' }} />

@@ -1,6 +1,15 @@
-import nodemailer from 'nodemailer';
 import { Page } from '../models/Page.js';
 import { config } from '../config/index.js';
+import { getEmailSiteUrl } from '../utils/emailSiteUrl.js';
+import {
+  type EmailSmtpSettings,
+  createSmtpTransporter,
+  formatSmtpError,
+  isSmtpConfigured,
+  mergeEmailSmtpSettings,
+  resolveFromAddress,
+  verifySmtpConnection,
+} from './smtpConfig.js';
 
 type Club = { name: string; theme?: string; joinLink?: string };
 
@@ -76,24 +85,13 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function isSmtpConfigured(settings: { smtpUser?: string; smtpPass?: string } | null, env: typeof config.smtp): boolean {
-  if (settings?.smtpUser?.trim() && settings?.smtpPass?.trim()) return true;
-  return Boolean(env.host?.trim() && env.user?.trim() && env.pass?.trim());
-}
-
-type EmailSettings = {
-  fromEmail?: string;
+type EmailSettings = EmailSmtpSettings & {
   subject?: string;
   bodyHtml?: string;
   signature?: string;
-  smtpHost?: string;
-  smtpPort?: number;
-  smtpSecure?: boolean;
-  smtpUser?: string;
-  smtpPass?: string;
 };
 
-async function getEmailSettings(): Promise<EmailSettings | null> {
+export async function getEmailSettings(): Promise<EmailSettings | null> {
   try {
     const page = await Page.findOne({ slug: 'email-settings' });
     if (!page?.content || typeof page.content !== 'object' || Array.isArray(page.content)) return null;
@@ -125,7 +123,7 @@ export async function sendWelcomeEmail(to: string, name?: string): Promise<void>
   if (!isSmtpConfigured(settings ?? null, config.smtp)) {
     return;
   }
-  const siteUrl = config.frontendUrl.replace(/\/$/, '');
+  const siteUrl = getEmailSiteUrl();
 
   let clubs: Club[] = [];
   try {
@@ -137,7 +135,7 @@ export async function sendWelcomeEmail(to: string, name?: string): Promise<void>
     console.error('Welcome email: failed to load book clubs', err);
   }
 
-  const from = settings?.fromEmail?.trim() || settings?.smtpUser?.trim() || config.smtp.from;
+  const from = resolveFromAddress(settings, config.smtp);
   const subject = settings?.subject?.trim() || 'Welcome to the reading list — Chapters.aur.Chai';
 
   const unsubscribeUrl = buildUnsubscribeUrl(siteUrl, to);
@@ -164,23 +162,8 @@ export async function sendWelcomeEmail(to: string, name?: string): Promise<void>
     }
   }
 
-  const useAdminSmtp = Boolean(settings?.smtpUser?.trim() && settings?.smtpPass?.trim());
-  const transporterOptions = useAdminSmtp
-    ? {
-        host: settings!.smtpHost?.trim() || config.smtp.host,
-        port: settings!.smtpPort ?? config.smtp.port,
-        secure: settings!.smtpSecure ?? config.smtp.secure,
-        auth: { user: settings!.smtpUser!.trim(), pass: settings!.smtpPass! },
-      }
-    : {
-        host: config.smtp.host,
-        port: config.smtp.port,
-        secure: config.smtp.secure,
-        auth: { user: config.smtp.user, pass: config.smtp.pass },
-      };
-
   try {
-    const transporter = nodemailer.createTransport(transporterOptions);
+    const { transporter } = createSmtpTransporter(settings, config.smtp);
     await transporter.sendMail({
       from,
       to: to.trim(),
@@ -188,7 +171,7 @@ export async function sendWelcomeEmail(to: string, name?: string): Promise<void>
       html,
     });
   } catch (err) {
-    console.error('Welcome email send error', err);
+    console.error('Welcome email send error', formatSmtpError(err));
   }
 }
 
@@ -196,41 +179,42 @@ export async function sendWelcomeEmail(to: string, name?: string): Promise<void>
  * Sends a simple test email to the given address. Uses the same SMTP config as welcome emails (env or admin).
  * No-op if SMTP is not configured. Throws on send failure so the caller can respond with an error.
  */
-export async function sendTestEmail(to: string): Promise<void> {
-  const settings = await getEmailSettings();
-  if (!isSmtpConfigured(settings ?? null, config.smtp)) {
-    throw new Error('SMTP is not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env or in Admin → Subscriber emails.');
+export async function sendTestEmail(
+  to: string,
+  overrides?: Partial<EmailSmtpSettings> | null
+): Promise<{ from: string; host: string; port: number }> {
+  const saved = await getEmailSettings();
+  const settings = mergeEmailSmtpSettings(saved, overrides);
+  if (!isSmtpConfigured(settings, config.smtp)) {
+    throw new Error(
+      'SMTP is not configured. Fill in SMTP host, user, and password in Admin → Subscriber emails, click Save, then try again.'
+    );
   }
-  const from = settings?.fromEmail?.trim() || settings?.smtpUser?.trim() || config.smtp.from;
-  const useAdminSmtp = Boolean(settings?.smtpUser?.trim() && settings?.smtpPass?.trim());
-  const transporterOptions = useAdminSmtp
-    ? {
-        host: settings!.smtpHost?.trim() || config.smtp.host,
-        port: settings!.smtpPort ?? config.smtp.port,
-        secure: settings!.smtpSecure ?? config.smtp.secure,
-        auth: { user: settings!.smtpUser!.trim(), pass: settings!.smtpPass! },
-      }
-    : {
-        host: config.smtp.host,
-        port: config.smtp.port,
-        secure: config.smtp.secure,
-        auth: { user: config.smtp.user, pass: config.smtp.pass },
-      };
 
-  const transporter = nodemailer.createTransport(transporterOptions);
-  await transporter.sendMail({
-    from,
-    to: to.trim(),
-    subject: 'Test email — Chai & Chapter',
-    html: `
+  await verifySmtpConnection(settings, config.smtp);
+  const from = resolveFromAddress(settings, config.smtp);
+  const { transporter, meta } = createSmtpTransporter(settings, config.smtp);
+
+  try {
+    await transporter.sendMail({
+      from,
+      to: to.trim(),
+      subject: 'Test email — Chapters.aur.Chai',
+      html: `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
 <body style="font-family:Georgia,serif;max-width:560px;margin:0 auto;padding:24px;color:#3d3329;background:#faf8f5;">
   <p style="margin:0 0 16px;font-size:18px;">This is a test email.</p>
-  <p style="margin:0 0 16px;color:#5c4d3d;">If you received this, your SMTP setup for Chai & Chapter is working. Welcome emails will be sent from the same account.</p>
-  <p style="margin:24px 0 0;font-size:14px;color:#8b7355;">— Chai & Chapter</p>
+  <p style="margin:0 0 16px;color:#5c4d3d;">If you received this, subscriber emails from <strong>read@chaptersaurchai.com</strong> are working. Check spam/promotions if you do not see it in the inbox.</p>
+  <p style="margin:8px 0 0;font-size:13px;color:#8b7355;">Sent via ${meta.host}:${meta.port} as ${from}</p>
+  <p style="margin:24px 0 0;font-size:14px;color:#8b7355;">— Chapters.aur.Chai</p>
 </body>
 </html>`,
-  });
+    });
+  } catch (err) {
+    throw new Error(formatSmtpError(err));
+  }
+
+  return { from, host: meta.host, port: meta.port };
 }

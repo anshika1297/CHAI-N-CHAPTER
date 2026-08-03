@@ -40,8 +40,8 @@ export default function BlogStory({ blogStory: prop }: Props) {
       : defaultData;
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+    <section className="py-8 sm:py-12 md:py-16">
+      <div className="site-container max-w-5xl">
         <div className="text-center mb-8 sm:mb-10">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-serif text-chai-brown mb-3">
             {data.title}

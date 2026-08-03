@@ -5,17 +5,14 @@ import { Save, Plus, Trash2 } from 'lucide-react';
 import { getPageSettings, putPageSettings } from '@/lib/api';
 import PageLoading from '@/components/PageLoading';
 import ImageUploadField from '@/components/ImageUploadField';
+import { DEFAULT_HERO_STATS, resolveHeroStats } from '@/lib/homeStats';
 
 const defaultHome = {
   welcomeText: 'Welcome to my cozy corner',
   headingLine1: 'Where Chai Meets',
   headingLine2: 'Stories',
   introText: "Hello, I'm Anshika — a book lover, chai enthusiast, and storyteller at heart. Join me as I share honest book reviews, curated recommendations, and reflections from my reading journey.",
-  stats: [
-    { value: '50+', label: 'Book Reviews' },
-    { value: '2K+', label: 'Readers' },
-    { value: '3', label: 'Book Clubs' },
-  ],
+  stats: DEFAULT_HERO_STATS,
   ctaPrimary: 'Read My Story',
   ctaPrimaryHref: '/about',
   ctaSecondary: 'Explore Blogs',
@@ -39,11 +36,17 @@ export default function AdminHomePage() {
             headingLine1: typeof c.headingLine1 === 'string' && c.headingLine1.trim() ? c.headingLine1 : defaultHome.headingLine1,
             headingLine2: typeof c.headingLine2 === 'string' && c.headingLine2.trim() ? c.headingLine2 : defaultHome.headingLine2,
             introText: typeof c.introText === 'string' && c.introText.trim() ? c.introText : defaultHome.introText,
-            stats: Array.isArray(c.stats) && c.stats.length > 0
-              ? (c.stats as { value?: string; label?: string }[])
-                  .filter((s): s is { value: string; label: string } => typeof s?.value === 'string' && typeof s?.label === 'string')
-                  .map((s) => ({ value: s.value.trim(), label: s.label.trim() }))
-              : defaultHome.stats,
+            stats:
+              Array.isArray(c.stats) && c.stats.length > 0
+                ? resolveHeroStats(
+                    (c.stats as { value?: string; label?: string }[])
+                      .filter((s): s is { value: string; label: string } => typeof s?.label === 'string' && Boolean(s.label.trim()))
+                      .map((s) => ({
+                        value: typeof s.value === 'string' ? s.value.trim() : '—',
+                        label: s.label.trim(),
+                      }))
+                  )
+                : defaultHome.stats,
             ctaPrimary: typeof c.ctaPrimary === 'string' && c.ctaPrimary.trim() ? c.ctaPrimary : defaultHome.ctaPrimary,
             ctaPrimaryHref: typeof c.ctaPrimaryHref === 'string' && c.ctaPrimaryHref.trim() ? c.ctaPrimaryHref : defaultHome.ctaPrimaryHref,
             ctaSecondary: typeof c.ctaSecondary === 'string' && c.ctaSecondary.trim() ? c.ctaSecondary : defaultHome.ctaSecondary,
@@ -140,16 +143,20 @@ export default function AdminHomePage() {
         </div>
 
         <div className="bg-white rounded-lg p-6 border border-chai-brown/10">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-2">
             <h2 className="font-serif text-xl text-chai-brown">Stats</h2>
             <button type="button" onClick={addStat} className="flex items-center gap-2 px-3 py-1.5 bg-sage/20 text-chai-brown rounded-lg text-sm hover:bg-sage/30">
               <Plus size={16} /> Add
             </button>
           </div>
+          <p className="font-body text-sm text-chai-brown-light mb-4">
+            Numbers update automatically on the live site: Book Reviews, Book Recommendations, Readers (visitors), and
+            Book Clubs. You can rename labels; more stat types can be added later.
+          </p>
           <ul className="space-y-3">
             {data.stats.map((s, i) => (
               <li key={i} className="flex gap-2 items-center border-b border-chai-brown/10 pb-3">
-                <input type="text" value={s.value} onChange={(e) => updateStat(i, 'value', e.target.value)} className="w-20 px-3 py-2 border border-chai-brown/20 rounded-lg font-body text-sm" placeholder="50+" />
+                <input type="text" value={s.value} onChange={(e) => updateStat(i, 'value', e.target.value)} className="w-20 px-3 py-2 border border-chai-brown/20 rounded-lg font-body text-sm bg-cream-dark/30" placeholder="Auto" title="Fallback only; live site uses real counts when the label matches" />
                 <input type="text" value={s.label} onChange={(e) => updateStat(i, 'label', e.target.value)} className="flex-1 px-3 py-2 border border-chai-brown/20 rounded-lg font-body text-sm" placeholder="Book Reviews" />
                 <button type="button" onClick={() => removeStat(i)} className="p-2 text-red-600 hover:bg-red-50 rounded" aria-label="Remove"><Trash2 size={18} /></button>
               </li>

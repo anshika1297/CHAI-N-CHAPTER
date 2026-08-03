@@ -57,8 +57,41 @@
            hover:after:w-full;
   }
 
+  /* Site-wide horizontal rhythm — wider content, tighter gutters */
+  .site-gutter {
+    @apply px-2.5 sm:px-3 lg:px-4 xl:px-5;
+  }
+
+  .site-container {
+    @apply w-full max-w-site mx-auto site-gutter;
+  }
+
+  /* Header — tighter side margins than page content */
+  .header-container {
+    @apply w-full max-w-site mx-auto px-2 sm:px-2.5 lg:px-3 xl:px-4 2xl:px-5;
+  }
+
   .blog-content {
-    @apply text-base sm:text-lg;
+    @apply text-base sm:text-lg max-w-full break-words;
+    overflow-wrap: anywhere;
+  }
+
+  .blog-content img,
+  .blog-content video,
+  .blog-content iframe {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .blog-content table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .blog-content pre {
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   .blog-content p {

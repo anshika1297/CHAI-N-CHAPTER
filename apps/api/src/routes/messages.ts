@@ -6,7 +6,12 @@ const router = Router();
 
 /** POST /api/messages – public, submit contact or work-with-me form */
 router.post('/', async (req: Request, res: Response): Promise<void> => {
-  const { name, email, subject, message, service, source } = req.body ?? {};
+  const { name, email, subject, message, service, bookTitle, genre, timeline, website, source } =
+    req.body ?? {};
+  if (typeof website === 'string' && website.trim()) {
+    res.status(201).json({ message: 'Your message has been sent. We\'ll get back to you soon!' });
+    return;
+  }
   if (!name || typeof name !== 'string' || !name.trim()) {
     res.status(400).json({ error: 'Name is required' });
     return;
@@ -27,6 +32,9 @@ router.post('/', async (req: Request, res: Response): Promise<void> => {
       subject: typeof subject === 'string' ? subject.trim() : undefined,
       message: message.trim(),
       service: typeof service === 'string' ? service.trim() : undefined,
+      bookTitle: typeof bookTitle === 'string' ? bookTitle.trim() : undefined,
+      genre: typeof genre === 'string' ? genre.trim() : undefined,
+      timeline: typeof timeline === 'string' ? timeline.trim() : undefined,
       source: src,
       read: false,
     });
@@ -59,6 +67,9 @@ router.get('/', requireAuth, async (req: Request, res: Response): Promise<void> 
       subject: (doc as { subject?: string }).subject,
       message: (doc as { message: string }).message,
       service: (doc as { service?: string }).service,
+      bookTitle: (doc as { bookTitle?: string }).bookTitle,
+      genre: (doc as { genre?: string }).genre,
+      timeline: (doc as { timeline?: string }).timeline,
       source: (doc as { source: MessageSource }).source,
       read: (doc as { read: boolean }).read,
       createdAt: (doc as { createdAt: Date }).createdAt,

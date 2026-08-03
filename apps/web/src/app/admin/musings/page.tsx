@@ -3,11 +3,26 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save } from 'lucide-react';
 import Link from 'next/link';
-import { getPageSettings, putPageSettings } from '@/lib/api';
+import { announceMusing, getPageSettings, putPageSettings } from '@/lib/api';
+import { tryAutoAnnounceOnFirstPublish } from '@/lib/announceSubscribers';
+import { isContentPublished, readIsPublished, withToggledPublish } from '@/lib/contentPublish';
+import { readSubscribersEmailedAt, subscribersEmailedSaveField } from '@/lib/subscribersEmailed';
 import PageLoading from '@/components/PageLoading';
 import ImageUploadField from '@/components/ImageUploadField';
+import AdminPublishToggle from '@/components/admin/AdminPublishToggle';
+import AdminSubscribersEmailedBadge from '@/components/admin/AdminSubscribersEmailedBadge';
+import {
+  readTags,
+  musingFieldsForSave,
+  musingFieldsFromRaw,
+  seoFieldsForSave,
+  seoFieldsFromRaw,
+  type MusingContentFields,
+} from '@/lib/contentFields';
+import AdminUniversalSeoFields from '@/components/admin/AdminUniversalSeoFields';
+import AdminMusingEditorialFields from '@/components/admin/AdminMusingEditorialFields';
 
-export interface Musing {
+export interface Musing extends MusingContentFields {
   id: string;
   title: string;
   slug: string;
@@ -18,8 +33,8 @@ export interface Musing {
   readingTime: number;
   author: string;
   publishedAt: string;
-  /** SEO keywords for this musing; merged with site-wide keywords in meta. */
-  seoKeywords?: string[];
+  isPublished: boolean;
+  subscribersEmailedAt?: string;
 }
 
 const MUSING_CATEGORIES = [
@@ -38,60 +53,7 @@ function generateSlug(title: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-const defaultMusings: Musing[] = [
-  {
-    id: '1',
-    title: 'The Art of Reading in Silence',
-    slug: 'art-of-reading-in-silence',
-    excerpt:
-      "In a world full of noise, there's something sacred about the quiet moments spent with a book.",
-    content: '<p>In a world full of noise, there\'s something sacred about the quiet moments spent with a book.</p>',
-    image: '',
-    category: 'Reflection',
-    readingTime: 3,
-    author: 'Anshika Mishra',
-    publishedAt: '2024-01-22',
-  },
-  {
-    id: '2',
-    title: 'A Letter to My Younger Reading Self',
-    slug: 'letter-to-younger-reading-self',
-    excerpt:
-      "Dear 15-year-old me, I wish I could tell you that the books you're reading now will shape who you become.",
-    content: '<p>Dear 15-year-old me...</p>',
-    image: '',
-    category: 'Personal',
-    readingTime: 4,
-    author: 'Anshika Mishra',
-    publishedAt: '2024-01-18',
-  },
-  {
-    id: '3',
-    title: 'The Coffee Shop Chronicles: Chapter One',
-    slug: 'coffee-shop-chronicles-chapter-one',
-    excerpt:
-      'She sat in the corner, a worn copy of "The Seven Husbands of Evelyn Hugo" in her hands.',
-    content: '<p>She sat in the corner...</p>',
-    image: '',
-    category: 'Short Story',
-    readingTime: 5,
-    author: 'Anshika Mishra',
-    publishedAt: '2024-01-15',
-  },
-  {
-    id: '4',
-    title: 'Why I Read the Last Page First',
-    slug: 'why-i-read-last-page-first',
-    excerpt:
-      "I know, I know. It's a cardinal sin in the bookish community. But hear me out...",
-    content: '<p>I know, I know...</p>',
-    image: '',
-    category: 'Thoughts',
-    readingTime: 3,
-    author: 'Anshika Mishra',
-    publishedAt: '2024-01-12',
-  },
-];
+const defaultMusings: Musing[] = [];
 
 const emptyForm: Omit<Musing, 'id'> = {
   title: '',
@@ -103,20 +65,9 @@ const emptyForm: Omit<Musing, 'id'> = {
   readingTime: 3,
   author: 'Anshika Mishra',
   publishedAt: new Date().toISOString().slice(0, 10),
-  seoKeywords: [],
+  isPublished: false,
+  tags: [],
 };
-
-/** Parse "one per line or comma-separated" into trimmed string array. */
-function parseKeywordsInput(value: string): string[] {
-  return value
-    .split(/[\n,]+/)
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function formatKeywordsForInput(keywords: string[]): string {
-  return (keywords ?? []).join('\n');
-}
 
 function toMusing(x: Record<string, unknown>): Musing | null {
   if (typeof x?.title !== 'string' || typeof x?.slug !== 'string') return null;
@@ -131,7 +82,11 @@ function toMusing(x: Record<string, unknown>): Musing | null {
     readingTime: typeof x.readingTime === 'number' ? x.readingTime : Number(x.readingTime) || 3,
     author: typeof x.author === 'string' ? x.author : '',
     publishedAt: typeof x.publishedAt === 'string' ? x.publishedAt : new Date().toISOString().slice(0, 10),
-    seoKeywords: Array.isArray(x.seoKeywords) ? (x.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+    isPublished: readIsPublished(x),
+    subscribersEmailedAt: readSubscribersEmailedAt(x),
+    ...seoFieldsFromRaw(x),
+    tags: readTags(x),
+    ...musingFieldsFromRaw(x),
   };
 }
 
@@ -144,14 +99,20 @@ export default function AdminMusingsPage() {
   const [editing, setEditing] = useState<Musing | null>(null);
   const [formData, setFormData] = useState<Omit<Musing, 'id'>>(emptyForm);
 
+  const loadItems = async (): Promise<Musing[]> => {
+    const { content } = await getPageSettings('musings');
+    if (content && typeof content === 'object' && !Array.isArray(content) && Array.isArray((content as { items?: unknown }).items)) {
+      const list = ((content as { items: Record<string, unknown>[] }).items).map(toMusing).filter((p): p is Musing => p != null);
+      if (list.length) {
+        setItems(list);
+        return list;
+      }
+    }
+    return items;
+  };
+
   useEffect(() => {
-    getPageSettings('musings')
-      .then(({ content }) => {
-        if (content && typeof content === 'object' && !Array.isArray(content) && Array.isArray((content as { items?: unknown }).items)) {
-          const list = ((content as { items: Record<string, unknown>[] }).items).map(toMusing).filter((p): p is Musing => p != null);
-          if (list.length) setItems(list);
-        }
-      })
+    loadItems()
       .catch(() => setMessage({ type: 'error', text: 'Failed to load musings' }))
       .finally(() => setLoading(false));
   }, []);
@@ -168,7 +129,10 @@ export default function AdminMusingsPage() {
       readingTime: Number(i.readingTime) || 3,
       author: i.author ?? '',
       publishedAt: i.publishedAt ?? new Date().toISOString().slice(0, 10),
-      seoKeywords: Array.isArray(i.seoKeywords) ? i.seoKeywords : [],
+      isPublished: i.isPublished === true,
+      ...subscribersEmailedSaveField(i.subscribersEmailedAt),
+      ...seoFieldsForSave(i),
+      ...musingFieldsForSave(i),
     }));
     await putPageSettings('musings', { items: itemsPayload });
   };
@@ -196,13 +160,15 @@ export default function AdminMusingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const before = editing ?? { ...emptyForm, id: 'new', isPublished: false, subscribersEmailedAt: undefined };
+    let after: Musing;
     let nextItems: Musing[];
     if (editing) {
-      nextItems = items.map((p) =>
-        p.id === editing.id ? { ...formData, id: editing.id } : p
-      );
+      after = { ...formData, id: editing.id, subscribersEmailedAt: editing.subscribersEmailedAt };
+      nextItems = items.map((p) => (p.id === editing.id ? after : p));
     } else {
-      nextItems = [...items, { ...formData, id: Date.now().toString() }];
+      after = { ...formData, id: Date.now().toString() };
+      nextItems = [...items, after];
     }
     setItems(nextItems);
     setFormData(emptyForm);
@@ -212,7 +178,13 @@ export default function AdminMusingsPage() {
     setMessage(null);
     try {
       await saveItemsToApi(nextItems);
-      setMessage({ type: 'success', text: 'Musing saved to site!' });
+      let msg = 'Musing saved to site!';
+      const annex = await tryAutoAnnounceOnFirstPublish(before, after, () => announceMusing(after.slug));
+      if (annex) {
+        await loadItems();
+        msg += ` ${annex}`;
+      }
+      setMessage({ type: 'success', text: msg });
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
     } finally {
@@ -232,9 +204,39 @@ export default function AdminMusingsPage() {
       readingTime: item.readingTime,
       author: item.author,
       publishedAt: item.publishedAt,
-      seoKeywords: item.seoKeywords ?? [],
+      isPublished: item.isPublished,
+      tags: item.tags ?? [],
+      seoTitle: item.seoTitle,
+      seoDescription: item.seoDescription,
+      ogImage: item.ogImage,
+      canonicalUrl: item.canonicalUrl,
+      keyTakeaway: item.keyTakeaway,
+      themes: item.themes ?? [],
     });
     setShowForm(true);
+  };
+
+  const togglePublish = async (item: Musing) => {
+    const before = item;
+    const updated = withToggledPublish(item);
+    const nextItems = items.map((p) => (p.id === item.id ? updated : p));
+    setItems(nextItems);
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveItemsToApi(nextItems);
+      let msg = isContentPublished(item) ? 'Musing is now a draft.' : 'Musing is live on the site!';
+      const annex = await tryAutoAnnounceOnFirstPublish(before, updated, () => announceMusing(updated.slug));
+      if (annex) {
+        await loadItems();
+        msg += ` ${annex}`;
+      }
+      setMessage({ type: 'success', text: msg });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -275,7 +277,7 @@ export default function AdminMusingsPage() {
             Her Musings Verse
           </h1>
           <p className="font-body text-chai-brown-light">
-            Create and edit musings. Home page shows newest 3.
+            Create and edit musings. Subscribers are emailed automatically the first time you publish.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -413,24 +415,16 @@ export default function AdminMusingsPage() {
                   />
                 </div>
               </div>
-              {/* SEO / Meta keywords */}
-              <div>
-                <label className="block font-body text-sm font-medium text-chai-brown mb-2">
-                  SEO / Meta keywords
-                </label>
-                <p className="text-xs text-chai-brown-light mb-2">
-                  One per line or comma-separated. Merged with site-wide keywords on the musing page meta. Until you have an API, add this slug and keywords to <code className="bg-cream px-1 rounded text-[11px]">lib/content.ts</code> (MUSING_META) so the published page uses them.
-                </p>
-                <textarea
-                  value={formatKeywordsForInput(formData.seoKeywords ?? [])}
-                  onChange={(e) =>
-                    setFormData({ ...formData, seoKeywords: parseKeywordsInput(e.target.value) })
-                  }
-                  rows={3}
-                  placeholder="e.g. reading habits, personal essay, quiet reading (one per line or comma-separated)"
-                  className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
-                />
-              </div>
+              <AdminMusingEditorialFields
+                value={formData}
+                onChange={(editorial) => setFormData({ ...formData, ...editorial })}
+              />
+
+              <AdminUniversalSeoFields
+                imageModule="musings"
+                value={formData}
+                onChange={(seo) => setFormData({ ...formData, ...seo })}
+              />
               <div className="flex gap-3 pt-4">
                 <button
                   type="submit"
@@ -458,7 +452,8 @@ export default function AdminMusingsPage() {
               <tr>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Title</th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Category</th>
-                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Published</th>
+                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Status</th>
+                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Date</th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Read</th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">SEO</th>
                 <th className="px-4 py-3 text-right font-body text-sm font-medium text-chai-brown">Actions</th>
@@ -472,11 +467,19 @@ export default function AdminMusingsPage() {
                     <p className="font-body text-xs text-chai-brown-light mt-0.5">/musings/{item.slug}</p>
                   </td>
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">{item.category}</td>
+                  <td className="px-4 py-3">
+                    <AdminPublishToggle
+                      isPublished={isContentPublished(item)}
+                      onToggle={() => togglePublish(item)}
+                      disabled={saving}
+                    />
+                    <AdminSubscribersEmailedBadge item={item} />
+                  </td>
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">{formatDate(item.publishedAt)}</td>
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">{item.readingTime} min</td>
-                  <td className="px-4 py-3 font-body text-sm text-chai-brown-light" title={(item.seoKeywords ?? []).join(', ') || 'No custom keywords'}>
-                    {(item.seoKeywords ?? []).length ? (
-                      <span className="text-terracotta">{(item.seoKeywords ?? []).length}</span>
+                  <td className="px-4 py-3 font-body text-sm text-chai-brown-light" title={(item.tags ?? []).join(', ') || 'No tags'}>
+                    {(item.tags ?? []).length ? (
+                      <span className="text-terracotta">{(item.tags ?? []).length}</span>
                     ) : (
                       '—'
                     )}

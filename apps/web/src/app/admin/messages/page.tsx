@@ -159,10 +159,13 @@ export default function AdminMessagesPage() {
                   Subject: {m.subject}
                 </p>
               )}
-              {m.source === 'work-with-me' && m.service && (
-                <p className="mt-2 font-sans text-sm text-terracotta">
-                  Service: {m.service}
-                </p>
+              {m.source === 'work-with-me' && (
+                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-sans text-sm text-chai-brown-light">
+                  {m.service && <span className="text-terracotta">Service: {m.service}</span>}
+                  {m.bookTitle && <span>Book: {m.bookTitle}</span>}
+                  {m.genre && <span>Genre: {m.genre}</span>}
+                  {m.timeline && <span>Timeline: {m.timeline}</span>}
+                </div>
               )}
               <div className="mt-2">
                 <button

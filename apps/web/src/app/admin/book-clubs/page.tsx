@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Mail } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import { getPageSettings, putPageSettings, announceBookClub } from '@/lib/api';
+import { tryAutoAnnounceOnce } from '@/lib/announceSubscribers';
+import { readSubscribersEmailedAt, subscribersEmailedSaveField } from '@/lib/subscribersEmailed';
 import PageLoading from '@/components/PageLoading';
 import ImageUploadField from '@/components/ImageUploadField';
+import AdminSubscribersEmailedBadge from '@/components/admin/AdminSubscribersEmailedBadge';
 
 interface BookClub {
   id: string;
@@ -16,12 +19,10 @@ interface BookClub {
   focus: string;
   /** Book club logo image URL (optional). */
   logo?: string;
+  subscribersEmailedAt?: string;
 }
 
-const defaultClubs: BookClub[] = [
-  { id: '1', name: 'The Chai Circle', description: 'A cozy community for slow readers who love to discuss books over virtual chai sessions.', platform: 'instagram', joinLink: 'https://instagram.com/chaptersaurchai', members: '500+', focus: 'Fiction & Literary', logo: '' },
-  { id: '2', name: 'Desi Readers Club', description: 'Celebrating South Asian literature and authors. Monthly reads featuring diverse voices.', platform: 'whatsapp', joinLink: 'https://wa.me/1234567890', members: '300+', focus: 'Indian Literature', logo: '' },
-];
+const defaultClubs: BookClub[] = [];
 
 const sectionPageDefaults = {
   sectionTitle: 'Book Clubs',
@@ -56,6 +57,7 @@ function toFormClub(x: Record<string, unknown>): BookClub | null {
     members,
     focus: themeOrFocus,
     logo: logo || undefined,
+    subscribersEmailedAt: readSubscribersEmailedAt(x),
   };
   return out;
 }
@@ -75,6 +77,7 @@ function toApiClub(c: BookClub): Record<string, unknown> {
     memberCount: isNaN(n) ? 0 : n,
     meetingFrequency: 'Monthly',
     nextMeeting: '',
+    ...subscribersEmailedSaveField(c.subscribersEmailedAt),
   };
 }
 
@@ -83,7 +86,6 @@ export default function AdminBookClubsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  const [announcingId, setAnnouncingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingClub, setEditingClub] = useState<BookClub | null>(null);
   const [formData, setFormData] = useState<Omit<BookClub, 'id'>>({
@@ -119,11 +121,28 @@ export default function AdminBookClubsPage() {
     await putPageSettings('book-clubs', content as Record<string, unknown>);
   };
 
+  const loadClubs = async (): Promise<BookClub[]> => {
+    const { content } = await getPageSettings('book-clubs');
+    if (content && typeof content === 'object' && !Array.isArray(content)) {
+      const c = content as { clubs?: Record<string, unknown>[]; pageClubs?: Record<string, unknown>[] };
+      const raw = Array.isArray(c.pageClubs) ? c.pageClubs : Array.isArray(c.clubs) ? c.clubs : [];
+      const clubs = raw.map(toFormClub).filter((x): x is BookClub => x != null);
+      if (clubs.length) {
+        setBookClubs(clubs);
+        return clubs;
+      }
+    }
+    return bookClubs;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const isNew = !editingClub;
+    const newId = Date.now().toString();
     const nextBookClubs: BookClub[] = editingClub
-      ? bookClubs.map((c) => (c.id === editingClub.id ? { ...formData, id: editingClub.id } : c))
-      : [...bookClubs, { ...formData, id: Date.now().toString() }];
+      ? bookClubs.map((c) => (c.id === editingClub.id ? { ...formData, id: editingClub.id, subscribersEmailedAt: editingClub.subscribersEmailedAt } : c))
+      : [...bookClubs, { ...formData, id: newId }];
+    const addedClub = isNew ? nextBookClubs.find((c) => c.id === newId) : undefined;
     setBookClubs(nextBookClubs);
     setFormData({ name: '', description: '', platform: 'instagram', joinLink: '', members: '', focus: '', logo: '' });
     setShowForm(false);
@@ -132,7 +151,15 @@ export default function AdminBookClubsPage() {
     setSaving(true);
     try {
       await saveBookClubsToApi(nextBookClubs);
-      setMessage({ type: 'success', text: editingClub ? 'Book club updated and saved!' : 'Book club added and saved!' });
+      let msg = editingClub ? 'Book club updated and saved!' : 'Book club added and saved!';
+      if (addedClub) {
+        const annex = await tryAutoAnnounceOnce(addedClub, () => announceBookClub(addedClub.id));
+        if (annex) {
+          await loadClubs();
+          msg += ` ${annex}`;
+        }
+      }
+      setMessage({ type: 'success', text: msg });
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
     } finally {
@@ -167,27 +194,6 @@ export default function AdminBookClubsPage() {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleAnnounce = async (club: BookClub) => {
-    if (!confirm(`Send an email to all subscribers about "${club.name}"?`)) return;
-    setMessage(null);
-    setAnnouncingId(club.id);
-    setMessage({ type: 'success', text: 'Sending to subscribers…' });
-    try {
-      const { sent, total } = await announceBookClub(club.id);
-      if (total === 0) {
-        setMessage({ type: 'success', text: 'No subscribers to send to. Add subscribers first (Subscribe page).' });
-      } else if (sent === total) {
-        setMessage({ type: 'success', text: `Announcement sent successfully to ${sent} subscriber${sent === 1 ? '' : 's'}.` });
-      } else {
-        setMessage({ type: 'success', text: `Sent to ${sent} of ${total} subscribers. ${total - sent} failed (check server logs).` });
-      }
-    } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to send announcement' });
-    } finally {
-      setAnnouncingId(null);
     }
   };
 
@@ -380,6 +386,7 @@ export default function AdminBookClubsPage() {
                       <p className="font-body text-sm text-chai-brown-light line-clamp-1">
                         {club.description}
                       </p>
+                      <AdminSubscribersEmailedBadge item={club} />
                     </div>
                   </td>
                   <td className="px-4 py-3 font-body text-chai-brown-light capitalize">
@@ -393,14 +400,6 @@ export default function AdminBookClubsPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleAnnounce(club)}
-                        disabled={!!announcingId}
-                        title="Email all subscribers about this book club"
-                        className="p-2 text-sage hover:bg-sage/20 rounded transition-colors disabled:opacity-50"
-                      >
-                        <Mail size={18} />
-                      </button>
                       <button
                         onClick={() => handleEdit(club)}
                         className="p-2 text-terracotta hover:bg-terracotta/10 rounded transition-colors"

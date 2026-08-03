@@ -3,6 +3,12 @@ import { config } from './index.js';
 
 export const connectDatabase = async (): Promise<void> => {
   try {
+    if (!config.mongodbUri?.trim()) {
+      console.error(
+        'Missing MONGODB_URI. Create apps/api/.env (copy from apps/api/.env.example) with a valid MongoDB connection string.'
+      );
+      process.exit(1);
+    }
     await mongoose.connect(config.mongodbUri);
     const db = mongoose.connection.db;
     const dbName = db?.databaseName ?? 'unknown';

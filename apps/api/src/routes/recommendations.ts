@@ -1,6 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { Page } from '../models/Page.js';
+import { filterPublishedPageItems, isPageContentPublished } from '../utils/pageContentPublish.js';
+import { createPageItemAnnounceHandler } from '../utils/announceRoute.js';
+import { sendRecommendationAnnouncementEmail } from '../services/contentAnnouncementEmail.js';
+import { requireAuth } from '../middlewares/auth.js';
 import { rewriteImageUrlsInObject } from './upload.js';
+import { resolveReadNext } from '../services/readNext.js';
 
 const RECOMMENDATIONS_SLUG = 'recommendations' as const;
 const SORT_OPTIONS = ['newest', 'oldest', 'reading-time', 'book-count'] as const;
@@ -53,7 +58,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
     const raw = pageDoc?.content && typeof pageDoc.content === 'object' && Array.isArray((pageDoc.content as { items?: unknown }).items)
       ? (pageDoc.content as { items: unknown[] }).items
       : [];
-    const all = rewriteImageUrlsInObject(raw) as RecItem[];
+    const all = filterPublishedPageItems(rewriteImageUrlsInObject(raw) as RecItem[]);
 
     const page = Math.max(1, parseInt(String(req.query.page), 10) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(String(req.query.limit), 10) || 6));
@@ -98,6 +103,23 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+/** GET /api/recommendations/:slug/read-next – related lists (tags → author → category → newest). */
+router.get('/:slug/read-next', async (req: Request, res: Response): Promise<void> => {
+  const slug = req.params.slug;
+  if (!slug) {
+    res.status(400).json({ error: 'Missing slug' });
+    return;
+  }
+  try {
+    const limit = Math.min(8, Math.max(1, parseInt(String(req.query.limit), 10) || 4));
+    const items = await resolveReadNext('recommendations', slug, limit);
+    res.status(200).json({ items });
+  } catch (err) {
+    console.error('GET /api/recommendations/:slug/read-next', err);
+    res.status(500).json({ error: 'Failed to load related recommendations' });
+  }
+});
+
 /** GET /api/recommendations/:slug – public, returns a single recommendation list by slug */
 router.get('/:slug', async (req: Request, res: Response): Promise<void> => {
   const slug = req.params.slug;
@@ -111,7 +133,7 @@ router.get('/:slug', async (req: Request, res: Response): Promise<void> => {
       ? (page.content as { items: Record<string, unknown>[] }).items
       : [];
     const item = items.find((p) => String(p?.slug ?? '').toLowerCase() === slug.toLowerCase());
-    if (!item) {
+    if (!item || !isPageContentPublished(item)) {
       res.status(404).json({ error: 'Recommendation not found' });
       return;
     }
@@ -122,5 +144,12 @@ router.get('/:slug', async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: 'Failed to load recommendation' });
   }
 });
+
+/** POST /api/recommendations/announce – protected, email subscribers about a live list (by slug). */
+router.post(
+  '/announce',
+  requireAuth,
+  createPageItemAnnounceHandler('recommendations', sendRecommendationAnnouncementEmail)
+);
 
 export default router;

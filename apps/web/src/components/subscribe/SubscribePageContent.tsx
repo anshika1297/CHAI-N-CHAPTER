@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { subscribe } from '@/lib/api';
+import { saveSubscriberSessionFromSubscribe } from '@/lib/subscriberSession';
 import WelcomeWithBookClubs from './WelcomeWithBookClubs';
 
 export default function SubscribePageContent() {
@@ -21,7 +22,8 @@ export default function SubscribePageContent() {
     setStatus('loading');
     setMessage('');
     try {
-      await subscribe(trimmed, { name: name.trim() || undefined, source: 'subscribe-page' });
+      const result = await subscribe(trimmed, { name: name.trim() || undefined, source: 'subscribe-page' });
+      saveSubscriberSessionFromSubscribe(result, trimmed);
       setStatus('success');
       setEmail('');
       setName('');
@@ -32,7 +34,7 @@ export default function SubscribePageContent() {
   };
 
   return (
-    <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+    <section className="pt-24 pb-12 sm:pb-16 min-h-screen">
       <div className="max-w-xl mx-auto text-center">
         <h1 className="font-serif text-3xl sm:text-4xl text-chai-brown mb-3">
           Subscribe to the Reading List

@@ -1,7 +1,9 @@
 import nodemailer from 'nodemailer';
-import { Page } from '../models/Page.js';
-import { Subscriber } from '../models/Subscriber.js';
 import { config } from '../config/index.js';
+import { Page } from '../models/Page.js';
+import { getEmailSiteUrl, toAbsoluteEmailImageUrl } from '../utils/emailSiteUrl.js';
+import { resolveAnnouncementRecipients, type AnnounceResult } from './subscriberEmail.js';
+import { resolveFromAddress } from './smtpConfig.js';
 
 export type BookClubPayload = {
   id: string;
@@ -61,17 +63,9 @@ function buildUnsubscribeFooter(siteUrl: string, email: string): string {
   return `<p style="margin:24px 0 0;font-size:14px;color:#8b7355;">You can <a href="${url}" style="color:#c4704a;">unsubscribe anytime</a> from our emails.</p>`;
 }
 
-function toAbsoluteImageUrl(logo: string | undefined): string {
-  if (!logo || !logo.trim()) return '';
-  const trimmed = logo.trim();
-  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
-  const base = config.publicSiteUrl.replace(/\/$/, '');
-  return trimmed.startsWith('/') ? base + trimmed : base + '/' + trimmed;
-}
-
 function buildDefaultAnnouncementHtml(club: BookClubPayload, subscriberEmail: string): string {
-  const siteUrl = config.publicSiteUrl.replace(/\/$/, '');
-  const imageUrl = toAbsoluteImageUrl(club.logo);
+  const siteUrl = getEmailSiteUrl();
+  const imageUrl = toAbsoluteEmailImageUrl(club.logo);
   const joinLink = club.joinLink?.trim() || `${siteUrl}/book-clubs`;
   const imgBlock = imageUrl
     ? `<p style="margin:0 0 16px;"><img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(club.name)}" width="560" style="max-width:100%;height:auto;border-radius:8px;display:block;" /></p>`
@@ -100,8 +94,8 @@ function buildAnnouncementHtmlFromTemplate(
   club: BookClubPayload,
   subscriberEmail: string
 ): string {
-  const siteUrl = config.publicSiteUrl.replace(/\/$/, '');
-  const imageUrl = toAbsoluteImageUrl(club.logo);
+  const siteUrl = getEmailSiteUrl();
+  const imageUrl = toAbsoluteEmailImageUrl(club.logo);
   const joinLink = club.joinLink?.trim() || `${siteUrl}/book-clubs`;
   const unsubscribeUrl = `${siteUrl}/subscribe/unsubscribe?email=${encodeURIComponent(subscriberEmail)}`;
   const clubImageTag = imageUrl
@@ -127,10 +121,10 @@ function buildAnnouncementHtmlFromTemplate(
   return html;
 }
 
-export type AnnounceResult = { sent: number; total: number };
+export type { AnnounceResult };
 
 /**
- * Sends a book club announcement email to all subscribers with status 'subscribed'.
+ * Sends a book club announcement email to subscribed recipients (or ANNOUNCE_TEST_ONLY in development).
  * Email includes club image (if logo set), name, description, and join link.
  * Uses same SMTP config as welcome emails (admin email-settings or env).
  * Returns { sent, total } for confirmation. Throws if SMTP is not configured.
@@ -141,14 +135,16 @@ export async function sendBookClubAnnouncementEmail(club: BookClubPayload): Prom
     throw new Error('SMTP is not configured. Set SMTP in .env or Admin → Subscriber emails.');
   }
 
-  const subscribers = await Subscriber.find({ status: 'subscribed' }).select('email name').lean();
-  if (subscribers.length === 0) return { sent: 0, total: 0 };
+  const { recipients, testMode, testEmail } = await resolveAnnouncementRecipients();
+  const total = recipients.length;
+  if (total === 0) return { sent: 0, total: 0, testMode, testEmail };
 
-  const from = settings?.fromEmail?.trim() || settings?.smtpUser?.trim() || config.smtp.from;
+  const from = resolveFromAddress(settings ?? null, config.smtp);
   const subjectTemplate = settings?.bookClubAnnounceSubject?.trim();
-  const subject = subjectTemplate
+  const baseSubject = subjectTemplate
     ? subjectTemplate.replace(/\{\{clubName\}\}/g, club.name)
     : `New book club: ${club.name} — Chai & Chapter`;
+  const subject = testMode ? `[TEST] ${baseSubject}` : baseSubject;
   const bodyTemplate = settings?.bookClubAnnounceBodyHtml?.trim();
   const useAdminSmtp = Boolean(settings?.smtpUser?.trim() && settings?.smtpPass?.trim());
   const transporterOptions = useAdminSmtp
@@ -167,10 +163,7 @@ export async function sendBookClubAnnouncementEmail(club: BookClubPayload): Prom
 
   const transporter = nodemailer.createTransport(transporterOptions);
   let sent = 0;
-  const total = subscribers.filter((s) => (s.email || '').trim()).length;
-  for (const sub of subscribers) {
-    const to = (sub.email || '').trim();
-    if (!to) continue;
+  for (const to of recipients) {
     try {
       const html = bodyTemplate
         ? buildAnnouncementHtmlFromTemplate(bodyTemplate, club, to)
@@ -181,5 +174,5 @@ export async function sendBookClubAnnouncementEmail(club: BookClubPayload): Prom
       console.error('Book club announcement send error for', to, err);
     }
   }
-  return { sent, total };
+  return { sent, total, testMode, testEmail };
 }

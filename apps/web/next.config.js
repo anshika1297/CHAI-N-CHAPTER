@@ -7,6 +7,18 @@ const nextConfig = {
   compress: true,
   ...(isStaticExport ? { output: 'export' } : {}),
 
+  /** Polling avoids macOS EMFILE watcher failures that can leave dev returning 404 for every route. */
+  webpack: (config, { dev }) => {
+    if (dev && process.env.WATCHPACK_POLLING === 'true') {
+      config.watchOptions = {
+        poll: 1500,
+        aggregateTimeout: 500,
+        ignored: ['**/node_modules/**', '**/.git/**'],
+      }
+    }
+    return config
+  },
+
   images: {
     ...(isStaticExport ? { unoptimized: true } : {}),
     formats: ['image/avif', 'image/webp'],
@@ -31,7 +43,7 @@ if (!isStaticExport) {
       return u
     }
     const fromEnv = normalize(process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL)
-    const apiTarget = fromEnv || 'http://127.0.0.1:5001'
+    const apiTarget = fromEnv || (process.env.NODE_ENV === 'production' ? 'http://127.0.0.1:5002' : 'http://127.0.0.1:5001')
     return [
       { source: '/api/:path*', destination: `${apiTarget}/api/:path*` },
       { source: '/health', destination: `${apiTarget}/health` },

@@ -1,13 +1,37 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
-import { Clock, Tag, User, Share2, Star, BookOpen } from 'lucide-react';
+import { Clock, User, Share2, Star, BookOpen } from 'lucide-react';
 import { getRecommendationBySlug, getImageUrl, getRecommendations } from '@/lib/api';
+import { listBookGoodreadsLink, recommendationHasShopLinks, resolveListBookShopLinks, shopPath } from '@/lib/shopLinks';
+import ShopWhereToBuyCta from '@/components/shop/ShopWhereToBuyCta';
 import ReadMoreSection from '@/components/blog/ReadMoreSection';
+import type { ReadNextItem } from '@/lib/readNext';
+import ContentAeoSummary from '@/components/content/ContentAeoSummary';
+import ContentTagList from '@/components/tags/ContentTagList';
+import CommentsSection from '@/components/comments/CommentsSection';
+import ReaderReactions from '@/components/reactions/ReaderReactions';
+import NewsletterInlineCta from '@/components/newsletter/NewsletterInlineCta';
+import BookNudgeAfter from '@/components/books/BookNudgeAfter';
+import { useBookNudgeSuggestions } from '@/lib/books/useBookNudgeSuggestions';
+import ReadingPathTeaser from '@/components/reading-paths/ReadingPathTeaser';
+import ContentFreshnessDates from '@/components/content/ContentFreshnessDates';
+import ContentBreadcrumbs from '@/components/content/ContentBreadcrumbs';
+import CategoryLink from '@/components/content/CategoryLink';
+import EditorialCrossLinks from '@/components/content/EditorialCrossLinks';
+import { resolveGenreHubForCategory } from '@/lib/genres/resolveCategoryHref';
+import { parseShopBooksFromRecommendation } from '@/lib/shopCatalog';
+import {
+  buildRecommendationAeoPairs,
+  readTags,
+  recommendationFieldsFromRaw,
+  type ContentFaqItem,
+} from '@/lib/contentFields';
 
 interface RecommendationDetailProps {
   slug: string;
+  readNextItems?: ReadNextItem[];
 }
 
 type BookItem = {
@@ -15,12 +39,13 @@ type BookItem = {
   title: string;
   author: string;
   image: string;
-  rating: number;
+  rating?: number;
   description: string;
   /** URL for the book; book title links here when set. */
   bookLink?: string;
   /** URL for the author profile; author name links here when set. */
   authorLink?: string;
+  shopLinks: import('@/lib/shopLinks').ShopLink[];
 };
 type ItemData = {
   title: string;
@@ -31,10 +56,15 @@ type ItemData = {
   readingTime: number;
   author: string;
   publishedAt: string;
+  updatedAt?: string;
+  updateHistory?: { at: string; reason: 'content' | 'publish' }[];
   categories: string[];
   tags: string[];
   conclusion: string;
   books: BookItem[];
+  whoIsThisListFor?: string;
+  quickAnswer?: string;
+  faq: ContentFaqItem[];
 };
 
 function normalizeItem(r: Record<string, unknown> | null | undefined): ItemData {
@@ -52,8 +82,10 @@ function normalizeItem(r: Record<string, unknown> | null | undefined): ItemData 
       tags: [],
       conclusion: '',
       books: [],
+      faq: [],
     };
   }
+  const editorial = recommendationFieldsFromRaw(r);
   const category = typeof r.category === 'string' ? r.category : '';
   const rawBooks = Array.isArray(r.books) ? r.books : [];
   const books = rawBooks.map((b: unknown) => {
@@ -63,10 +95,14 @@ function normalizeItem(r: Record<string, unknown> | null | undefined): ItemData 
       title: String(item?.title ?? '').trim(),
       author: String(item?.author ?? '').trim(),
       image: typeof item?.image === 'string' ? item.image : '',
-      rating: typeof item?.rating === 'number' ? item.rating : Number(item?.rating) || 0,
+      rating:
+        typeof item?.rating === 'number' && item.rating >= 1 && item.rating <= 5
+          ? item.rating
+          : undefined,
       description: String(item?.description ?? '').trim(),
-      bookLink: typeof item?.bookLink === 'string' && item.bookLink.trim() ? item.bookLink.trim() : undefined,
+      bookLink: listBookGoodreadsLink(item),
       authorLink: typeof item?.authorLink === 'string' && item.authorLink.trim() ? item.authorLink.trim() : undefined,
+      shopLinks: resolveListBookShopLinks(item),
     };
   });
   return {
@@ -78,14 +114,18 @@ function normalizeItem(r: Record<string, unknown> | null | undefined): ItemData 
     readingTime: typeof r.readingTime === 'number' ? r.readingTime : Number(r.readingTime) || 5,
     author: typeof r.author === 'string' ? r.author : '',
     publishedAt: typeof r.publishedAt === 'string' ? r.publishedAt : new Date().toISOString().slice(0, 10),
+    updatedAt: typeof r.updatedAt === 'string' ? r.updatedAt : undefined,
+    updateHistory: Array.isArray(r.updateHistory) ? (r.updateHistory as ItemData['updateHistory']) : undefined,
     categories: category ? [category] : [],
-    tags: Array.isArray(r.seoKeywords) ? (r.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+    tags: readTags(r),
     conclusion: typeof r.conclusion === 'string' ? r.conclusion : '',
     books,
+    ...editorial,
+    faq: editorial.faq ?? [],
   };
 }
 
-export default function RecommendationDetail({ slug }: RecommendationDetailProps) {
+export default function RecommendationDetail({ slug, readNextItems = [] }: RecommendationDetailProps) {
   const [item, setItem] = useState<ItemData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -93,7 +133,24 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [prevSlug, setPrevSlug] = useState<string | null>(null);
   const [nextSlug, setNextSlug] = useState<string | null>(null);
+  const [listBookSlugs, setListBookSlugs] = useState<string[]>([]);
   const shareMenuRef = useRef<HTMLDivElement>(null);
+
+  const nudgeSeed = useMemo(
+    () =>
+      item
+        ? {
+            bookSlug: listBookSlugs[0],
+            recommendationSlug: slug,
+            genre: item.category,
+            tags: item.tags,
+            excludeSlugs: listBookSlugs.length ? listBookSlugs : undefined,
+            limit: 6,
+          }
+        : null,
+    [item, slug, listBookSlugs]
+  );
+  const nudgeSuggestions = useBookNudgeSuggestions(nudgeSeed, []);
 
   useEffect(() => {
     if (!slug || typeof slug !== 'string' || !slug.trim()) {
@@ -103,6 +160,15 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
     }
     getRecommendationBySlug(slug)
       .then(({ item: raw }) => {
+        const record = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : null;
+        if (record) {
+          const slugs = parseShopBooksFromRecommendation(record)
+            .map((b) => b.bookSlug)
+            .filter((s): s is string => Boolean(s?.trim()));
+          setListBookSlugs(slugs);
+        } else {
+          setListBookSlugs([]);
+        }
         if (raw == null || typeof raw !== 'object') {
           setNotFound(true);
           return;
@@ -197,8 +263,8 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
 
   if (loading) {
     return (
-      <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-4xl mx-auto text-center py-16">
+      <article className="pt-24 pb-12 sm:pb-16 min-h-screen">
+        <div className="site-container max-w-5xl text-center py-16">
           <p className="font-body text-chai-brown-light">Loading…</p>
         </div>
       </article>
@@ -207,16 +273,22 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
 
   if (notFound || !item) {
     return (
-      <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-4xl mx-auto text-center py-16">
+      <article className="pt-24 pb-12 sm:pb-16 min-h-screen">
+        <div className="site-container max-w-5xl text-center py-16">
           <p className="font-body text-chai-brown-light">Recommendation not found.</p>
         </div>
       </article>
     );
   }
 
+  const aeoPairs = buildRecommendationAeoPairs({
+    title: item.title,
+    whoIsThisListFor: item.whoIsThisListFor,
+    quickAnswer: item.quickAnswer,
+    faq: item.faq,
+  });
   return (
-    <article className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+    <article className="pt-24 pb-12 sm:pb-16 min-h-screen">
       {/* Reading Progress Bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-cream/50 z-[60]">
         <div
@@ -225,20 +297,27 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
         />
       </div>
 
-      <div className="max-w-4xl mx-auto">
+      <div className="site-container max-w-5xl">
+        <ContentBreadcrumbs
+          sectionLabel="Recommendations"
+          sectionHref="/recommendations"
+          genreHub={
+            (item.categories[0] ?? item.category)
+              ? (() => {
+                  const hub = resolveGenreHubForCategory(item.categories[0] ?? item.category);
+                  return hub ? { label: hub.title, href: hub.href } : undefined;
+                })()
+              : undefined
+          }
+          title={item.title}
+        />
         {/* Header Section */}
         <header className="mb-8 overflow-visible">
           {/* Category Badges */}
           {item.categories && item.categories.length > 0 && (
             <div className="mb-4 flex flex-wrap items-center gap-2">
               {item.categories.map((category) => (
-                <span
-                  key={category}
-                  className="bg-sage text-cream text-xs font-sans px-3 py-1 rounded-full inline-flex items-center gap-1"
-                >
-                  <Tag size={12} />
-                  {category}
-                </span>
+                <CategoryLink key={category} category={category} contentType="recommendations" style="pill" />
               ))}
             </div>
           )}
@@ -247,6 +326,12 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
           <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-chai-brown mb-4 leading-tight">
             {item.title}
           </h1>
+
+          {item.slug && recommendationHasShopLinks({ books: item.books }) ? (
+            <div className="mb-6">
+              <ShopWhereToBuyCta href={shopPath('recommendations', item.slug)} />
+            </div>
+          ) : null}
 
           {/* Meta Information */}
           <div className="flex flex-wrap items-center gap-4 text-sm text-chai-brown-light font-sans mb-6">
@@ -258,14 +343,16 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
               <User size={14} />
               <span>{item.author}</span>
             </div>
-            <div className="text-xs">
-              {new Date(item.publishedAt).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </div>
+            <ContentFreshnessDates
+              raw={{
+                publishedAt: item.publishedAt,
+                updatedAt: item.updatedAt,
+                updateHistory: item.updateHistory,
+              }}
+            />
           </div>
+
+          <ContentAeoSummary pairs={aeoPairs} />
 
           {/* Share Button */}
           <div className="relative share-menu-container inline-block" ref={shareMenuRef} style={{ zIndex: 100 }}>
@@ -370,6 +457,8 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
           </div>
         )}
 
+        <BookNudgeAfter suggestions={nudgeSuggestions} slotIndex={0} />
+
         {/* Books List */}
         {item.books && item.books.length > 0 && (
           <section className="mb-12">
@@ -437,8 +526,8 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
                         </p>
                       </div>
 
-                      {/* Rating */}
-                      {book.rating && (
+                      {/* Rating (optional — omit when unset) */}
+                      {book.rating != null && book.rating >= 1 && (
                         <div className="flex items-center gap-2 mb-4">
                           <div className="flex items-center gap-1">
                             {renderStars(book.rating)}
@@ -464,6 +553,8 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
           </section>
         )}
 
+        <BookNudgeAfter suggestions={nudgeSuggestions} slotIndex={1} />
+
         {/* Conclusion */}
         {item.conclusion && (
           <section className="mb-12">
@@ -477,42 +568,35 @@ export default function RecommendationDetail({ slug }: RecommendationDetailProps
           </section>
         )}
 
+        <BookNudgeAfter suggestions={nudgeSuggestions} slotIndex={2} />
+
         {/* Categories Section */}
         {item.categories && item.categories.length > 0 && (
           <section className="mb-6 pt-8 border-t border-chai-brown/10">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-sans font-medium text-chai-brown mr-2">Categories:</span>
               {item.categories.map((category) => (
-                <span
-                  key={category}
-                  className="bg-sage/10 text-sage text-xs font-sans px-3 py-1 rounded-full border border-sage/30 hover:bg-sage/20 transition-colors cursor-pointer"
-                >
-                  {category}
-                </span>
+                <CategoryLink key={category} category={category} contentType="recommendations" style="footer" />
               ))}
             </div>
           </section>
         )}
 
-        {/* Tags Section */}
-        {item.tags && item.tags.length > 0 && (
-          <section className="mb-8 pt-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-sans font-medium text-chai-brown mr-2">Tags:</span>
-              {item.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-cream-light text-chai-brown text-xs font-sans px-3 py-1 rounded-full border border-chai-brown/20 hover:border-sage transition-colors cursor-pointer"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
+        <ContentTagList tags={item.tags} />
+
+        <ReadingPathTeaser category={item.categories[0] ?? item.category} tags={item.tags} />
+        <EditorialCrossLinks
+          contentType="recommendations"
+          category={item.categories[0] ?? item.category}
+          tags={item.tags}
+        />
+
+        <NewsletterInlineCta variant="recommendation" placement="content-recommendation" contentSlug={slug} />
+        <ReaderReactions contentType="recommendations" slug={slug} />
+        <CommentsSection contentType="recommendations" slug={slug} />
 
         {/* Read next – random recommendation cards */}
-        <ReadMoreSection variant="recommendations" excludeSlug={slug} />
+        <ReadMoreSection variant="recommendations" items={readNextItems} />
 
         {/* Navigation to Next/Previous */}
         <div className="flex justify-between items-center pt-8 border-t border-chai-brown/10">

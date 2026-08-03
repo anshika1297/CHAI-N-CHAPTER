@@ -4,16 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import BookCard from './BookCard';
 import { ArrowRight } from 'lucide-react';
-import { getPageSettings } from '@/lib/api';
+import { getRecommendations } from '@/lib/api';
 
 type CardItem = { title: string; excerpt: string; image: string; category: string; slug: string; readingTime?: number };
-
-const defaultRecommendations: CardItem[] = [
-  { title: 'For the Hopeless Romantics', excerpt: 'A curated list of love stories that will make your heart flutter. From slow-burn romances to epic love sagas, find your next favorite...', image: '', category: 'Recommendation', slug: 'hopeless-romantics-reads', readingTime: 4 },
-  { title: 'Books to Read with Your Chai', excerpt: 'Perfect companions for your evening chai sessions. These books pair wonderfully with a steaming cup and a cozy blanket...', image: '', category: 'Recommendation', slug: 'books-with-chai', readingTime: 5 },
-  { title: 'Weekend Escape Reads', excerpt: 'Looking to escape reality for a weekend? These immersive stories will transport you to different worlds and times...', image: '', category: 'Recommendation', slug: 'weekend-escape-reads', readingTime: 4 },
-  { title: 'Books That Changed My Perspective', excerpt: "Some books don't just entertain—they transform. Here are reads that shifted my worldview and made me think differently...", image: '', category: 'Recommendation', slug: 'perspective-changing-books', readingTime: 6 },
-];
 
 function toCardItem(x: Record<string, unknown>): CardItem | null {
   if (typeof x?.title !== 'string' || typeof x?.slug !== 'string') return null;
@@ -28,35 +21,31 @@ function toCardItem(x: Record<string, unknown>): CardItem | null {
 }
 
 export default function BookRecommendations() {
-  const [cards, setCards] = useState<CardItem[]>(defaultRecommendations);
+  const [cards, setCards] = useState<CardItem[]>([]);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    getPageSettings('recommendations')
-      .then(({ content }) => {
-        if (content && typeof content === 'object' && !Array.isArray(content)) {
-          const c = content as { items?: Record<string, unknown>[] };
-          if (Array.isArray(c.items) && c.items.length > 0) {
-            const sorted = [...c.items].sort((a, b) => {
-              const da = typeof (a as { publishedAt?: string }).publishedAt === 'string' ? new Date((a as { publishedAt: string }).publishedAt).getTime() : 0;
-              const db = typeof (b as { publishedAt?: string }).publishedAt === 'string' ? new Date((b as { publishedAt: string }).publishedAt).getTime() : 0;
-              return db - da;
-            });
-            const list = sorted.slice(0, 4).map(toCardItem).filter((x): x is CardItem => x != null);
-            if (list.length) setCards(list);
-          }
-        }
+    getRecommendations({ limit: 4, sort: 'newest' })
+      .then(({ items }) => {
+        const list = (Array.isArray(items) ? items : [])
+          .map((p) => toCardItem(p as Record<string, unknown>))
+          .filter((x): x is CardItem => x != null);
+        if (list.length) setCards(list);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setReady(true));
   }, []);
 
+  if (!ready || cards.length === 0) return null;
+
   return (
-    <section className="py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8 sm:mb-10">
+    <section className="py-6 sm:py-12 md:py-16">
+      <div className="site-container">
+        <div className="text-center mb-6 sm:mb-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif text-chai-brown mb-2">Book Recommendations</h2>
-          <p className="section-subheading">Handpicked reads for every mood and moment</p>
+          <p className="section-subheading mb-4 sm:mb-8">Handpicked reads for every mood and moment</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-6">
           {cards.map((rec, index) => (
             <div key={rec.slug} className="animate-fade-in-up" style={{ animationDelay: `${index * 100}ms` }}>
               <BookCard {...rec} basePath="/recommendations" />

@@ -4,18 +4,11 @@ import { useState, useEffect } from 'react';
 import { Save, Plus, Trash2 } from 'lucide-react';
 import { getPageSettings, putPageSettings } from '@/lib/api';
 import PageLoading from '@/components/PageLoading';
+import { DEFAULT_HEADER_NAV_LINKS, mergeHeaderNavLinks } from '@/lib/siteNav';
 
 const defaultHeaderData = {
   siteName: 'Chapters.aur.Chai',
-  navLinks: [
-    { name: 'Home', href: '/' },
-    { name: 'About Me', href: '/about' },
-    { name: 'Book Reviews', href: '/blog' },
-    { name: 'Book Recommendations', href: '/recommendations' },
-    { name: 'Her Musings Verse', href: '/musings' },
-    { name: 'Book Clubs', href: '/book-clubs' },
-    { name: 'Work With Me', href: '/work-with-me' },
-  ],
+  navLinks: DEFAULT_HEADER_NAV_LINKS,
 };
 
 export default function AdminHeaderPage() {
@@ -31,9 +24,15 @@ export default function AdminHeaderPage() {
           const c = content as { siteName?: string; navLinks?: { name: string; href: string }[] };
           setHeaderData({
             siteName: typeof c.siteName === 'string' ? c.siteName : defaultHeaderData.siteName,
-            navLinks: Array.isArray(c.navLinks) && c.navLinks.length > 0
-              ? c.navLinks.filter((l): l is { name: string; href: string } => typeof l?.name === 'string' && typeof l?.href === 'string')
-              : defaultHeaderData.navLinks,
+            navLinks:
+              Array.isArray(c.navLinks) && c.navLinks.length > 0
+                ? mergeHeaderNavLinks(
+                    c.navLinks.filter(
+                      (l): l is { name: string; href: string } =>
+                        typeof l?.name === 'string' && typeof l?.href === 'string'
+                    )
+                  )
+                : defaultHeaderData.navLinks,
           });
         }
       })

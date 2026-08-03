@@ -1,5 +1,18 @@
 import MusingsListing from '@/components/musings/MusingsListing';
+import PageJsonLd from '@/components/schema/PageJsonLd';
 import { buildMetadata } from '@/lib/metadata';
+import { buildListingHubSchema } from '@/lib/schema';
+
+const schemas = buildListingHubSchema({
+  path: '/musings',
+  name: 'Her Musings Verse — Chapters.aur.Chai',
+  description:
+    'Literary musings, reflections, and short essays by Anshika Mishra — books, life, and reading culture for India, UAE, and worldwide readers.',
+  breadcrumbs: [
+    { name: 'Home', path: '/' },
+    { name: 'Musings', path: '/musings' },
+  ],
+});
 
 export const metadata = buildMetadata({
   title: 'Her Musings Verse – Reflections by Anshika Mishra',
@@ -10,5 +23,10 @@ export const metadata = buildMetadata({
 });
 
 export default function MusingsPage() {
-  return <MusingsListing />;
+  return (
+    <>
+      <PageJsonLd schemas={schemas} />
+      <MusingsListing />
+    </>
+  );
 }

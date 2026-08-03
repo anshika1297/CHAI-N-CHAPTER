@@ -1,0 +1,579 @@
+row,Title,Author,flags,Collections,Country
+4,The Chaos of Stars,Kiersten White,Wrong title (was 'the chaos of stats'),World Bookshelf; Civilizations Through Books; Civilization · Egypt; Around the World in 52 Books,United States
+5,The Shrouded Queen,Ashley Tropea,Title casing normalized,World Bookshelf; Dark & Atmospheric,United States
+6,She Knows All the Names,Michelle jabes corpora,Title casing normalized | MISSING tropes,World Bookshelf; Heartbreaking Reads,United States
+7,His Face Is the Sun,Michelle jabes corpora,Title casing normalized | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads; Slow Literary,United States
+8,He Who Drowned the World,Shelley parker-chan,Title casing normalized,World Bookshelf; Civilizations Through Books; Civilization · China; Around the World in 52 Books; East Asia Shelf; Heartbreaking Reads; Dark & Atmospheric,China
+9,She Who Became the Sun,Shelley parker-chan,Title casing normalized,World Bookshelf; Civilizations Through Books; Civilization · China; Around the World in 52 Books; East Asia Shelf; Dark & Atmospheric,China
+10,The Poppy War,R.F. kuang,Title casing normalized,World Bookshelf; Civilizations Through Books; Civilization · China; Around the World in 52 Books; East Asia Shelf; Heartbreaking Reads; Dark & Atmospheric,China
+11,The Scarlet Alchemist,Kylie lee baker,Title casing normalized,World Bookshelf; Civilizations Through Books; Civilization · China; Around the World in 52 Books; East Asia Shelf; Dark & Atmospheric,China
+12,Iron Widow,Iran jay zhao,Title casing normalized,World Bookshelf; Civilizations Through Books; Civilization · China; Around the World in 52 Books; East Asia Shelf; Dark & Atmospheric,China
+13,The Grace of Kings,Ken Liu,Author casing normalized | Title casing normalized,World Bookshelf,United States
+14,The Jade City,Fonda lee,Title casing normalized,World Bookshelf; Dark & Atmospheric,Canada
+16,The Stardust Thief,Chelsea Abdullah,Title casing normalized,World Bookshelf; Dark & Atmospheric,Kuwait
+17,The Hidden Palace,Helene wecker,Title casing normalized,World Bookshelf; Dark & Atmospheric,United States
+18,The Tapestry of Fate,Shannon chakraborty,Title casing normalized,World Bookshelf; Dark & Atmospheric,United States
+19,The Empire of Gold,S.A. chakraborty,Title casing normalized,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,United States
+20,The Kingdom of Copper,S.A. chakraborty,Title casing normalized | Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Comfort Reads,India
+21,The City of Brass,S.A. chakraborty,Title casing normalized | Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Heartbreaking Reads; Dark & Atmospheric,India
+22,the queen's Spy,Clare marchant,Country normalized (UK → United Kingdom) | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United Kingdom
+23,the Persian boy,Mary renault,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Civilization · Persia; Heartbreaking Reads; Slow Literary,Ancient Persia
+24,Mistress of Rome,Kate quinn,Title casing normalized,World Bookshelf; Civilizations Through Books; Civilization · Rome; Around the World in 52 Books; Dark & Atmospheric,Italy
+25,the Spanish love desception,Elena armas,MISSING tropes,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,Spain
+26,In to the Blue,Ema Brodie,Author casing normalized | Title casing normalized | MISSING tropes,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric; Slow Literary,United States
+27,Girl Who Fell Beneath the Sea,Axie Oh,Author casing normalized | Title casing normalized,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; East Asia Shelf; Around the World in 52 Books; Comfort Reads; Dark & Atmospheric,South Korea
+28,When in Rome,Sarah Adams,Title casing normalized | Country normalized (England → United Kingdom) | Language defaulted to English | MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Rome; Around the World in 52 Books,United Kingdom
+29,First Time Caller,B.K. Borison,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,United States
+30,Mr. wrong number,Lynn Painter,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Comfort Reads,United States
+31,Practice Makes Perfect,Sarah Adams,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+32,The Happily Ever After Playlist,Abby Jimenez,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+33,Book Lovers,Emily Henry,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+34,Yours Truly,Abby Jimenez,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+35,Part of Your World,Abby Jimenez,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+36,The Cheat Sheet,Sarah Adams,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+37,Summer in the City,Alex Aster,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+38,Talking at Night,Claire Daverley,Title casing normalized | Country filled from author map (United Kingdom) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United Kingdom
+39,The Convenience Store by the Sea,Sonoko Machida,Author casing normalized | Title casing normalized | Country filled from author map (Japan) | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf,Japan
+40,The House in the Cerulean Sea,T.J. Klune,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+41,Divine Rivals,Rebecca Ross,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+42,The Lion Women of Tehran,Marjan Kamali,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+43,Once Upon a Broken Heart,Stephanie Garber,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+44,The Cruel Prince,Holly Black,Author casing normalized | Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+45,The Butcher,Jennifer Hillier,Title casing normalized | Country filled from author map (Canada) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,Canada
+46,You Killed Me First,John Marrs,Title casing normalized | Country filled from author map (United Kingdom) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United Kingdom
+47,That'S Not My Name,Megan Lally,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+48,Never lie,Freida McFadden,Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+49,Morning Star,Pierce Brown,Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+50,Red Rising,Pierce Brown,Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+51,The surviving sky,Kritika H. Rao,Country filled from author map (Canada) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,Canada
+52,The startouched Queen,Roshani Chokshi,Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+53,The tiger at midnight,Swati Teerdhala,Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+54,The Phoenix king,Aparna Verma,Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+55,the Library of fates,Aditi Khorana,Country filled from author map (United States) | Language defaulted to English | MISSING genres | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,World Bookshelf,United States
+56,Mom Unfiltered,Leah kim,Title casing normalized | Country normalized (Korea → South Korea) | MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books,South Korea
+57,A Thousand Blues,Cheon Seon-ran,Author casing normalized | Title casing normalized | MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Heartbreaking Reads; Comfort Reads,South Korea
+58,The Future Perfect,Cay Kim,Author casing normalized | Title casing normalized | Country normalized (Korea → South Korea),World Bookshelf; East Asia Shelf; Around the World in 52 Books; Dark & Atmospheric,South Korea
+59,The Devoted,Catherine cho,Title casing normalized | MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Heartbreaking Reads; Comfort Reads,South Korea
+60,the Seoul letter shop,Baek Seungyeon,Author casing normalized | MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Heartbreaking Reads; Comfort Reads,South Korea
+61,Song for Another Home,Bora lee reed,Title casing normalized | Country normalized (Korea → South Korea) | MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Comfort Reads; Dark & Atmospheric,South Korea
+62,Bhima'S Wife,Kavita kane,Title casing normalized | MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+63,Radha,Neelima Dalmia adhar,Title casing normalized | Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+64,The Goddess Queen,Alice Roberts,Title casing normalized,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Heartbreaking Reads; Dark & Atmospheric,Greece
+65,Indian Mythology,Jan knappert,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+66,king of Ayodhya,Ashok K. Banker,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Heartbreaking Reads; Comfort Reads,India
+67,Bridge of Rama,Ashok K. Banker,Title casing normalized | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+68,armies of Hanuman,Ashok K. Banker,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+69,Siege of Mithila,Ashok K. Banker,Title casing normalized | Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+70,Prince of Ayodhya,Ashok K. Banker,Title casing normalized | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Heartbreaking Reads; Comfort Reads,India
+71,The Psychology of Love,Rashna Imhasly-Gandhy,Title casing normalized | Country filled from author map (India) | Language defaulted to English | MISSING tropes,India Bookshelf; Heartbreaking Reads,India
+72,Namaha,Abhishek singh,Title casing normalized | Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+73,Fisher Queen'S Dynasty,Kavita kane,Title casing normalized | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Comfort Reads; Dark & Atmospheric,India
+74,Ajaya,Anand Neelakantan,Author casing normalized | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+75,Karna's wife,Kavita kane,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; The Epic Project; Epic · Karna; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+76,Lanka's princess,Kavita kane,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Partition Stories; Indian Historical Fiction; Heartbreaking Reads; Comfort Reads,India
+77,Mahagauri,Nitya neelakantan,Title casing normalized | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+78,shiva Purana,Bibek Debroy,Author casing normalized | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+79,Shiva,Shubha vilas,Title casing normalized | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Heartbreaking Reads; Comfort Reads,India
+80,Hanuman,Vimkesh Kanti Verma,Author casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+81,Hanuman flies to ravana's lanka,Kushagra Singh,Author casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+82,The Hawk'S Quest,Deepa Aggarwal,Title casing normalized,India Bookshelf,India
+83,Yuganta,Irawati Karve,Author casing normalized | Title casing normalized | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+84,Urmila,Samar,Author casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Dark & Atmospheric,India
+85,Menaka'S Choice,Kavita kane,Title casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Heartbreaking Reads; Dark & Atmospheric,India
+86,Ahalya'S Awakening,Kavita kane,Title casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Heartbreaking Reads,India
+87,The Flawed Good Man,Sanskriti Singh,Author casing normalized | Title casing normalized,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads,India
+88,The Queen Who Ruled the Waves,Indira ananthakrishnan,Title casing normalized,India Bookshelf; Indian Historical Fiction,India
+89,The King Who Turned in to a Serpent,Sudha Madhavan,Author casing normalized | Title casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+91,Shabri Ke Ram,Tulika Singh,Author casing normalized | Title casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Heartbreaking Reads,India
+92,Mandodsri: Queen of Lanka,manini J. Anandani,Title casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+93,The daughter from a wishing Tree,Sudha Murty,Author casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Comfort Reads,India
+94,Hindu Gods,Anuj Ghai,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+95,Satyavati,Rupeen Popat,Author casing normalized | Title casing normalized,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; The Epic Project; Epic · Satyavati; Dark & Atmospheric,India
+97,Rudra,Konda Susmita Patel,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+98,Lakshmila,Shubhi Agarwal,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+99,the Consorts,Savita Singh,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Heartbreaking Reads; Dark & Atmospheric,India
+100,Epic Love Stories,Bulbul Sharma,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+101,Lesson in Chemistry,Bonnie Garmus,Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Comfort Reads,United States
+102,The Wishing Game,Meg Shaffer,Author casing normalized | Title casing normalized | Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+103,Psyche and Eros,Luna McNamara,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books,United States
+104,Athena's Child,Hannah Lynn,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Dark & Atmospheric,United Kingdom
+105,The Everlasting,Alix E. Harrow,MISSING tropes,World Bookshelf; Slow Literary,United States
+106,Daughters of Olympus,Hannah Lynn,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books,United Kingdom
+107,The Unmaking of June Farrow,Adrienne Young,MISSING tropes,World Bookshelf; Dark & Atmospheric,United States
+109,Looking for Jane,Heather Marshall,MISSING tropes,World Bookshelf; Heartbreaking Reads,Canada
+110,Firekeeper's Daughter,Angeline Boulley,MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+111,The Wedding People,Alison Espach,MISSING tropes,World Bookshelf,United States
+112,The Bell Jar,Sylvia Plath,MISSING tropes,World Bookshelf,United States
+113,Atmosphere,Taylor Jenkins Reid,MISSING tropes,World Bookshelf,United States
+114,The Hunger Games,Suzanne Collins,MISSING tropes,World Bookshelf; Dark & Atmospheric,United States
+115,Two Twisted Crowns,Rachel Gillig,MISSING tropes,World Bookshelf; Dark & Atmospheric,United States
+116,Golden Son,Pierce Brown,MISSING tropes,World Bookshelf,United States
+117,The Serpent and the Wings of Night,Carissa Broadbent,MISSING tropes,World Bookshelf; Dark & Atmospheric,United States
+118,Ready or Not,Cara Bastone,MISSING tropes,World Bookshelf; Comfort Reads,United States
+119,Stori,Nimit Oza,MISSING tropes,India Bookshelf,India
+120,A Psalm for the Wild-Built,Becky Chambers,MISSING tropes,World Bookshelf,United States
+121,The House in the Cerulean Sea,T. J. Klune,MISSING tropes,World Bookshelf; Comfort Reads,United States
+122,Promise Me Sunshine,Cara Bastone,MISSING tropes,World Bookshelf; Comfort Reads,United States
+123,Almond,Won-Pyung Sohn,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books,South Korea
+124,One Dark Window,Rachel Gillig,MISSING tropes,World Bookshelf; Dark & Atmospheric,United States
+125,Kingdom of Ash,Sarah J. Maas,MISSING tropes,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,United States
+126,A Flight of Pigeons,Ruskin Bond,MISSING tropes,India Bookshelf; Indian Historical Fiction; Dark & Atmospheric,India
+127,No Full Stops in India,Mark Tully,MISSING tropes,India Bookshelf,India
+128,City of Djinns,William Dalrymple,MISSING tropes,India Bookshelf; Dark & Atmospheric,India
+129,All About Love,Bell Hooks,Author casing normalized,World Bookshelf,United States
+135,Our Infinite Fates,Laura Steven,MISSING tropes,World Bookshelf; Heartbreaking Reads,United Kingdom
+136,The Seven Year Slip,Ashley Poston,MISSING tropes,World Bookshelf; Comfort Reads,United States
+137,Project Hail Mary,Andy Weir,MISSING tropes,World Bookshelf,United States
+138,Not Quite Dead Yet,Holly Jackson,MISSING tropes,World Bookshelf; Page-Turners,United Kingdom
+139,The Correspondent,Virginia Evans,MISSING tropes,World Bookshelf; Slow Literary,United States
+140,The Bright Years,Sarah Damoff,MISSING tropes,World Bookshelf; Heartbreaking Reads,United States
+141,Great Big Beautiful Life,Emily Henry,MISSING tropes,World Bookshelf; Comfort Reads,United States
+142,Heart the Lover,Lily King,MISSING tropes,World Bookshelf,United States
+143,The Road to Tender Hearts,Annie Hartnett,MISSING tropes,World Bookshelf; Comfort Reads,United States
+144,It's Different This Time,Joss Richards,MISSING tropes,World Bookshelf; Comfort Reads,United Kingdom
+145,Blue Sisters,Coco Mellors,MISSING tropes,World Bookshelf; Heartbreaking Reads,United Kingdom
+146,Crying in H Mart,Michelle Zauner,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books,United States
+147,Wandering Souls,Cecile Pin,MISSING tropes,World Bookshelf; Slow Literary,Vietnam
+148,Intermezzo,Sally Rooney,MISSING tropes,World Bookshelf,Ireland
+149,Hamnet,Maggie O'Farrell,MISSING tropes,World Bookshelf; Heartbreaking Reads,United Kingdom
+150,A Woman Is No Man,Etaf Rum,MISSING tropes,World Bookshelf; Heartbreaking Reads,Palestine
+151,Pachinko,Min Jin Lee,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf,South Korea
+152,The Giver of Stars,Jojo Moyes,MISSING tropes,World Bookshelf; Comfort Reads,United Kingdom
+153,My Friends,Fredrik Backman,MISSING tropes,World Bookshelf,Sweden
+154,The Invisible Life of Addie LaRue,V. E. Schwab,MISSING tropes,World Bookshelf; Slow Literary,United States
+155,The Seven Husbands of Evelyn Hugo,Taylor Jenkins Reid,MISSING tropes,World Bookshelf; Heartbreaking Reads,United States
+156,Six of Crows,Leigh Bardugo,MISSING tropes,World Bookshelf; Dark & Atmospheric,United States
+157,As Long as the Lemon Trees Grow,Zoulfa Katouh,MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,Syria
+158,Hakodate Photo Studio,Heo Tae-yeon,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books,South Korea
+159,Soyang-ri Book Kitchen,Kim Jee-hye,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Comfort Reads,South Korea
+160,The Healing Season of Pottery,Yeon Somin,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books,South Korea
+161,The Dallergut Dream Department Store,Miye Lee,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Comfort Reads,South Korea
+162,Marigold Mind Laundry,Junhee Jun / Yun Jung-eun,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books,South Korea
+163,Yeonnam-Dong's Smile Laundry,Kim Jiyun,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Comfort Reads,South Korea
+164,The Guest Cat,Takashi Hiraide,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Slow Literary,Japan
+165,The Curious Kitten at the Chibineko Kitchen,Yuta Takahashi,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+166,The Passengers on the Hankyu Line,Hiro Arikawa,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+167,The Housekeeper and the Professor,Yoko Ogawa,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf,Japan
+168,Tales from the Café,Toshikazu Kawaguchi,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf,Japan
+169,What You Are Looking For Is in the Library,Michiko Aoyama,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+170,The Kamogawa Food Detectives,Hisashi Kashiwai,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads; Page-Turners,Japan
+171,We'll Prescribe You a Cat,Syou Ishida,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+172,The Bookshop Woman,Nanako Hanada,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf,Japan
+173,The City and Its Uncertain Walls,Haruki Murakami,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Heartbreaking Reads,Japan
+174,Butter,Asako Yuzuki,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Dark & Atmospheric,Japan
+175,Four Seasons in Japan,Nick Bradley,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; Slow Literary,United Kingdom
+176,The Rainfall Market,You Yeong-Gwang,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books,South Korea
+177,The Letter from Ginza Shihodo Stationery Store,Kenji Ueda,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+178,The Chibineko Kitchen,Yuta Takahashi,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+179,Hot Chocolate on Thursday,Michiko Aoyama,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+180,Sweet Bean Paste,Durian Sukegawa,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf,Japan
+181,One Part Woman,Perumal Murugan,MISSING tropes,India Bookshelf; Indian Literary Fiction; States Through Stories; Tamil Nadu Stories; Heartbreaking Reads,India
+182,Those Pricey Thakur Girls,Anuja Chauhan,MISSING tropes,India Bookshelf; Comfort Reads,India
+183,The Bangalore Detectives Club,Harini Nagendra,MISSING tropes,India Bookshelf; Indian Historical Fiction; Page-Turners,India
+184,The Namesake,Jhumpa Lahiri,MISSING tropes,World Bookshelf; Heartbreaking Reads; Slow Literary,United States
+185,Erotic Stories for Punjabi Widows,Balli Kaur Jaswal,MISSING tropes,World Bookshelf; Comfort Reads,Singapore
+186,Kashmir,Manreet Sodhi Someshwar,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; States Through Stories; Kashmir Stories,India
+187,Hyderabad,Manreet Sodhi Someshwar,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction,India
+188,Lahore,Manreet Sodhi Someshwar,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Heartbreaking Reads,India
+189,Remnants of a Separation,Aanchal Malhotra,MISSING tropes,India Bookshelf; Partition Stories,India
+190,I Hear You,Nidhi Upadhyay,MISSING tropes,India Bookshelf; Heartbreaking Reads,India
+191,Lives Not Lived,Monika Bhatti,MISSING tropes,India Bookshelf,India
+192,"Mysteries, Mountains and Mythology",Supriya Bansal,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+193,Lallan Sweets,Srishti Chaudhary,MISSING tropes,India Bookshelf; Comfort Reads,India
+194,Song of Draupadi,Ira Mukhoty,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; The Epic Project; Epic · Draupadi,India
+195,Sita's Sister,Kavita Kane,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; The Epic Project; Epic · Sita; Heartbreaking Reads; Comfort Reads,India
+196,Tara's Truce,Kavita Kane,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+197,Vanara,Anand Neelakantan,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+198,Nala Damayanti,Anand Neelakantan,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+199,The Curse of Gandhari,Aditi Banerjee,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; The Epic Project; Epic · Gandhari; Heartbreaking Reads; Dark & Atmospheric,India
+200,Medusa,Jessie Burton,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Slow Literary,United Kingdom
+201,No Friend to This House,Natalie Haynes,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Heartbreaking Reads,United Kingdom
+202,Divine Might,Natalie Haynes,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books,United Kingdom
+203,The Odyssey,Homer,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books,Greece
+204,Mahabharata Unravelled / Why We Are This Way,Ami Ganatra,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+205,Toba Tek Singh & Khol Do,Saadat Hasan Manto,MISSING tropes,India Bookshelf; Partition Stories; Indian Literary Fiction,India
+206,Tamas,Bhisham Sahni,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction,India
+207,This Is Not That Dawn (Jhootha Sach),Yashpal,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction,India
+208,Basti,Intizar Husain,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Middle East & North Africa; Around the World in 52 Books; Heartbreaking Reads,Pakistan
+209,Lajwanti,Rajinder Singh Bedi,MISSING tropes,India Bookshelf; Partition Stories; Indian Literary Fiction; Heartbreaking Reads; Slow Literary,India
+210,Peshawar Express,Krishan Chander,MISSING tropes,India Bookshelf; Partition Stories; Indian Literary Fiction; Heartbreaking Reads,India
+211,Ice-Candy Man,Bapsi Sidhwa,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Middle East & North Africa; Around the World in 52 Books,Pakistan
+212,Lihaaf (The Quilt) & Other Stories,Ismat Chughtai,MISSING tropes,India Bookshelf; Indian Literary Fiction,India
+213,Sunlight on a Broken Column,Attia Hosain,MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads,India
+214,Amrit Kalash,Diya Narayan Upadhyaya,MISSING tropes,India Bookshelf,India
+215,Lore,Alexandra Bracken,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Dark & Atmospheric,United States
+216,Lies We Sing to the Sea,Sarah Underwood,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Dark & Atmospheric,United Kingdom
+217,The Penelopiad,Margaret Atwood,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings,Canada
+218,The Shadow of Perseus,Claire Heywood,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books,United Kingdom
+219,Daughters of Sparta,Claire Heywood,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Heartbreaking Reads,United Kingdom
+220,Ithaca,Claire North,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,United Kingdom
+221,House of Odysseus,Claire North,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings,United Kingdom
+222,The Voyage Home,Pat Barker,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings,United Kingdom
+223,Medusa,Rosie Hewlett,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Dark & Atmospheric,United Kingdom
+224,The Children of Jocasta,Natalie Haynes,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Heartbreaking Reads,United Kingdom
+225,Pandora's Jar,Natalie Haynes,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books,United Kingdom
+226,Clytemnestra,Costanza Casati,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Dark & Atmospheric,Italy
+227,This Immortal Heart,Jennifer Saint,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Slow Literary,United Kingdom
+228,Hera,Jennifer Saint,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Dark & Atmospheric,United Kingdom
+229,Atalanta,Jennifer Saint,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books,United Kingdom
+230,Ariadne,Jennifer Saint,MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Heartbreaking Reads; Slow Literary,United Kingdom
+231,The Ministry of Utmost Happiness,Arundhati Roy,MISSING tropes,India Bookshelf; Indian Literary Fiction; States Through Stories; Kashmir Stories; Heartbreaking Reads; Slow Literary,India
+237,The Yoga Sutras of Patanjali  (Translation & Commentary),Swami Satchidananda,MISSING tropes,India Bookshelf,India
+238,The Wonder That Was India,A.L. Basham,MISSING tropes,India Bookshelf,India
+239,The Women of Troy,Pat Barker,Country looks like setting/era — confirm author nationality,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Dark & Atmospheric,Ancient Greece
+242,The Upanishads  (Translation),Eknath Easwaran,MISSING tropes,India Bookshelf,India
+243,The Untold Story of Sita,Dena Merriam,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Indian Literary Fiction; The Epic Project; Epic · Sita; Heartbreaking Reads; Comfort Reads,India
+252,The Prophet,Kahlil Gibran,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books,Lebanon
+253,The Palace of Illusions,Chitra Banerjee Divakaruni,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+254,The Midnight Library,Matt Haig,Country filled from author map (United Kingdom) | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,United Kingdom
+255,The Mahabharata (Penguin Classics Abridged),Ramesh Menon,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+256,The Lives of Others,Neel Mukherjee,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+257,The Last House on Needless Street,Catriona Ward,Country normalized (UK → United Kingdom) | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United Kingdom
+258,The Land of Lost Gods,Ahmet Ümit,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Indian Literary Fiction; Middle East & North Africa; Around the World in 52 Books; Dark & Atmospheric; Page-Turners,Turkey
+259,The Kind Worth Killing,Peter Swanson,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+260,The Island of Missing Trees,Elif Shafak,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Middle East & North Africa; Comfort Reads; Dark & Atmospheric,Turkey
+261,The Inheritance of Loss,Kiran Desai,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+262,The Indus Civilization,Gregory L. Possehl,MISSING themes | MISSING moods | MISSING tropes,World Bookshelf,South Asia
+263,The Holy Geeta,Swami Chinmayananda,MISSING tropes,India Bookshelf; Comfort Reads,India
+264,The Henna Artist,Alka Joshi,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Comfort Reads; Dark & Atmospheric,India
+265,The Great Alone,Kristin Hannah,Country normalized (USA → United States) | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,United States
+266,The Golden Son,Shilpi Somaya Gowda,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+267,The Golden Mystery Dwarka,Shraddha Poppat,Language defaulted to English | MISSING tropes,India Bookshelf; Page-Turners,India
+268,The Far Field,Madhuri Vijay,Language defaulted to English | MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+269,The Door-to-Door Bookstore,Carsten Henn,Country filled from author map (Germany) | MISSING tropes,World Bookshelf; Comfort Reads,Germany
+270,The Difficulty of Being Good,Gurcharan Das,MISSING tropes,India Bookshelf,India
+271,The Devotion of Suspect X,Keigo Higashino,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Dark & Atmospheric; Page-Turners,Japan
+272,The Covenant of Water,Abraham Verghese,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+273,The Complete Works of Swami Vivekananda,Swami Vivekananda,MISSING tropes,India Bookshelf,India
+274,The Book That Wouldn't Burn,Mark Lawrence,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Dark & Atmospheric,United States
+275,The Book That Broke the World,Mark Lawrence,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Dark & Atmospheric,United States
+276,The Blue Bedspread,Raj Kamal Jha,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+277,The Arrows of Ayodhya,Raman Sharma,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+278,That Long Silence,Shashi Deshpande,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+279,Tara (The Sati Series V),Koral Das Gupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Heartbreaking Reads; Comfort Reads,India
+280,Srimad Bhagavatam,A.C. Bhaktivedanta Swami Prabhupada,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+281,Son of Darkness,Gaurav Mohanty,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,India
+282,Small Things Like These,Claire Keegan,MISSING tropes,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,Ireland
+283,Sita: An Illustrated Retelling of the Ramayana,Devdutt Pattanaik,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Indian Literary Fiction; The Epic Project; Epic · Sita; Dark & Atmospheric; Slow Literary,India
+284,Shrimad Bhagavad Gita,Dr. Akhilesh Kumar,MISSING tropes,India Bookshelf,India
+285,Shiva Purana Retold,Ramesh Menon,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+286,Shiva Purana,J.L. Shastri,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+287,Shadow Play: Love & Blackmail,Nitish Bhushan,Country filled from author map (India) | Language defaulted to English | MISSING tropes,India Bookshelf; Dark & Atmospheric; Page-Turners,India
+288,Serious Men,Manu Joseph,MISSING tropes,India Bookshelf; Indian Literary Fiction; Dark & Atmospheric,India
+289,Rumi's Little Book of Life,Rumi,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Persia; Around the World in 52 Books; Comfort Reads,Persia
+290,Rock Paper Scissors,Alice Feeney,Country filled from author map (United Kingdom) | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United Kingdom
+291,Ramachandra Series,Amish Tripathi,Country filled from author map (India) | Language defaulted to English | MISSING themes | MISSING moods | MISSING tropes | MISSING one-line,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Indian Literary Fiction,India
+292,Pyre,Perumal Murugan,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+293,Pinjar,Amrita Pritam,MISSING tropes,India Bookshelf; Partition Stories; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+294,Paper Boat Journey,Manoj Phulambrikar,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Comfort Reads; Dark & Atmospheric,India
+295,Of Mice and Men,John Steinbeck,Country normalized (USA → United States) | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,United States
+296,No Exit,Taylor Adams,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+297,Never Let Me Go,Kazuo Ishiguro,Country filled from author map (United Kingdom) | MISSING tropes,World Bookshelf; Heartbreaking Reads,United Kingdom
+298,Narcopolis,Jeet Thayil,MISSING tropes,India Bookshelf; Indian Literary Fiction; Dark & Atmospheric; Slow Literary,India
+299,Maybe You Should Talk to Someone,Lori Gottlieb,Country filled from author map (United States) | MISSING tropes,World Bookshelf,United States
+300,Markandeya Purana,Bibek Debroy,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+301,Mandodari (The Sati Series IV),Koral Das Gupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; The Epic Project; Epic · Mandodari; Heartbreaking Reads; Dark & Atmospheric,India
+302,Mahagatha: 100 Tales from the Puranas,Satyarth Nayak,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+303,Mahadevi The Unseen Truth Behind Existence,Priyanka Kaintura,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Dark & Atmospheric,India
+304,Mahabharata: A Modern Retelling,Carole Satyamurti,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Dark & Atmospheric; Slow Literary,India
+305,Mahabharata Unravelled,Ami Ganatara,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+306,Latitudes of Longing,Shubhangi Swarup,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Partition Stories; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+307,Ladies Coupe,Anita Nair,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+308,Kunti (The Sati Series II),Koral Das Gupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; The Epic Project; Epic · Kunti; Heartbreaking Reads; Comfort Reads,India
+309,Krishna's Other Song: A New Look at the Uddhava Gita,Steven J. Rosen,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+310,"Kim Jiyoung, Born 1982",Cho Nam-joo,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Heartbreaking Reads,South Korea
+311,Jaya: An Illustrated Retelling of the Mahabharata,Devdutt Pattanaik,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Dark & Atmospheric,India
+312,India: A History,John Keay,Language defaulted to English | MISSING tropes,India Bookshelf,India
+313,Ikigai,Héctor García & Francesc Miralles,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf,Japan
+314,I Who Have Never Known Men Author,Jacqueline Harpman,Country filled from author map (Belgium) | MISSING themes | MISSING moods | MISSING tropes,World Bookshelf,Belgium
+315,How to Kill Men and Get Away With It,Katy Brent,Country filled from author map (United Kingdom) | Language defaulted to English | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United Kingdom
+316,Heart Overruled,Debanjana Mukherjee,Country filled from author map (India) | Language defaulted to English | MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+317,Half the Night Is Gone,Amitabha Bagchi,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+318,Garuda Purana,Ernest Wood & S.V. Subrahmanyam,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+319,Foster,Claire Keegan,MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,Ireland
+320,Em and the Big Hoom,Jerry Pinto,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+321,Eleanor Oliphant Is Completely Fine,Gail Honeyman,Country filled from author map (United Kingdom) | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,United Kingdom
+322,Early India: From the Origins to AD 1300,Romila Thapar,Language defaulted to English | MISSING tropes,India Bookshelf,India
+323,Durga: The Baaghini,Krishnamurthy Shrikanth,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Indian Literary Fiction; Comfort Reads; Dark & Atmospheric; Page-Turners,India
+324,Draupadi (The Sati Series III),Koral Das Gupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; The Epic Project; Epic · Draupadi; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+325,Difficult Daughters,Manju Kapur,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+326,Devi Purana,Ramesh Menon,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Dark & Atmospheric,India
+327,Devi for Millennials,Bibek Debroy,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+328,Devi Bhagavatam Retold,Ramesh Menon,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Dark & Atmospheric,India
+329,Cuckold,Kiran Nagarkar,MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads,India
+330,Convenience Store Woman,Sayaka Murata,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Heartbreaking Reads,Japan
+331,Clear Light of Day,Anita Desai,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+332,Chronicle of a Corpse Bearer,Cyrus Mistry,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+333,Chowringhee,Shankar,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+334,Buddha: A Story of Enlightenment,Deepak Chopra,MISSING tropes,India Bookshelf,India
+335,Bhagavad Gita (Translation),Eknath Easwaran,MISSING tropes,India Bookshelf,India
+336,Bhagavad Gita  (Commentary),Swami Sivananda,MISSING tropes,India Bookshelf,India
+337,Beyond the Blinding Sun,Jayanta Gopal Borpujari,MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+338,Before We Visit the Goddess,Chitra Banerjee Divakaruni,MISSING tropes,India Bookshelf; Heartbreaking Reads; Comfort Reads,India
+339,Before the Coffee Gets Cold,Toshikazu Kawaguchi,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Heartbreaking Reads; Comfort Reads,Japan
+340,Autobiography of a Yogi,Paramahansa Yogananda,MISSING tropes,India Bookshelf,India
+341,Ashtavakra Gita,Swami Chinmayananda,MISSING tropes,India Bookshelf,India
+342,Ashoka: The Search for India’s Lost Emperor,Charles Allen,MISSING tropes,India Bookshelf,India
+343,Ashes to Ashes,Tami Hoag,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+344,Animal Farm,George Orwell,Country normalized (England → United Kingdom) | MISSING tropes,World Bookshelf; Dark & Atmospheric,United Kingdom
+345,Angels & Demons,Dan Brown,Country filled from author map (United States) | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+346,Ancient India,R.C. Majumdar,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+347,An Atlas of Impossible Longing,Anuradha Roy,Language defaulted to English | MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+348,Ahalya (The Sati Series I),Koral Das Gupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Heartbreaking Reads; Dark & Atmospheric,India
+349,A Man Called Ove,Fredrik Backman,MISSING tropes,World Bookshelf; Comfort Reads,Sweden
+350,A Fine Balance,Rohinton Mistry,MISSING tropes,India Bookshelf; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+351,A Burning,Megha Majumdar,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+352,"84, Charing Cross Road",Helene Hanff,Country normalized (UK → United Kingdom) | MISSING tropes,World Bookshelf; Comfort Reads,United Kingdom
+353,1984,George Orwell,Title casing normalized | MISSING tropes,World Bookshelf; Dark & Atmospheric,United Kingdom
+354,Origin,Dan Brown,Country filled from author map (United States),World Bookshelf; Page-Turners,United States
+355,Angles & Demon,Dan Brown,Country filled from author map (United States),World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+356,The Lost Symbol,Dan Brown,Country normalized (USA → United States),World Bookshelf; Page-Turners,United States
+357,Digital Fortress,Dan Brown,Country filled from author map (United States),World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+358,The Queen's Secret,Melissa De La Cruz,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf,United States
+359,The Queen's Assassin,Melissa De La Cruz,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Dark & Atmospheric,United States
+362,Elektra,Jennifer Saint,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Heartbreaking Reads; Dark & Atmospheric,United Kingdom
+363,Hekate,Nikita Gill,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Roots of Bharat; Indian Mythology Retellings,United Kingdom
+364,The Quest,Wilbur Smith,Country filled from author map (South Africa),World Bookshelf,South Africa
+365,The little Coffee Shop of Kabul,Deborah Rodriguez,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books; Heartbreaking Reads; Comfort Reads,Afghanistan
+366,The Last Knot,Shabir Ahmad Mir,Country filled from author map (India) | Language defaulted to English | MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+370,A bird on my Windowsill,Manav Kaul,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric; Slow Literary,India
+373,The Innocent Wife,Amy Lloyd,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,United Kingdom
+381,The Iliad,Nick McCarty,Country looks like setting/era — confirm author nationality,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Dark & Atmospheric,Ancient Greece
+387,Mahabharata Unravel Part-2,Ami Ganatra,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+388,The Untold Story of Sita,Merriam,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; The Epic Project; Epic · Sita; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+389,Remarkable Creatures,Tracy Chevalier,Country normalized (England → United Kingdom) | MISSING tropes,World Bookshelf,United Kingdom
+391,If tomorrow Comes,Sidney Sheldon,Country filled from author map (United States),World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+392,Maximum Ride,James Patterson,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,United States
+393,On Earth We're Briefly Gorgeous,Ocean Vuong,Country normalized (Vietnam/USA → Vietnam/usa) | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads; Slow Literary,Vietnam/usa
+395,The Fault in Our Stars,John Green,Country filled from author map (United States),World Bookshelf; Heartbreaking Reads,United States
+398,Sapiens: A Brief History of Humankind,Yuval Noah Harari,Country filled from author map (Israel) | MISSING tropes,World Bookshelf,Israel
+399,Atomic Habits: An Easy & Proven Way to Build Good Habits & Break Bad Ones,James Clear,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf,United States
+400,"Fifty Shades of Grey (Fifty Shades, #1)",E.L. James,Country filled from author map (United Kingdom),World Bookshelf; Dark & Atmospheric,United Kingdom
+401,Gone Girl,Gillian Flynn,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+402,Draupadi - India's First Daughter,Vamshi Krishna,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; The Epic Project; Epic · Draupadi; Heartbreaking Reads,India
+403,India’s Most Fearless: True Stories of Modern Military Heroes,Shiv Aroor,MISSING tropes,India Bookshelf; Heartbreaking Reads; Dark & Atmospheric,India
+405,Cracking The Code: My Journey to Bollywood,Ayushmann Khurrana,MISSING tropes,India Bookshelf; Comfort Reads,India
+406,Reflections of a Man,Amari Soul,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads; Page-Turners,United States
+407,The Modern Break-Up,Daniel Chidiac,Country filled from author map (Australia) | Language defaulted to English | MISSING tropes,World Bookshelf,Australia
+408,Boots Belts Berets,Tanushree Podder,Language defaulted to English,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+409,Apprenticed to a Himalayan Master: A Yogi's Autobiography,Sri M.,Language defaulted to English | MISSING tropes,India Bookshelf; Comfort Reads,India
+410,A Hundred Little Flames,Preeti Shenoy,Language defaulted to English,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+411,Train to Pakistan,Khushwant Singh,Language defaulted to English | MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; States Through Stories; Punjab Stories; Heartbreaking Reads; Dark & Atmospheric,India
+413,Suheldev & the Battle of Bahraich (Indic Chronicles #1),Amish Tripathi,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Heartbreaking Reads,India
+414,Give Your Heart a Break,Anuj Tiwari,Language defaulted to English,India Bookshelf; Heartbreaking Reads,India
+415,The Secret Letters of the Monk Who Sold His Ferrari,Robin Sharma,Country filled from author map (Canada) | Language defaulted to English | MISSING tropes,World Bookshelf; Comfort Reads,Canada
+416,Dharma: Decoding the Epics for a Meaningful Life,Amish Tripathi,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+418,The Mahabharata Secret,Christopher C. Doyle,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Page-Turners,India
+419,The Kite Runner,Khaled Hosseini,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books; Heartbreaking Reads; Slow Literary,Afghanistan
+420,The Silent Patient,Alex Michaelides,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,United Kingdom
+422,You are the Best Friend,Ajay K. Pandey,Language defaulted to English,India Bookshelf; Heartbreaking Reads; Comfort Reads,India
+423,Her Last Wish,Ajay K. Pandey,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+439,11 Hours,Daniel Paul Singh,Language defaulted to English,India Bookshelf; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,India
+440,Who Will Cry When You Die?,Robin Sharma,Country filled from author map (Canada) | Language defaulted to English | MISSING tropes,World Bookshelf; Comfort Reads,Canada
+445,Soldier and Spice - An Army Wife's Life,Aditi Mathur Kumar,Language defaulted to English | MISSING tropes,India Bookshelf; Comfort Reads,India
+446,The Vault of Vishnu,Ashwin Sanghi,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Comfort Reads; Dark & Atmospheric; Page-Turners,India
+450,I Owe You One,Sophie Kinsella,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Comfort Reads,United Kingdom
+452,Dark Matter,Blake Crouch,Country filled from author map (United States),World Bookshelf; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,United States
+453,Mossad: The Greatest Missions of the Israeli Secret Service,Michael Bar-Zohar,MISSING tropes,World Bookshelf,Israel
+454,Escape from Harem,Tanushree Podder,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; Heartbreaking Reads; Dark & Atmospheric,India
+455,The Girls in Green,Tanushree Podder,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+456,No Margin for Error,Tanushree Podder,Language defaulted to English | MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+457,The Force Behind the Forces: Stories of Brave Indian Army Wives,Swapnil Pandey,Language defaulted to English | MISSING tropes,India Bookshelf; Heartbreaking Reads; Comfort Reads,India
+458,"Before you Breathe (Colonel Acharya, #2)",Tanushree Podder,Language defaulted to English | MISSING tropes,India Bookshelf; Page-Turners,India
+459,Signboard at Dholavira,Nishith S. Parikh,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+461,Wastra,Rohan Kailasam,Language defaulted to English | MISSING tropes,India Bookshelf; States Through Stories; Tamil Nadu Stories; Maharashtra Stories; Dark & Atmospheric; Page-Turners,India
+462,Naari,Vamshi Krishna,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Literary Fiction; The Epic Project; Epic · Draupadi; Roots of Bharat; Heartbreaking Reads,India
+463,The Last Symbol,Nishith S. Parikh,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Historical Fiction; Page-Turners,India
+465,"The Wielder of the Trishul (Deva-Asura Katha, #1)",Satyam Srivastava,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Comfort Reads; Dark & Atmospheric,India
+466,Ikigai: The Japanese Secret to a Long and Happy Life,Héctor García,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+467,A Language Of Lies,Saugata Chakraborty,Language defaulted to English,India Bookshelf; Indian Literary Fiction; Dark & Atmospheric,India
+468,"Murdrum: The Probe Begins (Murdrum, #1)",Sohil Makwana,Country filled from author map (India) | Language defaulted to English | MISSING tropes,India Bookshelf; Dark & Atmospheric; Page-Turners,India
+469,"Double Trouble (Murdrum, #2)",Sohil Makwana,Language defaulted to English,India Bookshelf; Dark & Atmospheric; Page-Turners,India
+470,The Lost world,Pranay Bhalerao,Language defaulted to English,India Bookshelf; Indian Literary Fiction; Page-Turners,India
+472,The Secret of the Druids,Christopher C. Doyle,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric; Page-Turners,India
+473,The Lost World Rises,Pranay Bhalerao,Language defaulted to English | MISSING tropes,India Bookshelf; Heartbreaking Reads; Page-Turners,India
+475,Jabberwockiers,Rajessh M Iyer,Country filled from author map (India) | Language defaulted to English | MISSING tropes | Genres too vague (only 'Fiction'),India Bookshelf; Heartbreaking Reads; Comfort Reads,India
+476,The Raavan Key: What if your loved one goes missing mysteriously? (Drumatulya Trilogy 1),Pravin Agarawal,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric; Page-Turners,India
+477,The Woman Within,Nitya Ravi,Language defaulted to English,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,India
+478,The Girl on the Train,Paula Hawkins,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,United Kingdom
+479,Mir Qasim's Tunnel,Swarnendu Bhushan,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+480,The Girl in the Red Lipstick,Ajay K. Pandey,Language defaulted to English,India Bookshelf; Heartbreaking Reads; Page-Turners,India
+482,"Rebellion (Warlord of Ayodhya, #1)",Shatrujeet Nath,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+483,The Accursed God,Vivek Dutta Mishra,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; The Epic Project; Epic · Bhishma; Dark & Atmospheric,India
+484,Janaka and Ashtavakra: A Journey Beyond,Ashraf Karayath,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; The Epic Project; Epic · Sita; Comfort Reads,India
+485,The Love Hypothesis,Ali Hazelwood,Country filled from author map (United States),World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+487,The Dressmaker's Gift,Fiona Valpy,Country filled from author map (United Kingdom) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,United Kingdom
+488,"An Eye for an Eye (Detective Kate Young, #1)",Carol Wyer,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,United Kingdom
+489,Ugly Love,Colleen Hoover,Country filled from author map (United States),World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,United States
+490,"It Ends with Us (It Ends with Us, #1)",Colleen Hoover,Country filled from author map (United States),World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+491,The Hating Game,Sally Thorne,Country filled from author map (Australia) | Language defaulted to English,World Bookshelf; Comfort Reads,Australia
+492,The Protectors Of Kavaach,Pranay Bhalerao,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Page-Turners,India
+494,Yajnaseni: The Story of Draupadi,Pratibha Ray,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; The Epic Project; Epic · Draupadi; Heartbreaking Reads,India
+495,I Wish I Could Tell Her,Ajay K. Pandey,Language defaulted to English,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+496,Verity,Colleen Hoover,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+499,The Magicians of Mazda,Ashwin Sanghi,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Civilizations Through Books; Civilization · Persia; Around the World in 52 Books; Dark & Atmospheric; Page-Turners,India
+500,The Raavan Returns (Drumatulya Trilogy Part 2),Pravin Agarawal,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+504,"The Mahabharata: A Modern Rendering, Vol 2",Ramesh Menon,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+505,The Bhagavata Purana (Clothbound),Ramesh Menon,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+506,Devi: The Devi Bhagavatam Retold,Ramesh Menon,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+507,Blue God: A Life of Krishna,Ramesh Menon,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+508,Krishna,Ramesh Menon,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+509,Srimad Bhagavad Gita (A Modern Translation),Ramesh Menon,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+510,The Complete Mahabharata #9: Santi Parva & Mokshadharma Parva,Ramesh Menon,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+511,The Woman in the Window,A.J. Finn,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+512,Siva: The Siva Purana Retold,Ramesh Menon,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+513,Panther's Ghosts: The Beginning,Ajit,Language defaulted to English,India Bookshelf; States Through Stories; Maharashtra Stories; Dark & Atmospheric; Page-Turners,India
+514,Abhimanyu,Anuja Chandramouli,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+516,The Tattoo Trail,Gurucharan Singh Gandhi,Language defaulted to English,India Bookshelf; Civilizations Through Books; Civilization · China; Around the World in 52 Books; Page-Turners,India
+517,GAZALA,Suman Siwach,Language defaulted to English,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+518,The Brahmin,Ravi Shankar Etteth,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric; Page-Turners,India
+519,"The Mahabharata: A Modern Rendering, Vol 1",Ramesh Menon,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+520,The Hidden Hindu,Akshat Gupta,Language defaulted to English | MISSING tropes,India Bookshelf; Page-Turners,India
+521,The Hidden Hindu 2,Akshat Gupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+524,The Sun Is Also a Star,Nicola Yoon,Country normalized (USA → United States),World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+525,The Protected Rakshasa KAAL: Book 2 of KAVAACH Trilogy,Pranay Bhalerao,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; The Epic Project; Epic · Karna; Dark & Atmospheric; Page-Turners,India
+527,"Son of Bhrigu (The Pataala Prophecy, #1)",Christopher C. Doyle,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+528,Life's Amazing Secrets: How to Find Balance and Purpose in Your Life,Gaur Gopal Das,Language defaulted to English | MISSING tropes,India Bookshelf; Comfort Reads,India
+529,The Legend of Bahirji-Naik: Siege of Panhala (Book II),Shreyas Bhave,Language defaulted to English,India Bookshelf; Indian Historical Fiction,India
+530,Samsara: Enter the Valley of the Gods,Saksham Garg,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,India
+531,"Tomorrow, and Tomorrow, and Tomorrow",Gabrielle Zevin,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads,United States
+532,"The 4th Traitor (Unit 22, #4)",Mainak Dhar,Language defaulted to English,India Bookshelf; Civilizations Through Books; Civilization · China; Around the World in 52 Books; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,India
+533,The Curse of Anuganga,Harini Srinivasan,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+534,Sivakami’s Vow: Paranjyothi's Journey (Book 1),Kalki Krishnamurthy,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Dark & Atmospheric,India
+535,"Sivakamiyin Sabadham, Volume 2: The Siege of Kanchi",Kalki Krishnamurthy,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; States Through Stories; Tamil Nadu Stories; Heartbreaking Reads; Dark & Atmospheric,India
+536,"Sivakamiyin Sabadham, Volume 4: Shattered Dream",Kalki Krishnamurthy,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; States Through Stories; Tamil Nadu Stories; Heartbreaking Reads; Dark & Atmospheric,India
+537,Sivakami's Vow: The Bikshu's Love: Book 3,Kalki Krishnamurthy,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads,India
+539,Valmiki's Women,Anand Neelakantan,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+540,Ramayana Unravelled: Lesser Known Facets of Rishi Vālmiki’s Epic,Ami Ganatra,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+541,Mahabharata Unravelled - II: The Dharma Discourses,Ami Ganatra,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+542,Mahabharata Unravelled: Lesser-Known Facets of a Well-Known History,Ami Ganatra,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings,India
+543,"Below Zero (The STEMinist Novellas, #3)",Ali Hazelwood,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Comfort Reads,United States
+544,"Love, Theoretically",Ali Hazelwood,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+545,Check & Mate,Ali Hazelwood,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+546,Love on the Brain,Ali Hazelwood,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Comfort Reads,United States
+547,The Echo of Old Books,Barbara Davis,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Comfort Reads; Slow Literary,United States
+549,"Fourth Wing (The Empyrean, #1)",Rebecca Yarros,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,United States
+550,The God of Small Things,Arundhati Roy,MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Dark & Atmospheric,India
+551,Krishna: Maha Vishnu Avatar,Kevin Missal,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+552,The Mars Conspiracy,Razi,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Civilization · Egypt; Page-Turners,India
+553,"Love, Swipe, Blackmail",Nitish Bhushan,Language defaulted to English,India Bookshelf; Page-Turners,India
+554,"Days at the Morisaki Bookshop (Days at the Morisaki Bookshop, #1)",Satoshi Yagisawa,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads; Dark & Atmospheric,Japan
+555,Ahalya,Koral Dasgupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction,India
+556,The Divine Sword,Rita Chowdhury,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction,India
+557,Scarecrow / Seven Ancient Wonders,Matthew Reilly,Country filled from author map (Australia) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,Australia
+558,Kaalchakra: The Rise of Kalki,Aaditya Sengupta Dhar,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; States Through Stories; Maharashtra Stories,India
+560,"Bride (Bride, #1)",Ali Hazelwood,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+562,"The Henna Artist (The Jaipur Trilogy, #1)",Alka Joshi,MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Comfort Reads,India
+563,A Thousand Ships,Natalie Haynes,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Heartbreaking Reads; Dark & Atmospheric,United Kingdom
+564,The Ramayana: A Modern Retelling of the Great Indian Epic,Ramesh Menon,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+565,The Book of Everlasting Things,Aanchal Malhotra,Language defaulted to English | MISSING tropes,India Bookshelf; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Dark & Atmospheric,India
+568,"A Good Girl's Guide to Murder (A Good Girl's Guide to Murder, #1)",Holly Jackson,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,United Kingdom
+569,All the Lovers in the Night,Mieko Kawakami,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Heartbreaking Reads,Japan
+572,"The Two Lost Mountains (Jack West Jr, #6)",Matthew Reilly,Country filled from author map (Australia) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,Australia
+574,"The Four Legendary Kingdoms (Jack West Jr, #4)",Matthew Reilly,Country filled from author map (Australia) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,Australia
+575,"The 5 Greatest Warriors (Jack West Jr, #3)",Matthew Reilly,Country filled from author map (Australia) | Language defaulted to English,World Bookshelf; Dark & Atmospheric; Page-Turners,Australia
+576,The Naga Warriors 1: Battle of Gokul Vol 1,Akshat Gupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Page-Turners,India
+577,Welcome to the Hyunam-Dong Bookshop,Hwang Bo-Reum,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Comfort Reads,South Korea
+578,Tara: The Sati Series V | Mythological heroines from the Ramayan and Mahabharat reimagined through a feminist lens in this bestselling series,Koral Dasgupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction,India
+579,"As Good As Dead (A Good Girl's Guide to Murder, #3)",Holly Jackson,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,United Kingdom
+580,"Not in Love (Not in Love, #1)",Ali Hazelwood,Country filled from author map (United States) | Language defaulted to English,World Bookshelf,United States
+581,The Stationery Shop of Tehran,Marjan Kamali,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books; Heartbreaking Reads; Dark & Atmospheric,Iran
+582,Never Never Land,Namita Gokhale,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+583,"The Lost Symbol (Robert Langdon, #3)",Dan Brown,Country normalized (USA → United States),World Bookshelf; Page-Turners,United States
+585,Must Love Books,Shauna Robinson,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Comfort Reads,United States
+587,Draupadi: The Sati Series III,Koral Dasgupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Indian Literary Fiction; The Epic Project; Epic · Draupadi; Heartbreaking Reads; Slow Literary,India
+588,"A Court of Mist and Fury (The Court of Thorns and Roses, #2)",Sarah J. Maas,Country filled from author map (United States),World Bookshelf; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,United States
+589,"A Court of Thorns and Roses (A Court of Thorns and Roses, #1)",Sarah J. Maas,Country filled from author map (United States),World Bookshelf; Dark & Atmospheric,United States
+590,"A Court of Wings and Ruin (The Court of Thorns and Roses, #3)",Sarah J. Maas,Country filled from author map (United States),World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,United States
+591,The Last Queen,Chitra Banerjee Divakaruni,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; States Through Stories; Punjab Stories; Heartbreaking Reads,India
+593,Naulakhi Kothi / نولکھی کوٹھی,Ali Akbar Natiq,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books; Heartbreaking Reads; Dark & Atmospheric,Pakistan
+594,Sparks Like Stars,Nadia Hashimi,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books; Heartbreaking Reads; Comfort Reads,Afghanistan
+596,Circe,Madeline Miller,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,Greece
+597,"Empire of Flame and Thorns (Flame and Thorns, #1)",Marion Blackwood,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,United States
+598,Spilled Ink,Nadia Hashimi,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books,Afghanistan
+599,"Powerless (The Powerless Trilogy, #1)",Lauren Roberts,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,United States
+600,"Reckless (The Powerless Trilogy, #2)",Lauren Roberts,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,United States
+601,Mahadevi The Unseen Truth Behind Existence,Priyanka Sharma Kaintura,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction,India
+602,"Powerful (The Powerless Trilogy, #1.5)",Lauren Roberts,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+603,The Lantern of Lost Memories,Sanaka Hiiragi,Country filled from author map (Japan) | MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+604,"Inferno (Robert Langdon, #4)",Dan Brown,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+605,The Weapon Of Lord Shiva Trishul: Book 3 of KAVAACH Trilogy,Pranay Bhalerao,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; The Epic Project; Epic · Karna; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,India
+606,"After You (Me Before You, #2)",Jojo Moyes,Country filled from author map (United Kingdom) | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,United Kingdom
+608,Remarkably Bright Creatures,Shelby Van Pelt,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+609,"The Pumpkin Spice Café (Dream Harbor, #1)",Laurie Gilmore,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Comfort Reads,United States
+611,"Iron Flame (The Empyrean, #2)",Rebecca Yarros,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,United States
+612,The Discomfort of Evening,Lucas Rijneveld,MISSING tropes,World Bookshelf; Dark & Atmospheric,Netherlands
+613,To Love Again,Danielle Steel,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+615,"The Full Moon Coffee Shop (The Full Moon Coffee Shop, #1)",Mai Mochizuki,Country filled from author map (Japan) | MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+616,Onyx Storm (Fourth Wing #3),Rebecca Yarros,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,United States
+617,"When the Moon Hatched (Moonfall, #1)",Sarah A. Parker,Country filled from author map (United Kingdom) | Language defaulted to English,World Bookshelf; Comfort Reads,United Kingdom
+618,"More Days at the Morisaki Bookshop (Days at the Morisaki Bookshop, #2)",Satoshi Yagisawa,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads,Japan
+619,"Better Than the Movies (Better Than the Movies, #1)",Lynn Painter,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Comfort Reads,United States
+620,Anxious People,Fredrik Backman,MISSING tropes,World Bookshelf; Comfort Reads,Sweden
+621,Stone Blind,Natalie Haynes,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Dark & Atmospheric,Greece
+622,A House Without Windows,Nadia Hashimi,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books; Heartbreaking Reads; Comfort Reads,Afghanistan
+623,Mandodari: The Sati Series IV,Koral Dasgupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Partition Stories; Indian Literary Fiction; The Epic Project; Epic · Mandodari; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+627,Letters to Milena,Franz Kafka,Country filled from author map (Czech Republic) | MISSING tropes,World Bookshelf; Heartbreaking Reads,Czech Republic
+628,"Tuesdays with Morrie: An Old Man, a Young Man, and Life's Greatest Lesson",Mitch Albom,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+629,"You've Reached Sam (You've Reached Sam, #1)",Dustin Thao,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Heartbreaking Reads,United States
+631,"Under One Roof (The STEMinist Novellas, #1)",Ali Hazelwood,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Comfort Reads,United States
+632,"Stuck with You (The STEMinist Novellas, #2)",Ali Hazelwood,Country filled from author map (United States) | Language defaulted to English,World Bookshelf; Comfort Reads,United States
+633,A Little Life,Hanya Yanagihara,Country normalized (USA → United States),World Bookshelf; Heartbreaking Reads; Dark & Atmospheric,United States
+634,Pride and Prejudice,Jane Austen,Country normalized (England → United Kingdom),World Bookshelf,United Kingdom
+635,Theek Tumhare Peechhe - Hindi,Manav Kaul,MISSING tropes,India Bookshelf; Partition Stories; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+636,"Rooh, A Novel",Manav Kaul,MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+637,"Asura: Tale Of The Vanquished, The Story of Ravana and His People",Anand Neelakantan,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Historical Fiction; Dark & Atmospheric,India
+638,"The Housemaid (The Housemaid, #1)",Freida McFadden,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Page-Turners,United States
+639,The Mysterious Bakery on Rue de Paris,Evie Woods,MISSING tropes,World Bookshelf; Comfort Reads; Page-Turners,France
+640,Water Moon,Samantha Sotto Yambao,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Heartbreaking Reads; Comfort Reads,Japan
+641,Kaikeyi,Vaishnavi Patel,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+642,"The Book That Wouldn’t Burn (The Library Trilogy, #1)",Mark Lawrence,Country filled from author map (United States) | Language defaulted to English,India Bookshelf; Indian Literary Fiction; Dark & Atmospheric,United States
+643,"Beg, Borrow, or Steal (When in Rome, #3)",Sarah Adams,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Rome; Around the World in 52 Books,United States
+644,Under the Whispering Door,T.J. Klune,Country filled from author map (United States),World Bookshelf; Comfort Reads,United States
+646,Honor,Elif Shafak,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,Turkey
+647,The Booklover's Library,Madeline Martin,Country normalized (England → United Kingdom) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,United Kingdom
+648,"Still Me (Me Before You, #3)",Jojo Moyes,MISSING tropes,World Bookshelf; Comfort Reads,United Kingdom
+649,The Big Empty (Elvis Cole and Joe Pike #20),Robert Crais,Country filled from author map (United States),India Bookshelf; Dark & Atmospheric; Page-Turners,United States
+651,Saraswati’s Gift,Kavita Kané,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Partition Stories; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+654,The Hungry Tide,Amitav Ghosh,MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+656,Kunti: The Sati Series II,Koral Dasgupta,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; The Epic Project; Epic · Kunti; Epic · Draupadi; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+657,The Witch's Heart,Genevieve Gornichec,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Roots of Bharat; Indian Mythology Retellings; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,United States
+658,"The Midnight Library (The Midnight World, #1)",Matt Haig,Country filled from author map (United Kingdom),World Bookshelf; Comfort Reads,United Kingdom
+659,"The Legend of Meneka (The Divine Dancers, #1)",Kritika H. Rao,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+660,The Woman in White,Wilkie Collins,Country normalized (England → United Kingdom) | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United Kingdom
+661,"Fearless (The Powerless Trilogy, #3)",Lauren Roberts,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads,United States
+662,"The Secret of Secrets (Robert Langdon, #6)",Dan Brown,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Page-Turners,United States
+663,"Love Unwritten (Lakefront Billionaires, #2)",Lauren Asher,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads,United States
+664,The Liberation of Sita,Volga,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Partition Stories; Indian Literary Fiction; The Epic Project; Epic · Sita; Heartbreaking Reads; Comfort Reads,India
+665,Katabasis,R.F. Kuang,Country filled from author map (United States) | Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Dark & Atmospheric,United States
+666,Shakti: The Divine Feminine,Anuja Chandramouli,MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Indian Literary Fiction; Dark & Atmospheric,India
+671,The Chola Tigers: Avengers of Somnath,Amish Tripathi,MISSING tropes,India Bookshelf; Indian Historical Fiction; States Through Stories; Tamil Nadu Stories; Heartbreaking Reads; Comfort Reads; Page-Turners,India
+689,The Lost Story,Meg Shaffer,Country filled from author map (United States) | Language defaulted to English,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,United States
+690,"The Amberglow Candy Store (The Night Alley, #1)",Hiyoko Kurisu,Country filled from author map (Japan) | MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Comfort Reads; Dark & Atmospheric,Japan
+691,Shadow Play Love and Blackmail,Nitish Bhushan,Country filled from author map (India) | Language defaulted to English,India Bookshelf; Heartbreaking Reads; Dark & Atmospheric; Page-Turners,India
+692,GULNORA,Ashok Bhasin,Language defaulted to English | MISSING tropes,India Bookshelf; Dark & Atmospheric; Page-Turners,India
+694,"What the River Knows (Secrets of the Nile, #1)",Isabel Ibañez,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Egypt; Around the World in 52 Books; Middle East & North Africa; Dark & Atmospheric,Egypt
+695,"Where the Library Hides (Secrets of the Nile, #2)",Isabel Ibañez,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Egypt; Around the World in 52 Books; Middle East & North Africa,Egypt
+696,"The Ballad of Falling Dragons (Moonfall, #2)",Sarah A. Parker,Country filled from author map (United Kingdom),World Bookshelf; Comfort Reads; Dark & Atmospheric,United Kingdom
+697,Piranesi,Susanna Clarke,Country filled from author map (United Kingdom) | MISSING tropes,World Bookshelf; Dark & Atmospheric,United Kingdom
+698,Alchemised,SenLinYu,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf,United States
+699,"Ashes to Ashes (Kovac and Liska, #1)",Tami Hoag,Country filled from author map (United States) | Language defaulted to English | MISSING tropes,World Bookshelf; Dark & Atmospheric; Page-Turners,United States
+701,Lightning in a Shot Glass,Deepanjana Pal,MISSING tropes,India Bookshelf; Indian Literary Fiction; States Through Stories; Maharashtra Stories; Comfort Reads,India
+702,Wuthering Heights,Emily Brontë,Country normalized (England → United Kingdom) | MISSING tropes,World Bookshelf; Dark & Atmospheric,United Kingdom
+703,The Violin Maker's Secret,Evie Woods,Country filled from author map (Ireland) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads; Comfort Reads; Page-Turners,Ireland
+704,Cleopatra,Saara El-Arifi,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Egypt; Around the World in 52 Books; Middle East & North Africa; Comfort Reads; Dark & Atmospheric,Egypt
+705,The Battle of the Bookshops,Poppy Alexander,Country filled from author map (United Kingdom) | Language defaulted to English | MISSING tropes,World Bookshelf; Comfort Reads,United Kingdom
+706,A Guardian and a Thief,Megha Majumdar,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads,India
+707,Durga: The Baaghini: A Tattvaverse Saga,Krishnamurthy Shrikanth,Language defaulted to English,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Comfort Reads; Dark & Atmospheric,India
+708,The Barred Window,Sammar Shabir,Country filled from author map (United Kingdom) | MISSING tropes,India Bookshelf; Indian Literary Fiction; Dark & Atmospheric; Page-Turners,United Kingdom
+709,The Land of Lost Gods: A Gripping Crime Fiction Thriller from Turkey,Ahmet Ümit,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Greece; Around the World in 52 Books; Middle East & North Africa; Dark & Atmospheric; Page-Turners,Turkey
+710,The Poet Empress,Shen Tao,Country filled from author map (China),India Bookshelf; Indian Historical Fiction; Civilizations Through Books; Civilization · China; Around the World in 52 Books; East Asia Shelf; Comfort Reads; Dark & Atmospheric,China
+711,City of the Muse,Kate Hilton,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Egypt; Around the World in 52 Books; Middle East & North Africa; Dark & Atmospheric; Page-Turners,Egypt
+712,Ghachar Ghochar,Vivek Shanbhag,MISSING tropes,India Bookshelf; Indian Literary Fiction,India
+713,"A War of Wyverns (A Language of Dragons, #2)",S.F. Williamson,Country filled from author map (United Kingdom) | Language defaulted to English | MISSING tropes,World Bookshelf; Heartbreaking Reads,United Kingdom
+714,Rukmini: Krishna's Wife,Saiswaroopa Iyer,Language defaulted to English | MISSING tropes,India Bookshelf; Roots of Bharat; Indian Mythology Retellings; Partition Stories; Indian Historical Fiction; Indian Literary Fiction; Heartbreaking Reads; Comfort Reads; Dark & Atmospheric,India
+715,The Wizard's Bakery,Gu Byeong-mo,MISSING tropes,World Bookshelf; East Asia Shelf; Around the World in 52 Books; Comfort Reads; Dark & Atmospheric,South Korea
+716,Dancing in the Mosque: An Afghan Mother's Letter to Her Son,Homeira Qaderi,MISSING tropes,World Bookshelf; Middle East & North Africa; Around the World in 52 Books; Heartbreaking Reads; Comfort Reads,Afghanistan
+717,Daughter of Two Rivers,Arun Krishnan,Language defaulted to English | MISSING tropes,India Bookshelf; Indian Historical Fiction; Indian Literary Fiction; Comfort Reads; Dark & Atmospheric,India
+718,The Vanishing Cherry Blossom Bookshop,Takuya Asakura,MISSING tropes,World Bookshelf; Civilizations Through Books; Civilization · Japan; Around the World in 52 Books; East Asia Shelf; Heartbreaking Reads; Comfort Reads,Japan
+719,I Who Have Never Known Men,Jacqueline Harpman,Country filled from author map (Belgium),World Bookshelf; Dark & Atmospheric,Belgium

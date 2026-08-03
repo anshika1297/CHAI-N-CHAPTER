@@ -5,6 +5,20 @@
  * For readers, authors, publishers & lit fest committees in India & UAE.
  */
 
+function resolveSiteUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const url = configured || 'https://chaptersaurchai.com';
+  if (process.env.NODE_ENV === 'production') {
+    const lower = url.toLowerCase();
+    if (lower.includes('localhost') || lower.includes('127.0.0.1')) {
+      console.warn(
+        '[seo] NEXT_PUBLIC_SITE_URL looks like localhost in production — sitemap, canonical, and OG URLs will be wrong. Set NEXT_PUBLIC_SITE_URL=https://chaptersaurchai.com'
+      );
+    }
+  }
+  return url;
+}
+
 export const siteConfig = {
   /** Blog display name (logo, UI) */
   name: 'Chapters.aur.Chai',
@@ -15,9 +29,9 @@ export const siteConfig = {
   /** Default meta description */
   description:
     'Book blogger & content creator Anshika Mishra—honest reviews, literary services & book recommendations for readers worldwide. Based in Abu Dhabi. For authors, publishers & lit fest committees in India & UAE. Fiction, history & mythology.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://chaptersaurchai.com',
-  /** Default image for meta/social (tab preview, Open Graph, Twitter cards). Put your image at apps/web/public/og-image.jpg (recommended size 1200×630 px), or change this path. */
-  defaultImage: '/og-image.png',
+  url: resolveSiteUrl(),
+  /** Default social card — dynamic OG route (1200×630). */
+  defaultImage: '/api/og?title=Chapters.aur.Chai&category=Book+Blogger+%26+Literary+Services',
   author: 'Anshika Mishra',
   locale: 'en_IN',
   threadsHandle: '@chaptersaurchai', // for Threads (used in share + meta when relevant)
@@ -48,12 +62,18 @@ export const primaryKeywords = [
   'book recommendations',
   'author services',
   'beta reading',
+  'beta reader India',
+  'book reviewer',
+  'book reviewer India',
+  'proofreader',
+  'proofreader India',
+  'author strategist',
+  'author strategist India',
   'literary festival',
   'publishers India',
   'publishers UAE',
   'fiction book reviews',
   'literary blogger',
-  'book reviewer',
 ] as const;
 
 /** Long-tail & audience keywords – readers, authors, lit fests, publishers, India & UAE */
@@ -87,11 +107,19 @@ export type MetadataParams = {
   keywords?: string[];
   image?: string;
   path?: string;
-  type?: 'website' | 'article';
+  type?: 'website' | 'article' | 'profile';
   publishedTime?: string;
   modifiedTime?: string;
   author?: string;
   noIndex?: boolean;
+  /** Absolute or site-relative canonical override from CMS */
+  canonicalOverride?: string;
+  /** Explicit Open Graph overrides (default: title / description) */
+  ogTitle?: string;
+  ogDescription?: string;
+  /** Explicit Twitter overrides (default: og* then title / description) */
+  twitterTitle?: string;
+  twitterDescription?: string;
 };
 
 export function canonicalUrl(path: string = ''): string {
@@ -103,7 +131,20 @@ export function canonicalUrl(path: string = ''): string {
 export function ogImageUrl(path?: string): string {
   if (path?.startsWith('http')) return path;
   const base = siteConfig.url.replace(/\/$/, '');
-  return path ? `${base}${path}` : `${base}${siteConfig.defaultImage}`;
+  const rel = path || siteConfig.defaultImage;
+  return rel.startsWith('/') ? `${base}${rel}` : `${base}/${rel}`;
+}
+
+/** OG image dimensions — square logo fallback vs standard social card. */
+export function ogImageDimensions(imageUrl: string): { width: number; height: number } {
+  const path = imageUrl.replace(siteConfig.url.replace(/\/$/, ''), '');
+  if (path.includes('logo.png') || path.includes('favicon')) {
+    return { width: 512, height: 512 };
+  }
+  if (path.includes('/api/og')) {
+    return { width: 1200, height: 630 };
+  }
+  return { width: 1200, height: 630 };
 }
 
 export function mergeKeywords(extra: string[] = []): string[] {

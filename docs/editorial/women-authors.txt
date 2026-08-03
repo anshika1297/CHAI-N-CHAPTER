@@ -1,0 +1,281 @@
+# Known women authors in this catalog (one per line, case-insensitive match).
+# Used by docs/tag_women_shelves.py — keep in sync when new books are added.
+Aanchal Malhotra
+Abby Jimenez
+Aditi Banerjee
+Aditi Khorana
+Aditi Mathur Kumar
+Adrienne Young
+Aishwarya Jha
+Alex Aster
+Alexandra Bracken
+Ali Hazelwood
+Alice Feeney
+Alice Roberts
+Alison Espach
+Alix E. Harrow
+Alka Joshi
+Amari Soul
+Ami Ganatra
+Ami Ganatara
+Amrita Pritam
+Amy Lloyd
+Angeline Boulley
+Anita Desai
+Anita Nair
+Ann Liang
+Annie Hartnett
+Anuja Chandramouli
+Anuja Chauhan
+Anuradha Roy
+Aparna Verma
+Arundhati Roy
+Asako Yuzuki
+Ashley Poston
+Ashley Tropea
+Attia Hosain
+Audrey Niffenegger
+Axie Oh
+B.K. Borison
+Baek Seungyeon
+Balli Kaur Jaswal
+Bapsi Sidhwa
+Barbara Davis
+Barbara Nadel
+Becky Chambers
+Bell Hooks
+Bonnie Garmus
+Bora lee reed
+Bulbul Sharma
+Cara Bastone
+Carissa Broadbent
+Carol Wyer
+Carole Satyamurti
+Catherine cho
+Catriona Ward
+Cay Kim
+Cecile Pin
+Chelsea Abdullah
+Cheon Seon-ran
+Chitra Banerjee Divakaruni
+Cho Nam-joo
+Claire Daverley
+Claire Heywood
+Claire Keegan
+Claire North
+Clare marchant
+Coco Mellors
+Colleen Hoover
+Costanza Casati
+Danielle Steel
+Daphne du Maurier
+Debanjana Mukherjee
+Deborah Rodriguez
+Deepa Aggarwal
+Deepanjana Pal
+Delia Owens
+Dena Merriam
+Diane Kelly
+Diya Narayan Upadhyaya
+Dolly Alderton
+Donna Tart
+Donna Tartt
+E.L. James
+Elena armas
+Elif Shafak
+Ema Brodie
+Emily Brontë
+Emily Henry
+Etaf Rum
+Evie Gaughan
+Evie Woods
+Fiona Valpy
+Fonda lee
+Freida McFadden
+Gabrielle Zevin
+Gail Honeyman
+Genevieve Gornichec
+Gillian Flynn
+Githa Hariharan
+Glendy Vanderah
+Gu Byeong-mo
+Han Kang
+Hannah Lynn
+Hanya Yanagihara
+Harini Nagendra
+Harini Srinivasan
+Heather Marshall
+Helene Hanff
+Helene wecker
+Hiyoko Kurisu
+Holly Black
+Holly Bourne
+Holly Jackson
+Homeira Qaderi
+Hwang Bo-Reum
+Indira ananthakrishnan
+Indu Sundaresan
+Ira Mukhoty
+Iran jay zhao
+Irawati Karve
+Isabel Ibañez
+Ismat Chughtai
+Jacqueline Harpman
+Jane Austen
+Jennifer Hillier
+Jennifer Saint
+Jessica Andrews
+Jessie Burton
+Jhumpa Lahiri
+Jodi Picoult
+Jojo Moyes
+Joss Richards
+Junhee Jun / Yun Jung-eun
+Kate Hilton
+Kate quinn
+Katy Brent
+Kavita Kane
+Kavita Kané
+Kavita kane
+Kerry Barrett
+Kiersten White
+Kim Jee-hye
+Kim Jiyun
+Kiran Desai
+Konda Susmita Patel
+Koral Das Gupta
+Koral Dasgupta
+Kristin Hannah
+Kritika H. Rao
+Kylie lee baker
+Laura Bradford
+Laura Steven
+Lauren Asher
+Lauren Roberts
+Laurie Gilmore
+Leah kim
+Lee Onhwa
+Leigh Bardugo
+Lesley Pearse
+Lily King
+Lisa Jewell
+Lori Gottlieb
+Luna McNamara
+Lynn Painter
+Madeline Martin
+Madeline Miller
+Madhavi S. Mahadevan
+Madhuri Vijay
+Maggie O'Farrell
+Mai Mochizuki
+Maile Meloy
+Manju Kapur
+Margaret Atwood
+Marion Blackwood
+Marjan Kamali
+Mary renault
+Meg Shaffer
+Megan Lally
+Megha Majumdar
+Melissa De La Cruz
+Michelle Zauner
+Michelle jabes corpora
+Michiko Aoyama
+Mieko Kawakami
+Min Jin Lee
+Miye Lee
+Monica Heisey
+Monika Bhatti
+N.K. Jemisin
+Nadia Hashimi
+Namita Gokhale
+Nanako Hanada
+Natalie Haynes
+Natasha Lunn
+Neelima Dalmia adhar
+Nicola Yoon
+Nidhi Upadhyay
+Nikita Gill
+Nitya Ravi
+Nitya neelakantan
+Pat Barker
+Paula Hawkins
+Poppy Alexander
+Pratibha Ray
+Preeti Shenoy
+Priyanka Kaintura
+Priyanka Sharma Kaintura
+R.F. Kuang
+R.F. kuang
+Rachel Gillig
+Rashna Imhasly-Gandhy
+Rebecca Ross
+Rebecca Yarros
+Rita Chowdhury
+Romila Thapar
+Roshani Chokshi
+Rosie Hewlett
+S.A. chakraborty
+S.F. Williamson
+Saara El-Arifi
+Saiswaroopa Iyer
+Sally Rooney
+Sally Thorne
+Samantha Sotto Yambao
+Sammar Shabir
+Sanaka Hiiragi
+Sanjana Kanamarlapudi
+Sanskriti Singh
+Sara Nisha Adams
+Sarah A. Parker
+Sarah Adams
+Sarah Damoff
+Sarah J. Maas
+Sarah Underwood
+Savita Singh
+Sayaka Murata
+SenLinYu
+Shannon chakraborty
+Shashi Deshpande
+Shauna Robinson
+Shelby Van Pelt
+Shelley parker-chan
+Shen Tao
+Shilpi Somaya Gowda
+Shraddha Poppat
+Shravya Bhinder
+Shubhangi Swarup
+Shubhi Agarwal
+Sirjandeep Kaur Ubha
+Sonoko Machida
+Sophie Kinsella
+Srishti Chaudhary
+Stephanie Garber
+Sudha Madhavan
+Sudha Murty
+Sue Lynn Tan
+Sujata Massey
+Suman Siwach
+Supriya Bansal
+Susanna Clarke
+Suzanne Collins
+Swati Teerdhala
+Sylvia Plath
+Syou Ishida
+Tami Hoag
+Tanushree Podder
+Taylor Jenkins Reid
+Tilly Bagshawe
+Tracy Chevalier
+Tripti Pandey
+Tulika Singh
+Vaishnavi Patel
+Virginia Evans
+Volga
+Won-Pyung Sohn
+Yeon Somin
+Yoko Ogawa
+Zoulfa Katouh
+manini J. Anandani
+samhita Arni
+Manreet Sodhi Someshwar

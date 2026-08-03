@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Instagram, Facebook, Linkedin, Youtube, Mail, Heart, BookOpen, AtSign, LucideIcon } from 'lucide-react';
 import { siteConfig } from '@/lib/seo';
 import { getPageSettings, subscribe, getImageUrl } from '@/lib/api';
+import { saveSubscriberSessionFromSubscribe } from '@/lib/subscriberSession';
 
 const iconMap: Record<string, LucideIcon> = {
   email: Mail,
@@ -42,10 +43,18 @@ const defaultSocialLinks = [
 
 const quickLinks = [
   { name: 'Home', href: '/' },
+  { name: 'Start Here', href: '/start-here' },
   { name: 'About', href: '/about' },
   { name: 'Book Reviews', href: '/blog' },
   { name: 'Recommendations', href: '/recommendations' },
+  { name: 'Musings', href: '/musings' },
+  { name: 'Author spotlight', href: '/author-spotlight' },
+  { name: 'Work with me', href: '/work-with-me' },
   { name: 'Book Clubs', href: '/book-clubs' },
+  { name: 'Genres', href: '/genres' },
+  { name: 'Topics', href: '/topics' },
+  { name: 'Tags', href: '/tags' },
+  { name: 'Books', href: '/books' },
   { name: 'Subscribe', href: '/subscribe' },
   { name: 'Contact', href: '/contact' },
 ];
@@ -72,7 +81,8 @@ export default function Footer() {
     setFooterStatus('loading');
     setFooterMessage('');
     try {
-      await subscribe(trimmed, { source: 'footer' });
+      const result = await subscribe(trimmed, { source: 'footer' });
+      saveSubscriberSessionFromSubscribe(result, trimmed);
       setFooterStatus('success');
       setFooterMessage('Thanks for subscribing!');
       setFooterEmail('');
@@ -123,7 +133,7 @@ export default function Footer() {
 
   return (
     <footer className="bg-chai-brown text-cream">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+      <div className="site-container py-10 sm:py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           <div>
             <Link href="/" className="inline-block mb-4">
@@ -209,7 +219,7 @@ export default function Footer() {
       </div>
 
       <div className="border-t border-cream/10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="site-container py-4">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-4 text-xs sm:text-sm text-cream/60">
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
               <p>© {new Date().getFullYear()} {siteConfig.name}. All rights reserved.</p>

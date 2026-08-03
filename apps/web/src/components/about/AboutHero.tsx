@@ -27,8 +27,8 @@ export default function AboutHero({ hero: heroProp }: Props) {
   const hero = heroProp ? { ...defaultHero, ...heroProp } : defaultHero;
 
   return (
-    <section className="pt-24 sm:pt-28 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto w-full">
+    <section className="pt-24 sm:pt-28 pb-12 sm:pb-16">
+      <div className="site-container">
         {/* Mobile: Heading First */}
         <div className="md:hidden text-center mb-6 animate-fade-in-up">
           <p className="text-terracotta font-body italic text-lg mb-2">{hero.greeting}</p>

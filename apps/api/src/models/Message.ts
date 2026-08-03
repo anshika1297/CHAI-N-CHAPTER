@@ -8,6 +8,9 @@ export interface IMessage extends Document {
   subject?: string;
   message: string;
   service?: string;
+  bookTitle?: string;
+  genre?: string;
+  timeline?: string;
   source: MessageSource;
   read: boolean;
   createdAt: Date;
@@ -20,6 +23,9 @@ const MessageSchema = new Schema<IMessage>(
     subject: { type: String },
     message: { type: String, required: true },
     service: { type: String },
+    bookTitle: { type: String },
+    genre: { type: String },
+    timeline: { type: String },
     source: { type: String, required: true, enum: ['contact', 'work-with-me'] },
     read: { type: Boolean, default: false },
   },

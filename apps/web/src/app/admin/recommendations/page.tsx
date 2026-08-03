@@ -3,24 +3,47 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Save } from 'lucide-react';
 import Link from 'next/link';
-import { getPageSettings, putPageSettings } from '@/lib/api';
+import { announceRecommendation, getPageSettings, putPageSettings } from '@/lib/api';
+import { tryAutoAnnounceOnFirstPublish } from '@/lib/announceSubscribers';
+import { isContentPublished, readIsPublished, withToggledPublish } from '@/lib/contentPublish';
+import { readSubscribersEmailedAt, subscribersEmailedSaveField } from '@/lib/subscribersEmailed';
 import PageLoading from '@/components/PageLoading';
 import ImageUploadField from '@/components/ImageUploadField';
+import AdminPublishToggle from '@/components/admin/AdminPublishToggle';
+import AdminSubscribersEmailedBadge from '@/components/admin/AdminSubscribersEmailedBadge';
+import AdminShopLinksSection from '@/components/admin/AdminShopLinksSection';
+import CatalogShopAutofill from '@/components/admin/CatalogShopAutofill';
+import type { ShopBookMeta, ShopLink } from '@/lib/shopLinks';
+import { hasShopLinks, sanitizeShopLinksForSave, shopPath } from '@/lib/shopLinks';
+import { parseShopBookMeta, parseShopLinksFromRaw, sanitizeShopBookMeta } from '@/lib/shop/sanitize';
+import {
+  readGenres,
+  readTags,
+  recommendationFieldsForSave,
+  recommendationFieldsFromRaw,
+  seoFieldsForSave,
+  seoFieldsFromRaw,
+  type RecommendationContentFields,
+} from '@/lib/contentFields';
+import AdminUniversalSeoFields from '@/components/admin/AdminUniversalSeoFields';
+import AdminGenresField from '@/components/admin/AdminGenresField';
+import AdminRecommendationEditorialFields from '@/components/admin/AdminRecommendationEditorialFields';
 
 export interface RecommendationBook {
   id: string;
   title: string;
   author: string;
   image: string;
-  rating: number;
+  rating?: number;
   description: string;
-  /** URL for the book (e.g. Goodreads, Amazon). Shown as hyperlink on book title. */
   bookLink?: string;
+  shopLinks?: ShopLink[];
+  shopBook?: ShopBookMeta;
   /** URL for the author profile. Shown as hyperlink on author name. */
   authorLink?: string;
 }
 
-export interface Recommendation {
+export interface Recommendation extends RecommendationContentFields {
   id: string;
   title: string;
   slug: string;
@@ -32,10 +55,10 @@ export interface Recommendation {
   readingTime: number;
   author: string;
   publishedAt: string;
+  isPublished: boolean;
+  subscribersEmailedAt?: string;
   bookCount: number;
   books: RecommendationBook[];
-  /** SEO keywords for this list; merged with site-wide keywords in meta. */
-  seoKeywords?: string[];
 }
 
 const RECO_CATEGORIES = [
@@ -54,44 +77,7 @@ function generateSlug(title: string): string {
     .replace(/(^-|-$)/g, '');
 }
 
-const defaultRecos: Recommendation[] = [
-  {
-    id: '1',
-    title: 'Cozy Winter Reads: Books to Curl Up With',
-    slug: 'cozy-winter-reads',
-    excerpt:
-      "As the temperature drops, there's nothing better than a warm blanket, hot chai, and these cozy reads that feel like a warm hug. From heartwarming romances to atmospheric mysteries...",
-    intro:
-      "As the temperature drops, there's nothing better than a warm blanket, hot chai, and these cozy reads that feel like a warm hug.",
-    conclusion: 'These books have been my companions through many winter evenings. Happy reading!',
-    image: '',
-    category: 'Book List',
-    readingTime: 6,
-    author: 'Anshika Mishra',
-    publishedAt: '2024-01-20',
-    bookCount: 4,
-    books: [
-      { id: '1', title: 'The Seven Husbands of Evelyn Hugo', author: 'Taylor Jenkins Reid', image: '', rating: 5, description: 'This book completely swept me away!', bookLink: '', authorLink: '' },
-      { id: '2', title: 'The Little Book of Hygge', author: 'Meik Wiking', image: '', rating: 4, description: 'Perfect for understanding the Danish concept of coziness.', bookLink: '', authorLink: '' },
-    ],
-  },
-  {
-    id: '2',
-    title: 'January 2024 Wrap-Up: My Reading Journey',
-    slug: 'january-2024-wrapup',
-    excerpt:
-      "January was a month of discovery! I read 8 incredible books across genres, from contemporary fiction to historical dramas. Here's what kept me turning pages...",
-    intro: "January was a month of discovery!",
-    conclusion: "Here's to more great reads in February.",
-    image: '',
-    category: 'Monthly Wrap-Up',
-    readingTime: 8,
-    author: 'Anshika Mishra',
-    publishedAt: '2024-02-01',
-    bookCount: 8,
-    books: [],
-  },
-];
+const defaultRecos: Recommendation[] = [];
 
 const emptyForm: Omit<Recommendation, 'id'> = {
   title: '',
@@ -104,22 +90,12 @@ const emptyForm: Omit<Recommendation, 'id'> = {
   readingTime: 5,
   author: 'Anshika Mishra',
   publishedAt: new Date().toISOString().slice(0, 10),
+  isPublished: false,
   bookCount: 0,
   books: [],
-  seoKeywords: [],
+  tags: [],
+  genres: [],
 };
-
-/** Parse "one per line or comma-separated" into trimmed string array. */
-function parseKeywordsInput(value: string): string[] {
-  return value
-    .split(/[\n,]+/)
-    .map((s) => s.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-function formatKeywordsForInput(keywords: string[]): string {
-  return (keywords ?? []).join('\n');
-}
 
 function toReco(x: Record<string, unknown>): Recommendation | null {
   if (typeof x?.title !== 'string' || typeof x?.slug !== 'string') return null;
@@ -129,10 +105,13 @@ function toReco(x: Record<string, unknown>): Recommendation | null {
         title: String(b?.title ?? '').trim(),
         author: String(b?.author ?? '').trim(),
         image: typeof b?.image === 'string' ? b.image : '',
-        rating: typeof b?.rating === 'number' ? b.rating : Number(b?.rating) || 0,
+        rating:
+          typeof b?.rating === 'number' && b.rating >= 1 && b.rating <= 5 ? b.rating : undefined,
         description: String(b?.description ?? '').trim(),
         bookLink: typeof b?.bookLink === 'string' ? b.bookLink.trim() : '',
         authorLink: typeof b?.authorLink === 'string' ? b.authorLink.trim() : '',
+        shopLinks: parseShopLinksFromRaw(b?.shopLinks),
+        shopBook: parseShopBookMeta(b?.shopBook),
       }))
     : [];
   return {
@@ -147,9 +126,14 @@ function toReco(x: Record<string, unknown>): Recommendation | null {
     readingTime: typeof x.readingTime === 'number' ? x.readingTime : Number(x.readingTime) || 5,
     author: typeof x.author === 'string' ? x.author : '',
     publishedAt: typeof x.publishedAt === 'string' ? x.publishedAt : new Date().toISOString().slice(0, 10),
+    isPublished: readIsPublished(x),
+    subscribersEmailedAt: readSubscribersEmailedAt(x),
     bookCount: typeof x.bookCount === 'number' ? x.bookCount : books.length,
     books,
-    seoKeywords: Array.isArray(x.seoKeywords) ? (x.seoKeywords as string[]).filter((s) => typeof s === 'string') : [],
+    ...seoFieldsFromRaw(x),
+    tags: readTags(x),
+    genres: readGenres(x),
+    ...recommendationFieldsFromRaw(x),
   };
 }
 
@@ -162,14 +146,20 @@ export default function AdminRecommendationsPage() {
   const [editing, setEditing] = useState<Recommendation | null>(null);
   const [formData, setFormData] = useState<Omit<Recommendation, 'id'>>(emptyForm);
 
+  const loadItems = async (): Promise<Recommendation[]> => {
+    const { content } = await getPageSettings('recommendations');
+    if (content && typeof content === 'object' && !Array.isArray(content) && Array.isArray((content as { items?: unknown }).items)) {
+      const list = ((content as { items: Record<string, unknown>[] }).items).map(toReco).filter((p): p is Recommendation => p != null);
+      if (list.length) {
+        setItems(list);
+        return list;
+      }
+    }
+    return items;
+  };
+
   useEffect(() => {
-    getPageSettings('recommendations')
-      .then(({ content }) => {
-        if (content && typeof content === 'object' && !Array.isArray(content) && Array.isArray((content as { items?: unknown }).items)) {
-          const list = ((content as { items: Record<string, unknown>[] }).items).map(toReco).filter((p): p is Recommendation => p != null);
-          if (list.length) setItems(list);
-        }
-      })
+    loadItems()
       .catch(() => setMessage({ type: 'error', text: 'Failed to load recommendations' }))
       .finally(() => setLoading(false));
   }, []);
@@ -187,9 +177,26 @@ export default function AdminRecommendationsPage() {
       readingTime: Number(i.readingTime) || 5,
       author: i.author ?? '',
       publishedAt: i.publishedAt ?? new Date().toISOString().slice(0, 10),
+      isPublished: i.isPublished === true,
+      ...subscribersEmailedSaveField(i.subscribersEmailedAt),
       bookCount: Number(i.bookCount) ?? (i.books?.length ?? 0),
-      books: Array.isArray(i.books) ? i.books.map((b) => ({ id: b.id, title: b.title ?? '', author: b.author ?? '', image: b.image ?? '', rating: Number(b.rating) || 0, description: b.description ?? '', bookLink: b.bookLink ?? '', authorLink: b.authorLink ?? '' })) : [],
-      seoKeywords: Array.isArray(i.seoKeywords) ? i.seoKeywords : [],
+      books: Array.isArray(i.books)
+        ? i.books.map((b) => ({
+            id: b.id,
+            title: b.title ?? '',
+            author: b.author ?? '',
+            image: b.image ?? '',
+            rating:
+              typeof b.rating === 'number' && b.rating >= 1 && b.rating <= 5 ? b.rating : undefined,
+            description: b.description ?? '',
+            bookLink: b.bookLink ?? '',
+            authorLink: b.authorLink ?? '',
+            shopLinks: sanitizeShopLinksForSave(b.shopLinks),
+            shopBook: sanitizeShopBookMeta(b.shopBook),
+          }))
+        : [],
+      ...seoFieldsForSave(i),
+      ...recommendationFieldsForSave(i),
     }));
     await putPageSettings('recommendations', { items: itemsPayload });
   };
@@ -217,13 +224,15 @@ export default function AdminRecommendationsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const before = editing ?? { ...emptyForm, id: 'new', isPublished: false, subscribersEmailedAt: undefined };
+    let after: Recommendation;
     let nextItems: Recommendation[];
     if (editing) {
-      nextItems = items.map((p) =>
-        p.id === editing.id ? { ...formData, id: editing.id } : p
-      );
+      after = { ...formData, id: editing.id, subscribersEmailedAt: editing.subscribersEmailedAt };
+      nextItems = items.map((p) => (p.id === editing.id ? after : p));
     } else {
-      nextItems = [...items, { ...formData, id: Date.now().toString() }];
+      after = { ...formData, id: Date.now().toString() };
+      nextItems = [...items, after];
     }
     setItems(nextItems);
     setFormData(emptyForm);
@@ -233,7 +242,13 @@ export default function AdminRecommendationsPage() {
     setMessage(null);
     try {
       await saveItemsToApi(nextItems);
-      setMessage({ type: 'success', text: 'Recommendation saved to site!' });
+      let msg = 'Recommendation saved to site!';
+      const annex = await tryAutoAnnounceOnFirstPublish(before, after, () => announceRecommendation(after.slug));
+      if (annex) {
+        await loadItems();
+        msg += ` ${annex}`;
+      }
+      setMessage({ type: 'success', text: msg });
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
     } finally {
@@ -254,11 +269,43 @@ export default function AdminRecommendationsPage() {
       readingTime: item.readingTime,
       author: item.author,
       publishedAt: item.publishedAt,
+      isPublished: item.isPublished,
       bookCount: item.bookCount,
       books: item.books,
-      seoKeywords: item.seoKeywords ?? [],
+      tags: item.tags ?? [],
+      seoTitle: item.seoTitle,
+      seoDescription: item.seoDescription,
+      ogImage: item.ogImage,
+      canonicalUrl: item.canonicalUrl,
+      whoIsThisListFor: item.whoIsThisListFor,
+      quickAnswer: item.quickAnswer,
+      faq: item.faq ?? [],
+      genres: item.genres ?? [],
     });
     setShowForm(true);
+  };
+
+  const togglePublish = async (item: Recommendation) => {
+    const before = item;
+    const updated = withToggledPublish(item);
+    const nextItems = items.map((p) => (p.id === item.id ? updated : p));
+    setItems(nextItems);
+    setSaving(true);
+    setMessage(null);
+    try {
+      await saveItemsToApi(nextItems);
+      let msg = isContentPublished(item) ? 'List is now a draft.' : 'List is live on the site!';
+      const annex = await tryAutoAnnounceOnFirstPublish(before, updated, () => announceRecommendation(updated.slug));
+      if (annex) {
+        await loadItems();
+        msg += ` ${annex}`;
+      }
+      setMessage({ type: 'success', text: msg });
+    } catch (err) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to save' });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -299,7 +346,8 @@ export default function AdminRecommendationsPage() {
             Manage Book Recommendations
           </h1>
           <p className="font-body text-chai-brown-light">
-            Create and edit recommendation lists. Home page shows newest 3.
+            Create and edit recommendation lists. <strong>Shop buy links</strong> are per book inside each list — Edit → expand a book → green{' '}
+            <strong>&quot;Where to buy — Shop page&quot;</strong> section.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -415,6 +463,11 @@ export default function AdminRecommendationsPage() {
                   </select>
                 </div>
               </div>
+              <AdminGenresField
+                value={formData.genres}
+                onChange={(genres) => setFormData({ ...formData, genres })}
+                hint="Book genres covered in this list — separate from list format category above."
+              />
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block font-body text-sm font-medium text-chai-brown mb-2">Reading time (min)</label>
@@ -473,7 +526,7 @@ export default function AdminRecommendationsPage() {
                         ...formData,
                         books: [
                           ...formData.books,
-                          { id: Date.now().toString(), title: '', author: '', image: '', rating: 0, description: '', bookLink: '', authorLink: '' },
+                          { id: Date.now().toString(), title: '', author: '', image: '', description: '', bookLink: '', authorLink: '' },
                         ],
                       })
                     }
@@ -529,6 +582,31 @@ export default function AdminRecommendationsPage() {
                         className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
                       />
                     </div>
+                    <CatalogShopAutofill
+                      title={book.title}
+                      author={book.author}
+                      shopLinks={book.shopLinks}
+                      shopBook={book.shopBook}
+                      bookLink={book.bookLink}
+                      coverImage={book.image}
+                      onApply={(patch) => {
+                        setFormData((prev) => {
+                          const next = [...prev.books];
+                          const cur = next[idx];
+                          if (!cur) return prev;
+                          next[idx] = {
+                            ...cur,
+                            shopLinks: patch.shopLinks.length ? patch.shopLinks : cur.shopLinks,
+                            shopBook: patch.shopBook ?? cur.shopBook,
+                            bookLink:
+                              patch.bookLink && !cur.bookLink?.trim() ? patch.bookLink : cur.bookLink,
+                            image:
+                              patch.coverImage && !cur.image?.trim() ? patch.coverImage : cur.image,
+                          };
+                          return { ...prev, books: next };
+                        });
+                      }}
+                    />
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <ImageUploadField
                         value={book.image}
@@ -542,24 +620,31 @@ export default function AdminRecommendationsPage() {
                         className="font-body"
                       />
                       <div className="flex items-center gap-2">
-                        <label className="text-xs text-chai-brown-light">Rating (1–5):</label>
-                        <input
-                          type="number"
-                          min={0}
-                          max={5}
-                          value={book.rating || ''}
+                        <label className="text-xs text-chai-brown-light">Rating (optional):</label>
+                        <select
+                          value={book.rating ?? ''}
                           onChange={(e) => {
                             const next = [...formData.books];
-                            next[idx] = { ...book, rating: e.target.value ? parseInt(e.target.value, 10) : 0 };
+                            next[idx] = {
+                              ...book,
+                              rating: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                            };
                             setFormData({ ...formData, books: next });
                           }}
-                          className="w-16 px-2 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
-                        />
+                          className="px-2 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
+                        >
+                          <option value="">No rating</option>
+                          {[1, 2, 3, 4, 5].map((n) => (
+                            <option key={n} value={n}>
+                              {n} / 5
+                            </option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
-                        <label className="block text-xs text-chai-brown-light mb-1">Book link (URL)</label>
+                        <label className="block text-xs text-chai-brown-light mb-1">Goodreads link</label>
                         <input
                           type="url"
                           value={book.bookLink ?? ''}
@@ -568,10 +653,9 @@ export default function AdminRecommendationsPage() {
                             next[idx] = { ...book, bookLink: e.target.value };
                             setFormData({ ...formData, books: next });
                           }}
-                          placeholder="https://… (Goodreads, Amazon, etc.)"
+                          placeholder="https://www.goodreads.com/…"
                           className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
                         />
-                        <p className="text-[11px] text-chai-brown-light mt-0.5">Book title becomes a clickable link.</p>
                       </div>
                       <div>
                         <label className="block text-xs text-chai-brown-light mb-1">Author profile link (URL)</label>
@@ -589,6 +673,29 @@ export default function AdminRecommendationsPage() {
                         <p className="text-[11px] text-chai-brown-light mt-0.5">Author name becomes a clickable link.</p>
                       </div>
                     </div>
+                    <div className="sm:col-span-2">
+                      <AdminShopLinksSection
+                        value={book.shopLinks ?? []}
+                        onChange={(shopLinks) => {
+                          const next = [...formData.books];
+                          next[idx] = { ...book, shopLinks };
+                          setFormData({ ...formData, books: next });
+                        }}
+                        shopBook={book.shopBook}
+                        onShopBookChange={(shopBook) => {
+                          const next = [...formData.books];
+                          next[idx] = { ...book, shopBook };
+                          setFormData({ ...formData, books: next });
+                        }}
+                        inheritHint={{
+                          title: book.title,
+                          author: book.author,
+                          coverImage: book.image,
+                          genre: formData.genres?.[0] ?? formData.category,
+                        }}
+                        shopPageHref={formData.slug?.trim() ? shopPath('recommendations', formData.slug) : undefined}
+                      />
+                    </div>
                     <textarea
                       value={book.description}
                       onChange={(e) => {
@@ -598,30 +705,22 @@ export default function AdminRecommendationsPage() {
                       }}
                       rows={2}
                       placeholder="Why you recommend it (optional)"
-                      className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
+                      className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm sm:col-span-2"
                     />
                   </div>
                 ))}
               </div>
 
-              {/* SEO / Meta keywords */}
-              <div>
-                <label className="block font-body text-sm font-medium text-chai-brown mb-2">
-                  SEO / Meta keywords
-                </label>
-                <p className="text-xs text-chai-brown-light mb-2">
-                  One per line or comma-separated. Merged with site-wide keywords on the recommendation page meta. Until you have an API, add this slug and keywords to <code className="bg-cream px-1 rounded text-[11px]">lib/content.ts</code> (RECO_META) so the published page uses them.
-                </p>
-                <textarea
-                  value={formatKeywordsForInput(formData.seoKeywords ?? [])}
-                  onChange={(e) =>
-                    setFormData({ ...formData, seoKeywords: parseKeywordsInput(e.target.value) })
-                  }
-                  rows={3}
-                  placeholder="e.g. cozy reads, winter books, Taylor Jenkins Reid (one per line or comma-separated)"
-                  className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body text-sm"
-                />
-              </div>
+              <AdminRecommendationEditorialFields
+                value={formData}
+                onChange={(editorial) => setFormData({ ...formData, ...editorial })}
+              />
+
+              <AdminUniversalSeoFields
+                imageModule="recommendations"
+                value={formData}
+                onChange={(seo) => setFormData({ ...formData, ...seo })}
+              />
 
               <div className="flex gap-3 pt-4">
                 <button
@@ -651,7 +750,9 @@ export default function AdminRecommendationsPage() {
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Title</th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Category</th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Books</th>
-                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Published</th>
+                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Shop</th>
+                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Status</th>
+                <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">Date</th>
                 <th className="px-4 py-3 text-left font-body text-sm font-medium text-chai-brown">SEO</th>
                 <th className="px-4 py-3 text-right font-body text-sm font-medium text-chai-brown">Actions</th>
               </tr>
@@ -665,10 +766,30 @@ export default function AdminRecommendationsPage() {
                   </td>
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">{item.category}</td>
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">{item.bookCount}</td>
+                  <td className="px-4 py-3 font-body text-sm">
+                    {(() => {
+                      const n = (item.books ?? []).filter((b) => hasShopLinks(b.shopLinks)).length;
+                      return n > 0 ? (
+                        <Link href={shopPath('recommendations', item.slug)} target="_blank" rel="noopener noreferrer" className="text-sage font-medium hover:underline">
+                          {n} book{n === 1 ? '' : 's'}
+                        </Link>
+                      ) : (
+                        <span className="text-chai-brown-light">—</span>
+                      );
+                    })()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <AdminPublishToggle
+                      isPublished={isContentPublished(item)}
+                      onToggle={() => togglePublish(item)}
+                      disabled={saving}
+                    />
+                    <AdminSubscribersEmailedBadge item={item} />
+                  </td>
                   <td className="px-4 py-3 font-body text-sm text-chai-brown-light">{formatDate(item.publishedAt)}</td>
-                  <td className="px-4 py-3 font-body text-sm text-chai-brown-light" title={(item.seoKeywords ?? []).join(', ') || 'No custom keywords'}>
-                    {(item.seoKeywords ?? []).length ? (
-                      <span className="text-terracotta">{(item.seoKeywords ?? []).length}</span>
+                  <td className="px-4 py-3 font-body text-sm text-chai-brown-light" title={(item.tags ?? []).join(', ') || 'No tags'}>
+                    {(item.tags ?? []).length ? (
+                      <span className="text-terracotta">{(item.tags ?? []).length}</span>
                     ) : (
                       '—'
                     )}

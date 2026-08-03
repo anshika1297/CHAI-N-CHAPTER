@@ -2,9 +2,10 @@ import UnsubscribePageContent from '@/components/subscribe/UnsubscribePageConten
 import { buildMetadata } from '@/lib/metadata';
 
 export const metadata = buildMetadata({
-  title: 'Unsubscribe – Chapters.aur.Chai',
-  description: 'Unsubscribe from the newsletter.',
+  title: 'Unsubscribe',
+  description: 'Unsubscribe from the Chapters.aur.Chai newsletter.',
   path: '/subscribe/unsubscribe',
+  noIndex: true,
 });
 
 export default function UnsubscribePage() {

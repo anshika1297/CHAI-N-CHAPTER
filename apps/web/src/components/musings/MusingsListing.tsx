@@ -6,6 +6,7 @@ import Filters from './Filters';
 import Pagination from '../blog/Pagination';
 import { useDebounce } from '@/hooks/useDebounce';
 import { getMusings, getCategories, getImageUrl } from '@/lib/api';
+import ExploreHubLinks from '@/components/content/ExploreHubLinks';
 
 type MusingItem = {
   id: string;
@@ -110,8 +111,8 @@ export default function MusingsListing() {
 
   if (error && items.length === 0) {
     return (
-      <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-        <div className="max-w-7xl mx-auto text-center py-16">
+      <section className="pt-24 pb-12 sm:pb-16 min-h-screen">
+        <div className="site-container text-center py-16">
           <p className="font-body text-red-600">{error}</p>
         </div>
       </section>
@@ -119,8 +120,8 @@ export default function MusingsListing() {
   }
 
   return (
-    <section className="pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <section className="pt-24 pb-12 sm:pb-16 min-h-screen">
+      <div className="site-container">
         <div className="text-center mb-8 sm:mb-12">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-serif text-chai-brown mb-3">
             Her Musings Verse
@@ -194,6 +195,7 @@ export default function MusingsListing() {
             ) : null}
           </div>
         </div>
+        <ExploreHubLinks intro="More ways to explore stories and ideas" />
       </div>
     </section>
   );

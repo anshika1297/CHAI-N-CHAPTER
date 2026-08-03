@@ -33,6 +33,7 @@ export default function AdminEmailSettingsPage() {
   const [testTo, setTestTo] = useState('');
   const [testSending, setTestSending] = useState(false);
   const [testResult, setTestResult] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [smtpPassSaved, setSmtpPassSaved] = useState(false);
 
   useEffect(() => {
     getPageSettings('email-settings')
@@ -58,6 +59,7 @@ export default function AdminEmailSettingsPage() {
             musingsAnnounceSubject: typeof c.musingsAnnounceSubject === 'string' ? c.musingsAnnounceSubject : '',
             musingsAnnounceBodyHtml: typeof c.musingsAnnounceBodyHtml === 'string' ? c.musingsAnnounceBodyHtml : '',
           });
+          setSmtpPassSaved(c.smtpPassSet === true);
         }
       })
       .catch(() => setMessage({ type: 'error', text: 'Failed to load email settings' }))
@@ -88,6 +90,7 @@ export default function AdminEmailSettingsPage() {
       };
       if (form.smtpPass.trim()) payload.smtpPass = form.smtpPass;
       await putPageSettings('email-settings', payload);
+      setSmtpPassSaved(Boolean(form.smtpPass.trim()) || smtpPassSaved);
       setMessage({ type: 'success', text: 'Email settings saved. Welcome and all announcement emails will use these details.' });
     } catch (e) {
       setMessage({ type: 'error', text: e instanceof Error ? e.message : 'Failed to save' });
@@ -102,10 +105,28 @@ export default function AdminEmailSettingsPage() {
       setTestResult({ type: 'error', text: 'Enter an email address to send a test to.' });
       return;
     }
+    if (!form.smtpHost.trim() || !form.smtpUser.trim()) {
+      setTestResult({ type: 'error', text: 'Fill in SMTP host and SMTP user (read@chaptersaurchai.com), then try again.' });
+      return;
+    }
+    if (!form.smtpPass.trim() && !smtpPassSaved) {
+      setTestResult({
+        type: 'error',
+        text: 'Enter the mailbox password in SMTP password, click Save, then send the test (or enter the password and test without saving).',
+      });
+      return;
+    }
     setTestSending(true);
     setTestResult(null);
     try {
-      const { message: msg } = await sendTestEmail(email);
+      const { message: msg } = await sendTestEmail(email, {
+        fromEmail: form.fromEmail.trim() || undefined,
+        smtpHost: form.smtpHost.trim() || undefined,
+        smtpPort: form.smtpPort.trim() ? parseInt(form.smtpPort, 10) : undefined,
+        smtpSecure: form.smtpSecure,
+        smtpUser: form.smtpUser.trim() || undefined,
+        smtpPass: form.smtpPass.trim() || undefined,
+      });
       setTestResult({ type: 'success', text: msg });
     } catch (e) {
       setTestResult({ type: 'error', text: e instanceof Error ? e.message : 'Failed to send test email' });
@@ -126,7 +147,7 @@ export default function AdminEmailSettingsPage() {
             Subscriber emails
           </h1>
           <p className="font-body text-chai-brown-light">
-            Configure welcome emails (on subscribe), book club announcements, and automatic emails when you publish a new book review, recommendation list, or Her Musings Verse piece. Use either server .env (SMTP_*) or the SMTP section below to set the sending account.
+            Configure welcome emails (on subscribe) and announcement templates. Subscribers are emailed automatically once when you first publish content (or add a new book club)—not again if you edit and republish. Use either server .env (SMTP_*) or the SMTP section below.
           </p>
         </div>
         <button
@@ -152,8 +173,13 @@ export default function AdminEmailSettingsPage() {
       <div className="mb-8 bg-white rounded-lg p-6 border border-chai-brown/10">
         <h2 className="font-serif text-xl text-chai-brown mb-2">Send test email</h2>
         <p className="text-sm text-chai-brown-light mb-4 font-body">
-          Use either .env (SMTP_*) or the SMTP section below. Then send a test to confirm it works.
+          Uses the SMTP fields below (save first, or enter password and test). If the admin shows success but you see no mail, check spam and promotions. A red error here usually means wrong host, port, or password.
         </p>
+        {smtpPassSaved && !form.smtpPass.trim() ? (
+          <p className="text-sm text-green-800 bg-green-50 px-3 py-2 rounded-lg mb-4 font-body">
+            SMTP password is saved on the server (leave password blank to keep it).
+          </p>
+        ) : null}
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-[200px]">
             <label className="block font-body text-sm font-medium text-chai-brown mb-1">Send to (email)</label>
@@ -199,7 +225,7 @@ export default function AdminEmailSettingsPage() {
                 type="text"
                 value={form.smtpHost}
                 onChange={(e) => setForm({ ...form, smtpHost: e.target.value })}
-                placeholder="e.g. smtp.gmail.com"
+                placeholder="mail.chaptersaurchai.com"
                 className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
               />
             </div>
@@ -209,7 +235,7 @@ export default function AdminEmailSettingsPage() {
                 type="text"
                 value={form.smtpPort}
                 onChange={(e) => setForm({ ...form, smtpPort: e.target.value })}
-                placeholder="587"
+                placeholder="465"
                 className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
               />
             </div>
@@ -229,7 +255,7 @@ export default function AdminEmailSettingsPage() {
                 type="email"
                 value={form.smtpUser}
                 onChange={(e) => setForm({ ...form, smtpUser: e.target.value })}
-                placeholder="e.g. the.bookish.voyager@gmail.com"
+                placeholder="read@chaptersaurchai.com"
                 className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
               />
             </div>
@@ -244,7 +270,7 @@ export default function AdminEmailSettingsPage() {
                 className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
               />
               <p className="mt-1 text-xs text-chai-brown-light font-body">
-                For Gmail: create an App Password in your Google Account (Security → 2-Step Verification → App passwords). Never use your normal Gmail password here.
+                Use the password for <strong>read@chaptersaurchai.com</strong> from cPanel → Email Accounts. For Gmail instead, use an App Password (not your normal password).
               </p>
             </div>
           </div>
@@ -261,11 +287,11 @@ export default function AdminEmailSettingsPage() {
                 type="text"
                 value={form.fromEmail}
                 onChange={(e) => setForm({ ...form, fromEmail: e.target.value })}
-                placeholder='e.g. Chapters.aur.Chai <hello@chaptersaurchai.com>'
+                placeholder='Chapters.aur.Chai <read@chaptersaurchai.com>'
                 className="w-full px-4 py-2 border border-chai-brown/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-terracotta font-body"
               />
               <p className="mt-1 text-xs text-chai-brown-light font-body">
-                Overrides SMTP_FROM from env. Leave blank to use env default.
+                Use angle brackets &lt; &gt;, not parentheses ( ). Example: Chapters.aur.Chai &lt;read@chaptersaurchai.com&gt;
               </p>
             </div>
             <div>
@@ -327,7 +353,7 @@ export default function AdminEmailSettingsPage() {
         <div className="bg-white rounded-lg p-6 border border-chai-brown/10">
           <h2 className="font-serif text-xl text-chai-brown mb-2">Book club announcement email</h2>
           <p className="text-sm text-chai-brown-light mb-4 font-body">
-            Used when you click &quot;Email subscribers&quot; on a book club in Admin → Book clubs. Leave blank to use the default template.
+            Sent automatically once when you add a new book club in Admin → Book clubs. Leave blank to use the default template.
           </p>
           <div className="space-y-4">
             <div>
