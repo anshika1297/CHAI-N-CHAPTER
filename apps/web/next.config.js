@@ -42,8 +42,16 @@ if (!isStaticExport) {
       if (u.endsWith('/api')) u = u.slice(0, -4)
       return u
     }
-    const fromEnv = normalize(process.env.API_INTERNAL_URL || process.env.NEXT_PUBLIC_API_URL)
-    const apiTarget = fromEnv || (process.env.NODE_ENV === 'production' ? 'http://127.0.0.1:5002' : 'http://127.0.0.1:5001')
+    const fromInternal = normalize(process.env.API_INTERNAL_URL)
+    const fromPublic = normalize(process.env.NEXT_PUBLIC_API_URL)
+    // Never rewrite local Next /api to the live site — that returns Apache 500s on OPTIONS ("Failed to fetch").
+    const isRemotePublic =
+      fromPublic &&
+      !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(fromPublic)
+    const apiTarget =
+      fromInternal ||
+      (!isRemotePublic && fromPublic) ||
+      (process.env.NODE_ENV === 'production' ? 'http://127.0.0.1:5002' : 'http://127.0.0.1:5001')
     return [
       { source: '/api/:path*', destination: `${apiTarget}/api/:path*` },
       { source: '/health', destination: `${apiTarget}/health` },

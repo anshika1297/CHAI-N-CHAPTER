@@ -8,6 +8,7 @@ import {
   bulkUpdateLibraryBooks,
   deleteLibraryBook,
   downloadLibraryBooksCsv,
+  getLibraryBook,
   listLibraryBooks,
   suggestBooksEnrichment,
 } from '@/lib/library/api';
@@ -105,6 +106,7 @@ export default function LibraryBooksPage() {
   const [enrichNote, setEnrichNote] = useState('');
   const [activeEnrichId, setActiveEnrichId] = useState<string | null>(null);
   const [viewing, setViewing] = useState<LibraryBookDto | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [showBulkEdit, setShowBulkEdit] = useState(false);
   const [bulkForm, setBulkForm] = useState<BulkForm>(EMPTY_BULK);
@@ -178,6 +180,17 @@ export default function LibraryBooksPage() {
     setSelected(new Set());
     load(1);
   }, [load]);
+
+  const openView = (book: LibraryBookDto) => {
+    setViewing(book);
+    setViewLoading(true);
+    getLibraryBook(book._id)
+      .then(({ book: full }) => setViewing(full))
+      .catch(() => {
+        /* keep list row data if detail fetch fails */
+      })
+      .finally(() => setViewLoading(false));
+  };
 
   const handleDelete = (book: LibraryBookDto) => {
     if (!confirm(`Delete "${book.title}" from your library?`)) return;
@@ -875,7 +888,7 @@ export default function LibraryBooksPage() {
 
       {viewing && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[92vh] flex flex-col">
+          <div className="bg-white rounded-lg w-full max-w-3xl max-h-[92vh] flex flex-col">
             <div className="p-5 border-b border-chai-brown/10 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <h2 className="font-serif text-2xl text-chai-brown">{viewing.title}</h2>
@@ -885,6 +898,7 @@ export default function LibraryBooksPage() {
                 <p className="font-body text-sm text-chai-brown mt-1">
                   {viewing.author || 'Unknown author'}
                   {viewing.rating ? ` · ${viewing.rating}★` : ''}
+                  {viewLoading ? ' · Loading full record…' : ''}
                 </p>
               </div>
               <button
@@ -896,7 +910,7 @@ export default function LibraryBooksPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-5 font-body text-sm text-chai-brown">
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 font-body text-sm text-chai-brown">
               {viewing.coverImage && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -906,112 +920,232 @@ export default function LibraryBooksPage() {
                 />
               )}
 
-              <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div>
-                  <dt className="text-xs text-chai-brown-light">Status</dt>
-                  <dd>{STATUS_LABELS[viewing.status] ?? viewing.status}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-chai-brown-light">Pages</dt>
-                  <dd>{viewing.pages || '—'}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-chai-brown-light">Format</dt>
-                  <dd>{viewing.format || '—'}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-chai-brown-light">Series</dt>
-                  <dd>
-                    {viewing.series
-                      ? `${viewing.series}${viewing.seriesNumber ? ` #${viewing.seriesNumber}` : ''}`
-                      : '—'}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-chai-brown-light">Publisher</dt>
-                  <dd>{viewing.publisher || '—'}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-chai-brown-light">Country / setting</dt>
-                  <dd>{viewing.country || '—'}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-chai-brown-light">Language</dt>
-                  <dd>{viewing.originalLanguage || '—'}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-chai-brown-light">Audience</dt>
-                  <dd>{viewing.audience || '—'}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-chai-brown-light">Ownership</dt>
-                  <dd>{viewing.ownership || '—'}</dd>
-                </div>
-              </dl>
-
-              {viewing.oneLineRecommendation && (
-                <div>
-                  <p className="text-xs text-chai-brown-light mb-1">Pitch</p>
-                  <p className="italic">{viewing.oneLineRecommendation}</p>
-                </div>
-              )}
-              {viewing.description && (
-                <div>
-                  <p className="text-xs text-chai-brown-light mb-1">Description</p>
-                  <p className="whitespace-pre-wrap">{viewing.description}</p>
-                </div>
-              )}
-
-              {(
-                [
-                  ['Genres', viewing.genres],
-                  ['Subgenres', viewing.subgenres],
-                  ['Themes', viewing.themes],
-                  ['Moods', viewing.moods],
-                  ['Tropes', viewing.tropes],
-                  ['Tags', viewing.tags],
-                  ['Keywords', viewing.keywords],
-                  ['Seasonal / occasions', viewing.seasonalRecommendation],
-                  ['Similar books', viewing.similarBooks],
-                  ['Trigger warnings', viewing.triggerWarnings],
-                ] as [string, string[] | undefined][]
-              )
-                .filter(([, vals]) => (vals?.length ?? 0) > 0)
-                .map(([label, vals]) => (
-                  <div key={label}>
-                    <p className="text-xs text-chai-brown-light mb-1">{label}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {(vals ?? []).map((v) => (
-                        <span
-                          key={`${label}-${v}`}
-                          className="px-2 py-0.5 rounded-md bg-cream border border-chai-brown/10 text-xs"
-                        >
-                          {v}
-                        </span>
-                      ))}
-                    </div>
+              {(() => {
+                const yesNo = (v: boolean | undefined) =>
+                  v === true ? 'Yes' : v === false ? 'No' : '—';
+                const dateStr = (v: string | undefined) => {
+                  if (!v) return '—';
+                  const d = new Date(v);
+                  return Number.isNaN(d.getTime()) ? v : d.toISOString().slice(0, 10);
+                };
+                const yearStr = (v: string | undefined) => {
+                  if (!v) return '—';
+                  const d = new Date(v);
+                  return Number.isNaN(d.getTime()) ? v : String(d.getUTCFullYear());
+                };
+                const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
+                  <div>
+                    <dt className="text-xs text-chai-brown-light">{label}</dt>
+                    <dd className="mt-0.5 break-words">{value || '—'}</dd>
                   </div>
-                ))}
+                );
+                const Section = ({
+                  title,
+                  children,
+                }: {
+                  title: string;
+                  children: React.ReactNode;
+                }) => (
+                  <section>
+                    <h3 className="font-serif text-lg text-chai-brown mb-3 border-b border-chai-brown/10 pb-1">
+                      {title}
+                    </h3>
+                    {children}
+                  </section>
+                );
+                const ChipList = ({ label, vals }: { label: string; vals?: string[] }) => (
+                  <div>
+                    <p className="text-xs text-chai-brown-light mb-1">{label}</p>
+                    {(vals?.length ?? 0) === 0 ? (
+                      <p>—</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {(vals ?? []).map((v) => (
+                          <span
+                            key={`${label}-${v}`}
+                            className="px-2 py-0.5 rounded-md bg-cream border border-chai-brown/10 text-xs"
+                          >
+                            {v}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+                const Block = ({ label, value }: { label: string; value?: string }) => (
+                  <div>
+                    <p className="text-xs text-chai-brown-light mb-1">{label}</p>
+                    <p className="whitespace-pre-wrap">{value?.trim() ? value : '—'}</p>
+                  </div>
+                );
 
-              {(viewing.copies?.length ?? 0) > 0 && (
-                <div>
-                  <p className="text-xs text-chai-brown-light mb-1">Copies</p>
-                  <ul className="space-y-1">
-                    {viewing.copies.map((c, i) => (
-                      <li key={i}>
-                        {[c.format, c.location, c.notes].filter(Boolean).join(' · ') || '—'}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+                return (
+                  <>
+                    <Section title="Identity">
+                      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <Field label="Title" value={viewing.title} />
+                        <Field label="Subtitle" value={viewing.subtitle} />
+                        <Field label="Author" value={viewing.author} />
+                        <Field label="Author Gender" value={viewing.authorGender} />
+                        <Field label="Country" value={viewing.country} />
+                        <Field label="Original Language" value={viewing.originalLanguage} />
+                        <Field label="Translator" value={viewing.translator} />
+                        <Field label="Publication Year" value={yearStr(viewing.publicationDate)} />
+                        <Field label="Pages" value={viewing.pages} />
+                        <Field label="ISBN" value={viewing.isbn} />
+                        <Field label="Cover URL" value={viewing.coverImage} />
+                        <Field label="ASIN" value={viewing.asin} />
+                        <Field label="Edition" value={viewing.edition} />
+                        <Field label="Publisher" value={viewing.publisher} />
+                      </dl>
+                    </Section>
 
-              {viewing.personalNotes && (
-                <div>
-                  <p className="text-xs text-chai-brown-light mb-1">Personal notes</p>
-                  <p className="whitespace-pre-wrap">{viewing.personalNotes}</p>
-                </div>
-              )}
+                    <Section title="Classification">
+                      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+                        <Field label="Fiction / Non-fiction" value={viewing.fictionType} />
+                        <Field label="Primary Genre" value={viewing.primaryGenre} />
+                        <Field label="Secondary Genre" value={viewing.secondaryGenre} />
+                        <Field label="Audience" value={viewing.audience} />
+                        <Field label="Reading Level" value={viewing.readingLevel} />
+                        <Field label="Writing Style" value={viewing.writingStyle} />
+                      </dl>
+                      <div className="space-y-3">
+                        <ChipList label="Genres" vals={viewing.genres} />
+                        <ChipList label="Subgenre" vals={viewing.subgenres} />
+                        <ChipList label="Themes" vals={viewing.themes} />
+                        <ChipList label="Mood / Reading Experience" vals={viewing.moods} />
+                        <ChipList label="Tropes" vals={viewing.tropes} />
+                        <ChipList label="Search Tags" vals={viewing.tags} />
+                        <ChipList label="Keywords" vals={viewing.keywords} />
+                      </div>
+                    </Section>
+
+                    <Section title="Series">
+                      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <Field label="Series (Y/N)" value={yesNo(viewing.inSeries)} />
+                        <Field label="Series Name" value={viewing.series} />
+                        <Field label="Series Number" value={viewing.seriesNumber} />
+                        <Field label="Standalone" value={yesNo(viewing.standalone)} />
+                      </dl>
+                    </Section>
+
+                    <Section title="Women & shelves">
+                      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+                        <Field label="Female Author" value={yesNo(viewing.femaleAuthor)} />
+                        <Field label="Female Protagonist" value={yesNo(viewing.femaleProtagonist)} />
+                        <Field label="Women Focus" value={viewing.womenFocus} />
+                      </dl>
+                      <ChipList label="Collections" vals={viewing.collections} />
+                    </Section>
+
+                    <Section title="Recommend & content">
+                      <div className="space-y-3 mb-3">
+                        <ChipList
+                          label="Recommendation Occasion"
+                          vals={viewing.seasonalRecommendation}
+                        />
+                        <ChipList label="Similar Books" vals={viewing.similarBooks} />
+                        <Block label="One-line Recommendation" value={viewing.oneLineRecommendation} />
+                        <Block label="Short Description" value={viewing.description} />
+                        <Block label="Instagram Hook" value={viewing.instagramHook} />
+                        <Block label="Instagram Post Topic" value={viewing.instagramPostTopic} />
+                      </div>
+                      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <Field label="Best Posting Month" value={viewing.bestPostingMonth} />
+                        <Field label="Why I recommend it" value={viewing.whyIRecommendIt} />
+                      </dl>
+                    </Section>
+
+                    <Section title="Reading log">
+                      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <Field
+                          label="Chapters.Aur.Chai Rating"
+                          value={viewing.rating != null ? viewing.rating : '—'}
+                        />
+                        <Field
+                          label="Read Status"
+                          value={STATUS_LABELS[viewing.status] ?? viewing.status}
+                        />
+                        <Field label="Date Read" value={dateStr(viewing.finishedDate)} />
+                        <Field label="Started" value={dateStr(viewing.startedDate)} />
+                        <Field label="Format Read" value={viewing.format} />
+                        <Field label="Owned" value={yesNo(viewing.owned)} />
+                        <Field label="Wishlist" value={viewing.wishlist} />
+                        <Field label="Ownership" value={viewing.ownership} />
+                        <Field label="Location" value={viewing.location} />
+                        <Field
+                          label="Confidence"
+                          value={viewing.recommendationConfidence}
+                        />
+                        <Field label="Re-read count" value={viewing.rereadCount} />
+                      </dl>
+                    </Section>
+
+                    <Section title="Signals">
+                      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+                        <Field label="Bestseller" value={viewing.bestseller} />
+                        <Field label="Adaptation" value={viewing.adaptation} />
+                        <Field label="BookTok Popular" value={viewing.bookTokPopular} />
+                        <Field label="Bookstagram Popular" value={viewing.bookstagramPopular} />
+                      </dl>
+                      <ChipList label="Awards" vals={viewing.awards} />
+                    </Section>
+
+                    <Section title="Extras">
+                      <div className="space-y-3 mb-3">
+                        <ChipList label="Trigger warnings" vals={viewing.triggerWarnings} />
+                        <Block label="Favourite character" value={viewing.favouriteCharacter} />
+                        <Block label="Favourite scene" value={viewing.favouriteScene} />
+                        <Block label="Favourite quote" value={viewing.favouriteQuote} />
+                        <Block label="Personal notes" value={viewing.personalNotes} />
+                      </div>
+                      <dl className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <Field label="Discovery source" value={viewing.discoverySource} />
+                        <Field label="Discovery status" value={viewing.discoveryStatus} />
+                        <Field label="Slug" value={viewing.slug} />
+                      </dl>
+                      {(viewing.copies?.length ?? 0) > 0 && (
+                        <div className="mt-3">
+                          <p className="text-xs text-chai-brown-light mb-1">Copies</p>
+                          <ul className="space-y-1">
+                            {viewing.copies.map((c, i) => (
+                              <li key={i}>
+                                {[c.format, c.location, c.notes].filter(Boolean).join(' · ') || '—'}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {viewing.contentLinks &&
+                        Object.values(viewing.contentLinks).some((v) => String(v || '').trim()) && (
+                          <div className="mt-3">
+                            <p className="text-xs text-chai-brown-light mb-1">Content links</p>
+                            <ul className="space-y-1 break-all">
+                              {(
+                                [
+                                  'goodreads',
+                                  'amazon',
+                                  'blog',
+                                  'instagram',
+                                  'linkedin',
+                                  'youtube',
+                                  'newsletter',
+                                ] as const
+                              )
+                                .filter((k) => viewing.contentLinks?.[k])
+                                .map((k) => (
+                                  <li key={k}>
+                                    <span className="text-chai-brown-light">{k}: </span>
+                                    {viewing.contentLinks?.[k]}
+                                  </li>
+                                ))}
+                            </ul>
+                          </div>
+                        )}
+                    </Section>
+                  </>
+                );
+              })()}
             </div>
 
             <div className="p-5 border-t border-chai-brown/10 flex gap-3">
@@ -1277,7 +1411,7 @@ export default function LibraryBooksPage() {
                     <td className="px-4 py-3">
                       <button
                         type="button"
-                        onClick={() => setViewing(b)}
+                        onClick={() => openView(b)}
                         className="font-body text-left text-chai-brown hover:text-terracotta"
                       >
                         {b.title}
@@ -1300,7 +1434,7 @@ export default function LibraryBooksPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => setViewing(b)}
+                          onClick={() => openView(b)}
                           className="p-2 text-chai-brown hover:bg-cream rounded"
                           title="View details"
                         >

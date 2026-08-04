@@ -70,17 +70,42 @@ if (config.nodeEnv === 'production') {
   }));
 }
 
-// CORS configuration
+// CORS configuration — FRONTEND_URL may be comma-separated.
+// In development, also allow localhost ↔ 127.0.0.1 swaps (same port).
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    
-    const allowedOrigins = config.frontendUrl.split(',').map(url => url.trim());
-    if (allowedOrigins.includes(origin)) {
+
+    const allowedOrigins = new Set(
+      config.frontendUrl.split(',').map((url) => url.trim()).filter(Boolean)
+    );
+
+    // Local dev: browser may use 127.0.0.1 while FRONTEND_URL says localhost (or vice versa).
+    if (config.nodeEnv !== 'production') {
+      for (const url of [...allowedOrigins]) {
+        try {
+          const u = new URL(url);
+          if (u.hostname === 'localhost') {
+            allowedOrigins.add(`${u.protocol}//127.0.0.1${u.port ? `:${u.port}` : ''}`);
+          } else if (u.hostname === '127.0.0.1') {
+            allowedOrigins.add(`${u.protocol}//localhost${u.port ? `:${u.port}` : ''}`);
+          }
+        } catch {
+          /* ignore bad URL */
+        }
+      }
+      // Also allow any localhost / 127.0.0.1 port during local development.
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
+        return callback(null, true);
+      }
+    }
+
+    if (allowedOrigins.has(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // Don't throw — cors Error becomes HTTP 500 and looks like a dead backend.
+      callback(null, false);
     }
   },
   credentials: true,
