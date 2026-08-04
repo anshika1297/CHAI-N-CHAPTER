@@ -458,6 +458,10 @@ without a redeploy.
 - `apps/web/middleware.ts` — security headers + matcher
 - `apps/web/.env`, `apps/web/.env.local`, `apps/web/.env.example` — env precedence is
   `.env.local` > `.env` (don't omit a key in `.env.local` expecting it to "unset" — set it to
-  empty `KEY=` instead)
-- `scripts/build-deploy.sh` — one-shot local build + tarball
+  empty `KEY=` instead). **Never** put `NEXT_PUBLIC_API_URL=http://127.0.0.1:…` in
+  `.env.local` if you might run a production build from that machine — it gets inlined into
+  the browser bundle and the live site will call visitors' localhost (no `/api` traffic).
+- `scripts/build-deploy.sh` — one-shot local build + tarball (forces production
+  `NEXT_PUBLIC_*` / `API_INTERNAL_URL=http://127.0.0.1:5002` via shell env so `.env.local`
+  cannot poison the client bundle)
 - `apps/web/PRODUCTION.md` — older, more generic deployment reference

@@ -52,6 +52,16 @@ if [[ "$SKIP_BUILD" -eq 0 ]]; then
   log "Cleaning previous .next/"
   rm -rf apps/web/.next
 
+  # NEXT_PUBLIC_* is inlined into the browser bundle at build time.
+  # Shell env overrides apps/web/.env.local — without this, a local
+  # NEXT_PUBLIC_API_URL=http://127.0.0.1:5001 gets shipped to production and
+  # the live site silently calls the visitor's localhost (no /api traffic).
+  export NEXT_PUBLIC_SITE_URL="${NEXT_PUBLIC_SITE_URL:-https://chaptersaurchai.com}"
+  export NEXT_PUBLIC_API_URL="${NEXT_PUBLIC_API_URL:-https://chaptersaurchai.com}"
+  export NEXT_PUBLIC_IMAGE_API_URL="${NEXT_PUBLIC_IMAGE_API_URL:-https://chaptersaurchai.com}"
+  export API_INTERNAL_URL="${API_INTERNAL_URL:-http://127.0.0.1:5002}"
+  log "Build env: NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL API_INTERNAL_URL=$API_INTERNAL_URL"
+
   log "Building apps/web (production)…"
   if [[ "$SKIP_API" -eq 1 ]]; then
     SKIP_BUILD_API_FETCH=1 NODE_OPTIONS="--max-old-space-size=4096" \
